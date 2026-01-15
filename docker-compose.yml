@@ -13,7 +13,7 @@ services:
       - backend
     environment:
       VITE_API_URL: http://localhost:8000/api
-      VITE_APP_NAME: TFG-Gestion-ITV
+      VITE_APP_NAME: TFG-CAR-HERO
       VITE_ENV: development
       VITE_PAGINATION_LIMIT: 10
     command: npm run dev -- --host

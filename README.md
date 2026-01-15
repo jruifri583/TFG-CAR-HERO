@@ -12,9 +12,21 @@ Documentación en este wiki: funcionalidades, arquitectura, ER, API, despliegue 
 
 docker image prune -f
 docker compose build --no-cache
+docker compose restart backend
+docker compose restart frontend
 docker compose up
 docker compose stop
 docker compose start
+docker compose stop frontend backend
+docker compose start frontend backend
+
+docker compose exec backend bash
+php artisan key:generate
+php artisan migrate
+php artisan migrate:fresh --seed
+php artisan config:clear
+php artisan cache:clear
+
 
 http://localhost:5173  → frontend
 http://localhost:8000  → backend 
