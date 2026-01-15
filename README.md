@@ -7,3 +7,17 @@ Este repositorio contiene el proyecto **Car-Hero**, una aplicación para gestion
 **Stack principal**: Frontend (React), Backend (Laravel), BD (MySQL).  
 Documentación en este wiki: funcionalidades, arquitectura, ER, API, despliegue y flujo de trabajo.
 
+
+
+
+docker image prune -f
+docker compose build --no-cache
+docker compose up
+docker compose stop
+docker compose start
+
+http://localhost:5173  → frontend
+http://localhost:8000  → backend 
+http://localhost:8081  → db
+
+
