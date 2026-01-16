@@ -5,6 +5,7 @@ import './index.css' // Cambiado a index.css para usar Tailwind
 
 function App() {
   const [count, setCount] = useState(0)
+  
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-4">

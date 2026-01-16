@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Vehiculo;
 use App\Models\Solicitud;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
