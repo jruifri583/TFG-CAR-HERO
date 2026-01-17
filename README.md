@@ -14,6 +14,7 @@ docker image prune -f
 docker compose build --no-cache
 docker compose restart backend
 docker compose restart frontend
+php artisan optimize:clear
 docker compose up -d
 docker compose down
 
