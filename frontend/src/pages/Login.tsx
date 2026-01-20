@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Importante importar los componentes
+import { Card, CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card"; // Importante importar los componentes
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -23,8 +23,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="grid grid-cols-2 min-h-screen w-full bg-gray-100 ">
+      <div className='bg-primary' style={{ backgroundImage: "url('/logo.png') no-repeat center center", backgroundSize: "contain" }}>
+      </div>
+      <div className="flex items-center justify-center p-8">
+     <CardSinBorde className="w-full" >
         <CardHeader>
           <CardTitle className="text-3xl font-bold text-center">Car-Hero</CardTitle>
           <p className="text-center text-sm text-muted-foreground mt-2">Bienvenido de nuevo</p>
@@ -67,7 +70,10 @@ export default function LoginPage() {
             </button>
           </div>
         </CardContent>
-      </Card>
+      </CardSinBorde> 
+      </div>
     </div>
+      
+
   );
 }

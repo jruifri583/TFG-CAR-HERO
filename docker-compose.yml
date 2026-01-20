@@ -36,6 +36,7 @@ services:
       DB_DATABASE: db
       DB_USERNAME: user
       DB_PASSWORD: 12345?
+      FRONTEND_URL: http://localhost:5173
     command: php artisan serve --host=0.0.0.0 --port=8000
 
   db:
