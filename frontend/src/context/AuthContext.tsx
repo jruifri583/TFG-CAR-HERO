@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import api from '@/lib/axios';
-import { User, AuthContextType } from '@/types/auth';
+import { type User, type AuthContextType, type LoginCredentials } from '@/types/auth';
 
-// 1. Inicializamos con el tipo correcto o undefined
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -12,10 +11,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const checkUser = async () => {
             try {
-                const response = await api.get('/me');
+                // Tipamos la respuesta de Axios para que sepa que devuelve un User
+                const response = await api.get<User>('/me');
                 setUser(response.data);
-            } catch (error) {
+            } catch {
                 localStorage.removeItem('token');
+                setUser(null);
             } finally {
                 setLoading(false);
             }
@@ -24,10 +25,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         else setLoading(false);
     }, []);
 
-    const login = async (credentials: any) => {
-        const response = await api.post('/login', credentials);
+    const login = async (credentials: LoginCredentials) => {
+        // Tipamos la respuesta para que reconozca 'access_token'
+        const response = await api.post<{ access_token: string }>('/login', credentials);
         localStorage.setItem('token', response.data.access_token);
-        const userRes = await api.get('/me');
+        
+        const userRes = await api.get<User>('/me');
         setUser(userRes.data);
     };
 
@@ -43,10 +46,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-// 2. Este Hook ahora es seguro y no dará error de "undefined"
 export const useAuth = () => {
     const context = useContext(AuthContext);
-    if (context === undefined) {
+    if (!context) {
         throw new Error('useAuth debe usarse dentro de un AuthProvider');
     }
     return context;
