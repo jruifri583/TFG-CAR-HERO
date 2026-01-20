@@ -1,8 +1,7 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import api from '@/lib/axios';
-import { type User, type AuthContextType, type LoginCredentials } from '@/types/auth';
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from './AuthContext';
+import { type User, type LoginCredentials } from '@/types/auth';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -11,7 +10,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const checkUser = async () => {
             try {
-                // Tipamos la respuesta de Axios para que sepa que devuelve un User
                 const response = await api.get<User>('/me');
                 setUser(response.data);
             } catch {
@@ -21,15 +19,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setLoading(false);
             }
         };
+
         if (localStorage.getItem('token')) checkUser();
         else setLoading(false);
     }, []);
 
     const login = async (credentials: LoginCredentials) => {
-        // Tipamos la respuesta para que reconozca 'access_token'
-        const response = await api.post<{ access_token: string }>('/login', credentials);
-        localStorage.setItem('token', response.data.access_token);
-        
+        // 1. Obtenemos el token
+        const response = await api.post<{ token: string }>('/login', credentials);
+        const token = response.data.token;
+
+        // 2. Lo guardamos en localStorage
+        localStorage.setItem('token', token);
+
+        // 3. Forzar el header para esta sesión específica inmediatamente
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        // 4. Obtener y establecer los datos del usuario
         const userRes = await api.get<User>('/me');
         setUser(userRes.data);
     };
@@ -44,12 +50,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </AuthContext.Provider>
     );
-};
-
-export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth debe usarse dentro de un AuthProvider');
-    }
-    return context;
 };

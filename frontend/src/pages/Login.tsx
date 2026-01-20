@@ -1,46 +1,71 @@
-import { useState } from "react";
-import api from "@/lib/axios";
+import { useState } from 'react';
+import { useAuth } from '@/context/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Importante importar los componentes
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await api.post("/login", { email, password });
-      // Guardamos el token que ya comprobamos que funciona en Postman
-      localStorage.setItem("token", response.data.access_token);
-      alert("¡Login correcto!");
-      // Aquí redirigirías al Dashboard de la ITV
-    } catch (error) {
-      alert("Error en las credenciales");
+      await login({ email, password });
+      navigate('/dashboard');
+    } catch {
+      alert("Error al iniciar sesión. Revisa tus credenciales.");
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Card className="w-[350px]">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Iniciar Sesión - ITV</CardTitle>
+          <CardTitle className="text-3xl font-bold text-center">Car-Hero</CardTitle>
+          <p className="text-center text-sm text-muted-foreground mt-2">Bienvenido de nuevo</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Input 
-              type="email" 
-              placeholder="Email" 
-              onChange={(e) => setEmail(e.target.value)} 
-            />
-            <Input 
-              type="password" 
-              placeholder="Contraseña" 
-              onChange={(e) => setPassword(e.target.value)} 
-            />
-            <Button type="submit" className="w-full">Entrar</Button>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder="tu@email.com"
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+              />
+            </div>
+            <Button type="submit" className="w-full mt-4">
+              Entrar
+            </Button>
           </form>
+          
+          <div className="mt-4 text-center text-sm">
+            <span>¿No tienes cuenta? </span>
+            <button 
+              onClick={() => navigate('/register')} 
+              className="text-primary hover:underline font-medium"
+            >
+              Regístrate aquí
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>

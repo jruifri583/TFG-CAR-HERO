@@ -7,8 +7,7 @@ import { Label } from "@/components/ui/label";
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    nombre: "", apellidos: "", email: "", nif: "",
-    password: "", password_confirmation: "", rol_id: 1 // Por defecto usuario
+    email: "", password: "", password_confirmation: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,32 +21,20 @@ export default function Register() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-slate-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <Card className="w-full max-w-2xl">
-        <CardHeader><CardTitle className="text-2xl text-center">Crear Cuenta ITV</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-2xl text-center">Crear Cuenta</CardTitle></CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Nombre</Label>
-              <Input onChange={e => setFormData({...formData, nombre: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Apellidos</Label>
-              <Input onChange={e => setFormData({...formData, apellidos: e.target.value})} />
-            </div>
-            <div className="space-y-2">
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div className="space-y-4">
               <Label>Email</Label>
               <Input type="email" onChange={e => setFormData({...formData, email: e.target.value})} />
             </div>
-            <div className="space-y-2">
-              <Label>NIF</Label>
-              <Input onChange={e => setFormData({...formData, nif: e.target.value})} />
-            </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Label>Contraseña</Label>
               <Input type="password" onChange={e => setFormData({...formData, password: e.target.value})} />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Label>Confirmar Contraseña</Label>
               <Input type="password" onChange={e => setFormData({...formData, password_confirmation: e.target.value})} />
             </div>
