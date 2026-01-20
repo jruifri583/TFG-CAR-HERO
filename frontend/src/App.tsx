@@ -1,28 +1,22 @@
-import { Button } from "@/components/ui/button"
-import { CardLogin } from "@/components/ui/CardLogin"
-import { Label } from "@/components/ui/Label"
-import { Input } from "@/components/ui/Input"
+// App.tsx
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
 
-
-const App = () => {
+function App() {
   return (
-    <div>
-      <CardLogin>
-        <Label htmlFor="email">Email*</Label>
-        <Input id="email" type="email" placeholder="Enter your email" />
-        <Label htmlFor="password">Contraseña*</Label>
-        <Input id="password" type="password" placeholder="Crear una contraseña" />
-        <Label htmlFor="password">Repite contraseña*</Label>
-        <Input id="password" type="password" placeholder="Confirmar contraseña" />
-        <Button>Registrarse</Button>
-        <Button variant="outline">Registrarse con Google</Button>
-      </CardLogin>
-
-    </div>
-  )
-
-  
+    // El AuthProvider DEBE envolver al Router
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          {/* Aquí irán tus rutas protegidas más adelante */}
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
-
-export default App
+export default App;
