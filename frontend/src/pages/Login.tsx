@@ -72,7 +72,7 @@ export default function LoginPage() {
             </Button>
             <Button
             type="button"
-              onClick={() => window.location.href = "http://localhost:4000/api/auth/google"}
+              onClick={() => window.location.href = "http://localhost:8000/auth/google"}
                 className="w-full mt-4 bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center justify-center gap-2"
                   >
                 <div className="bg-[url('/google.png')] w-6 h-6 bg-center bg-contain bg-no-repeat" />

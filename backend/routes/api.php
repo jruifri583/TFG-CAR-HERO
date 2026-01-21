@@ -2,13 +2,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VehiculoController;
-use App\Http\Controllers\Api\GoogleAuthController;
+
 
 // --- Rutas Públicas ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::get('/auth/google', [GoogleAuthController::class, 'redirect']);
-Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 // --- Rutas Protegidas (Requieren Token JWT) ---
 Route::middleware('auth:api')->group(function () {
