@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import axios from "axios";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "", password: "", password_confirmation: ""
   });
