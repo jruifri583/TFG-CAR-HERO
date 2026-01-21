@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { useAuth } from '@/context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card"; // Importante importar los componentes
+import { CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card"; // Importante importar los componentes
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,15 +22,26 @@ export default function LoginPage() {
     }
   };
 
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  if (token) {
+    localStorage.setItem("token", token);
+    window.history.replaceState({}, document.title, "/"); // limpia query
+    navigate("/dashboard");
+  }
+}, [navigate]);
+
+
   return (
-    <div className="grid grid-cols-2 min-h-screen w-full bg-gray-100 ">
-      <div className='bg-primary' style={{ backgroundImage: "url('/logo.png') no-repeat center center", backgroundSize: "contain" }}>
+    <div className="grid grid-cols-2 min-h-screen w-full ">
+      <div className="bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center" >
       </div>
-      <div className="flex items-center justify-center p-8">
-     <CardSinBorde className="w-full" >
+      <div className="flex flex-col items-center justify-center p-8">
+        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-6" ></div>
+     <CardSinBorde className="w-full max-w-md mx-auto" >
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-center">Car-Hero</CardTitle>
-          <p className="text-center text-sm text-muted-foreground mt-2">Bienvenido de nuevo</p>
+          <CardTitle className="text-3xl font-bold ">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -39,7 +50,7 @@ export default function LoginPage() {
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="tu@email.com"
+                placeholder="Introduce tu email"
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
                 required 
@@ -50,6 +61,7 @@ export default function LoginPage() {
               <Input 
                 id="password" 
                 type="password" 
+                placeholder="Introduce tu contraseña"
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
                 required 
@@ -58,6 +70,14 @@ export default function LoginPage() {
             <Button type="submit" className="w-full mt-4">
               Entrar
             </Button>
+            <Button
+            type="button"
+              onClick={() => window.location.href = "http://localhost:4000/api/auth/google"}
+                className="w-full mt-4 bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center justify-center gap-2"
+                  >
+                <div className="bg-[url('/google.png')] w-6 h-6 bg-center bg-contain bg-no-repeat" />
+                  Continuar con Google
+                </Button>
           </form>
           
           <div className="mt-4 text-center text-sm">

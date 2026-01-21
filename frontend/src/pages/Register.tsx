@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import axios from "axios";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -15,8 +16,14 @@ export default function Register() {
     try {
       await api.post("/register", formData);
       alert("Registro completado. Ahora puedes hacer login.");
-    } catch (error: any) {
-      alert(error.response?.data?.message || "Error al registrar");
+    } catch (error: unknown) {
+  if (axios.isAxiosError(error)) {
+    alert(error.response?.data?.message ?? "Error al registrar");
+  } else if (error instanceof Error) {
+    alert(error.message);
+  } else {
+    alert("Error inesperado");
+  }
     }
   };
 
