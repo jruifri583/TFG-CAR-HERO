@@ -46,7 +46,7 @@ export default function Register() {
       <div className="flex flex-col items-center justify-center p-8">
         <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-6" ></div>
      <CardSinBorde className="w-full max-w-md mx-auto" >
-        <CardHeader><CardTitle className="text-2xl text-center">Crear Cuenta</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-2xl">Registrarse</CardTitle></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             <div className="space-y-4">
