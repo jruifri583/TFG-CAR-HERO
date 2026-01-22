@@ -17,6 +17,8 @@ docker compose restart frontend
 php artisan optimize:clear
 docker compose up -d
 docker compose down
+docker exec -it carhero_frontend bash
+
 
 
 http://localhost:5173  → frontend

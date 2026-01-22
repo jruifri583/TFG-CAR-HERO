@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import api from '@/lib/axios';
-import { AuthContext } from './AuthContext';
+import { AuthContext } from '@/context/AuthContext';
 import { type User, type LoginCredentials } from '@/types/auth';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
             {children}
         </AuthContext.Provider>
     );

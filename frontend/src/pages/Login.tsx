@@ -1,14 +1,18 @@
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useState,useEffect } from 'react';
 import { useAuth } from '@/context/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card"; // Importante importar los componentes
+import { CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card"; 
+import api from "@/lib/axios";
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { setUser } = useAuth();
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -22,15 +26,34 @@ export default function LoginPage() {
     }
   };
 
+  // Login con Google
+  const handleGoogleSuccess = async (response: CredentialResponse) => {
+    if (!response.credential) return;
+
+    try {
+      const res = await api.post("/auth/google", { id_token: response.credential });
+      localStorage.setItem("token", res.data.token);
+      setUser(res.data.user);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error login Google:", error);
+      alert("Error al iniciar sesión con Google");
+    }
+  };
+
+  const handleGoogleError = () => {
+    alert("Error al iniciar sesión con Google");
+  };
+
   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-  if (token) {
-    localStorage.setItem("token", token);
-    window.history.replaceState({}, document.title, "/"); // limpia query
-    navigate("/dashboard");
-  }
-}, [navigate]);
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      localStorage.setItem("token", token);
+      window.history.replaceState({}, document.title, "/"); // limpia query
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
 
   return (
@@ -73,7 +96,7 @@ export default function LoginPage() {
             <Button
             type="button"
               onClick={() => window.location.href = "http://localhost:8000/auth/google"}
-                className="w-full mt-4 bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center justify-center gap-2"
+                className="w-full bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center justify-center gap-2"
                   >
                 <div className="bg-[url('/google.png')] w-6 h-6 bg-center bg-contain bg-no-repeat" />
                   Continuar con Google

@@ -15,7 +15,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected $table = 'users';
 
-
+    // Los campos que se pueden asignar en masa
     protected $fillable = [
         'email',
         'password',

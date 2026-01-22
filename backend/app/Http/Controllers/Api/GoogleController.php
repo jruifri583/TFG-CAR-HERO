@@ -4,7 +4,7 @@ use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 
-class GoogleAuthController extends Controller
+class GoogleController extends Controller
 {
     public function redirect()
     {
