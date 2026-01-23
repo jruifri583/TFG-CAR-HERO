@@ -21,7 +21,7 @@ class GoogleController extends Controller
             $idToken = $request->input('credential');
 
             // 2. Configurar el cliente de Google
-            $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
+            $client = new Google_Client(['client_id' => config('services.google.client_id')]);
 
             // 3. Verificar que el token sea válido
             $payload = $client->verifyIdToken($idToken);
