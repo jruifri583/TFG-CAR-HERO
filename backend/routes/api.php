@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\GoogleController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+Route::post('/auth/google', [GoogleController::class, 'loginWithGoogle']);
 
 
 

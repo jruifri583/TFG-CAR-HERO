@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('direccion')->nullable();
             $table->string('imagen')->nullable();
             $table->foreignId('rol_id')->default(3)->constrained('roles');
+            $table->string('google_id')->nullable()->after('id');
             $table->boolean('activo')->default(true);
             $table->timestamps();
         });
@@ -50,5 +51,8 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('google_id');
+        });
     }
 };
