@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Google_Client;
 use App\Models\User;
-
+use Google\Client as Google_Client;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Exception;
 
@@ -21,14 +21,14 @@ class GoogleController extends Controller
             $idToken = $request->input('credential');
 
             // 2. Configurar el cliente de Google
-            $client = new Google_Client(['client_id' => config('services.google.client_id')]);
+            $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
 
             // 3. Verificar que el token sea válido
             $payload = $client->verifyIdToken($idToken);
 
             if ($payload) {
                 // El token es válido. Google nos devuelve la info del usuario:
-                $googleId = $payload['sub'];
+                $google_id = $payload['sub'];
                 $email = $payload['email'];
                 $name = $payload['name'];
                 $picture = $payload['picture'] ?? null;
