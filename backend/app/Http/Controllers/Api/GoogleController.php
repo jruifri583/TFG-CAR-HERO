@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers\Api;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
@@ -13,19 +14,20 @@ class GoogleController extends Controller
     }
 
     public function callback()
-    {
-        $googleUser = Socialite::driver('google')->user();
+{
+    $googleUser = Socialite::driver('google')->user();
 
-        // Crear o actualizar usuario
-        $user = User::firstOrCreate(
-            ['email' => $googleUser->getEmail()],
-            ['name' => $googleUser->getName()]
-        );
+    $user = User::firstOrCreate(
+        ['email' => $googleUser->getEmail()],
+        [
+            'name' => $googleUser->getName(),
+            'password' => null,         
+            'provider' => 'google',
+            'provider_id' => $googleUser->getId(),
+        ]
+    );
 
-        // Crear token JWT
-        $token = $user->createToken('API Token')->plainTextToken;
-
-        // Redirigir al frontend con el token
-        return redirect("http://localhost:3000/login?token={$token}");
-    }
+    $token = JWTAuth::fromUser($user);
+    return redirect("http://localhost:5173/login?token={$token}");
+}
 }

@@ -102,7 +102,7 @@ export default function Register() {
               </Button>
 
               {/* Botón de Google usando el componente oficial */}
-              <div className=" w-full">
+              <div className=" w-full md:col-span-2">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}

@@ -93,14 +93,15 @@ export default function LoginPage() {
             <Button type="submit" className="w-full mt-4">
               Entrar
             </Button>
-            <Button
-            type="button"
-              onClick={() => window.location.href = "http://localhost:8000/auth/google"}
-                className="w-full bg-white border border-gray-300 text-gray-800 hover:bg-gray-100 flex items-center justify-center gap-2"
-                  >
-                <div className="bg-[url('/google.png')] w-6 h-6 bg-center bg-contain bg-no-repeat" />
-                  Continuar con Google
-                </Button>
+            {/* Botón de Google usando el componente oficial */}
+              <div className=" w-full ">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap
+                  text="continue_with"
+                />
+              </div>
           </form>
           
           <div className="mt-4 text-center text-sm">
