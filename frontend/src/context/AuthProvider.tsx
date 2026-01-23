@@ -7,46 +7,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // Función auxiliar para configurar la sesión
+    const setSession = (token: string | null) => {
+        if (token) {
+            localStorage.setItem('token', token);
+            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        } else {
+            localStorage.removeItem('token');
+            delete api.defaults.headers.common['Authorization'];
+        }
+    };
+
+    // 1. Verificar usuario al cargar la app
     useEffect(() => {
         const checkUser = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
             try {
+                setSession(token);
                 const response = await api.get<User>('/me');
                 setUser(response.data);
-            } catch {
-                localStorage.removeItem('token');
+            } catch (error) {
+                console.error("Token inválido o expirado");
+                setSession(null);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (localStorage.getItem('token')) checkUser();
-        else setLoading(false);
+        checkUser();
     }, []);
 
+    // 2. Login Tradicional (Email/Password)
     const login = async (credentials: LoginCredentials) => {
-        // 1. Obtenemos el token
         const response = await api.post<{ token: string }>('/login', credentials);
         const token = response.data.token;
 
-        // 2. Lo guardamos en localStorage
-        localStorage.setItem('token', token);
-
-        // 3. Forzar el header para esta sesión específica inmediatamente
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-        // 4. Obtener y establecer los datos del usuario
+        setSession(token);
+        
         const userRes = await api.get<User>('/me');
         setUser(userRes.data);
     };
 
+    // 3. Login de Google (Para usarlo desde Register/Login.tsx)
+    // Recibe el token que devuelve tu controlador de Laravel
+    const loginWithGoogle = async (token: string, userData: User) => {
+        setSession(token);
+        setUser(userData);
+    };
+
     const logout = () => {
-        localStorage.removeItem('token');
+        setSession(null);
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, setUser, loginWithGoogle }}>
             {children}
         </AuthContext.Provider>
     );

@@ -23,6 +23,7 @@ class User extends Authenticatable implements JWTSubject
         'nif',
         'telefono',
         'direccion',
+        'google_id',
         'imagen',
         'rol_id',
         'activo',

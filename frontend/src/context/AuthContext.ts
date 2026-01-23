@@ -6,6 +6,7 @@ export interface AuthContextType {
   user: User | null;
   setUser: (user: User | null) => void; // para actualizar usuario
   login: (credentials: LoginCredentials) => Promise<void>;
+  loginWithGoogle: (token: string, userData: User) => Promise<void>; 
   logout: () => void;
   loading: boolean;
 }

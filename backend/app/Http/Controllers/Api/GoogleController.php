@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Api;
+
 use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ use Exception;
 
 class GoogleController extends Controller
 {
+
     public function loginWithGoogle(Request $request)
     {
         try {
@@ -38,8 +40,8 @@ class GoogleController extends Controller
                         'nombre' => $payload['name'], // Mapeamos 'name' de Google a tu 'nombre'
                         'google_id' => $payload['sub'],
                         'imagen' => $payload['picture'],
-                        'password' => bcrypt(Str::random(16)), 
-                        'rol_id' => 2, 
+                        'password' => bcrypt(Str::random(16)),
+                        'rol_id' => 3,
                         'activo' => true,
                     ]
                 );

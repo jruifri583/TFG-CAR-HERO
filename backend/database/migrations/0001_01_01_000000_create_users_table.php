@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('direccion')->nullable();
             $table->string('imagen')->nullable();
             $table->foreignId('rol_id')->default(3)->constrained('roles');
-            $table->string('google_id')->nullable()->after('id');
+            $table->string('google_id')->nullable();
             $table->boolean('activo')->default(true);
             $table->timestamps();
         });

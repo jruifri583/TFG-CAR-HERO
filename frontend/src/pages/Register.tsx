@@ -106,8 +106,9 @@ export default function Register() {
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
-                  useOneTap
+                  useOneTap={false}
                   text="signup_with"
+                  width="400"
                 />
               </div>
             </form>
