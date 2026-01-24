@@ -8,8 +8,7 @@ use App\Http\Controllers\Api\GoogleController;
 // --- Rutas Públicas ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/auth/google', [GoogleController::class, 'loginWithGoogle']);
-
+Route::match(['get', 'post'], '/auth/google', [GoogleController::class, 'loginWithGoogle']);
 
 
 // --- Rutas Protegidas (Requieren Token JWT) ---

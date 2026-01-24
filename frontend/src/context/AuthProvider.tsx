@@ -2,6 +2,8 @@ import { useState, useEffect, type ReactNode } from 'react';
 import api from '@/lib/axios';
 import { AuthContext } from '@/context/AuthContext';
 import { type User, type LoginCredentials } from '@/types/auth';
+import axios from 'axios';
+
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -26,20 +28,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 setLoading(false);
                 return;
             }
-
             try {
                 setSession(token);
                 const response = await api.get<User>('/me');
                 setUser(response.data);
             } catch (error) {
-                console.error("Token inválido o expirado");
+                if (axios.isAxiosError(error)) {
+        console.error(error.response?.data);
+    }
                 setSession(null);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
         };
-
         checkUser();
     }, []);
 

@@ -19,6 +19,7 @@ docker compose up -d
 docker compose down
 docker exec -it carhero_frontend bash
 docker exec -it carhero_backend bash
+php artisan migrate:refresh --seed
 
 
 
