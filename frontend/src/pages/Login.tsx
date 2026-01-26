@@ -60,15 +60,16 @@ export default function LoginPage() {
     <div className="grid grid-cols-2 min-h-screen w-full ">
       <div className="bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center" >
       </div>
-      <div className="flex flex-col items-center justify-center p-8">
-        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-6" ></div>
-     <CardSinBorde className="w-full max-w-md mx-auto" >
+      <div className="flex flex-col items-center justify-center gap-16">
+        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-6"></div>
+    
+          <CardSinBorde className="w-full p-4 max-w-87.5">
         <CardHeader>
           <CardTitle className="text-3xl font-bold ">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+          <form onSubmit={handleSubmit} className="flex flex-col mt-8 gap-6 ">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
               <Input 
                 id="email" 
@@ -79,7 +80,7 @@ export default function LoginPage() {
                 required 
               />
             </div>
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input 
                 id="password" 
@@ -90,18 +91,21 @@ export default function LoginPage() {
                 required 
               />
             </div>
-            <Button type="submit" className="w-full mt-4">
+            <div className="flex flex-col gap-4 mt-8!">
+            <Button type="submit" className="md:col-span-2 w-full">
               Entrar
             </Button>
             {/* Botón de Google usando el componente oficial */}
-              <div className=" w-full ">
+
+              
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
                   useOneTap
                   text="continue_with"
+            
                 />
-              </div>
+          </div>
           </form>
           
           <div className="mt-4 text-center text-sm">
@@ -115,6 +119,7 @@ export default function LoginPage() {
           </div>
         </CardContent>
       </CardSinBorde> 
+     
       </div>
     </div>
       

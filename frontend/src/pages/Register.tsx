@@ -61,16 +61,16 @@ export default function Register() {
     <div className="grid grid-cols-2 min-h-screen w-full">
       <div className="bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center"></div>
 
-      <div className="flex flex-col items-center justify-center p-8">
+      <div className="flex flex-col items-center justify-center gap-16">
         <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-6"></div>
 
-        <CardSinBorde className="w-full max-w-md mx-auto">
+        <CardSinBorde className="w-full p-4 max-w-87.5">
           <CardHeader>
-            <CardTitle className="text-2xl">Registrarse</CardTitle>
+            <CardTitle className="text-3xl font-bold">Registrarse</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-              <div className="space-y-4">
+            <form onSubmit={handleSubmit} className="flex flex-col mt-8 gap-6">
+              <div className="flex flex-col gap-2">
                 <Label>Email</Label>
                 <Input
                   type="email"
@@ -78,8 +78,7 @@ export default function Register() {
                   onChange={e => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
-
-              <div className="space-y-4">
+              <div className="flex flex-col gap-2">
                 <Label>Contraseña</Label>
                 <Input
                   type="password"
@@ -87,8 +86,7 @@ export default function Register() {
                   onChange={e => setFormData({ ...formData, password: e.target.value })}
                 />
               </div>
-
-              <div className="space-y-4">
+              <div className="flex flex-col gap-2">
                 <Label>Confirmar Contraseña</Label>
                 <Input
                   type="password"
@@ -96,21 +94,22 @@ export default function Register() {
                   onChange={e => setFormData({ ...formData, password_confirmation: e.target.value })}
                 />
               </div>
-
-              <Button type="submit" className="md:col-span-2 w-full mt-4">
+            <div className="flex flex-col gap-4 mt-8!">
+              <Button type="submit" className="md:col-span-2 w-full ">
                 Registrarse
               </Button>
 
               {/* Botón de Google usando el componente oficial */}
-              <div className=" w-full md:col-span-2">
+              <div className=" w-full">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
                   useOneTap={false}
                   text="signup_with"
-                  width="400"
+                
                 />
               </div>
+            </div>
             </form>
           </CardContent>
         </CardSinBorde>
