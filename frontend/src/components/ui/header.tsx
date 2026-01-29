@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 
 export default function Header() {
   return (
-    <header className="h-64 bg-white px-6 flex  justify-between shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {<Avatar>
+    <header className="h-64 flex flex-col relative">
+      
+          
+
+        
+          <div className="bg-amber-300 h-full w-full">
+            {<Avatar className="size-32 absolute top-1/2 right-0 -translate-y-1/2 -translate-x-1/2">
             <AvatarImage src="/default_user.png" />
             <AvatarFallback>CR</AvatarFallback>
           </Avatar>}
@@ -15,12 +18,13 @@ export default function Header() {
             Hola <strong>Carlos</strong>
           </span>
         </div>
-        <div>
+        <div className="bg-amber-400 h-full w-full">
         <Button size="sm">
           Ver perfil
         </Button>
         </div>
-      </div>
+    
+    
     </header>
   );
 }

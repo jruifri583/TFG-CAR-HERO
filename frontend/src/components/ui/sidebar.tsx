@@ -27,7 +27,7 @@ export default function Sidebar() {
           <NavLink
             key={label}
             to={to}
-            className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-blue-500"
+            className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-accent"
           >
             <div className="flex items-center gap-3">
               <Icon size={18} />
