@@ -12,9 +12,10 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route element={<MainLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route element={<MainLayout />}>
+          
           {/* Protegidas */}
           <Route path="/dashboard" element={<DashboardPage />}>
           </Route>
