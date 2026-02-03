@@ -7,10 +7,6 @@ import { NavLink } from "react-router-dom";
 export default function Header() {
   return (
     <header className="h-45 flex flex-col relative">
-      
-          
-
-        
           <div className="h-full w-full bg-gradiente">
             <div className=" flex gap-3 absolute top-1/2 right-0 -translate-y-1/2 -translate-x-1/2">
             <div className="flex flex-col self-center gap-3">
