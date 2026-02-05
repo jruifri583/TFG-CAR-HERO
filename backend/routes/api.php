@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VehiculoController;
 use App\Http\Controllers\Api\GoogleController;
+use Illuminate\Http\Request;
 
 
 // --- Rutas Públicas ---
@@ -11,9 +12,9 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::match(['get', 'post'], '/auth/google', [GoogleController::class, 'loginWithGoogle']);
 
 
-// --- Rutas Protegidas (Requieren Token JWT) ---
-Route::middleware('auth:api')->group(function () {
-
+// --- Rutas Protegidas ---
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    
     // Auth
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -25,4 +26,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/vehiculos/{id}', [VehiculoController::class, 'show']);
     Route::put('/vehiculos/{id}', [VehiculoController::class, 'update']);
     Route::delete('/vehiculos/{id}', [VehiculoController::class, 'destroy']);
+
+    return $request->user();
 });

@@ -14,20 +14,12 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthenticateSession
 {
     /**
-     * The authentication factory implementation.
-     *
-     * @var \Illuminate\Contracts\Auth\Factory
-     */
-    protected $auth;
-
-    /**
      * Create a new middleware instance.
      *
-     * @param  \Illuminate\Contracts\Auth\Factory  $auth
+     * @param  \Illuminate\Contracts\Auth\Factory  $auth  The authentication factory implementation.
      */
-    public function __construct(AuthFactory $auth)
+    public function __construct(protected AuthFactory $auth)
     {
-        $this->auth = $auth;
     }
 
     /**
@@ -124,6 +116,6 @@ class AuthenticateSession
         }
 
         // Fall back to raw password hash format for backward compatibility...
-        return hash_equals($passwordHash, $storedValue);
+        return hash_equals($passwordHash ?? '', $storedValue);
     }
 }
