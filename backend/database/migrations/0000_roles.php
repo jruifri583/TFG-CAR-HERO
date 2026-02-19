@@ -8,6 +8,7 @@ return new class extends Migration {
     public function up(): void
 {
     Schema::create('roles', function (Blueprint $table) {
+        $table->string('slug', 20)->unique();
         $table->id();
         $table->string('nombre', 50)->unique();
         $table->timestamps();

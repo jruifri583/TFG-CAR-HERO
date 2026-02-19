@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('imagen')->nullable();
             $table->string('marca', 100)->nullable();
             $table->string('modelo', 100)->nullable();
-            $table->year('antiguedad')->nullable();
+            $table->year('año')->nullable();
             $table->integer('kilometros')->nullable();
             $table->date('fecha_ultima_itv')->nullable();
             $table->timestamps();

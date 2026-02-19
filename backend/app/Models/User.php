@@ -1,16 +1,16 @@
 <?php
 
 namespace App\Models;
-use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use App\Models\Vehiculo;
 use App\Models\Solicitud;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, HasApiTokens, Notifiable;
 
     protected $table = 'users';
 
@@ -23,7 +23,6 @@ class User extends Authenticatable implements JWTSubject
         'nif',
         'telefono',
         'direccion',
-        'google_id',
         'imagen',
         'rol_id',
         'activo',
