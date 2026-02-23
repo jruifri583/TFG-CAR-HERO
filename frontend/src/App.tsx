@@ -5,7 +5,7 @@ import MainLayout from "@/components/ui/MainLayout";
 import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
 import DashboardPage from "@/pages/Dashboard";
-import { Outlet } from "react-router-dom";
+import UsersPage from "./pages/Users";
 
 function App() {
   return (
@@ -17,8 +17,8 @@ function App() {
           <Route element={<MainLayout />}>
           
           {/* Protegidas */}
-          <Route path="/dashboard" element={<DashboardPage />}>
-          </Route>
+          <Route path="/dashboard" element={<DashboardPage />}></Route>
+          <Route path="/users" element={<UsersPage />}></Route>
           </Route>
         </Routes>
       </BrowserRouter>

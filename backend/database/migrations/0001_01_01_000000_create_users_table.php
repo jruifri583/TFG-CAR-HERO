@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('nif', 20)->nullable();
             $table->string('telefono', 50)->nullable();
             $table->string('direccion', 255)->nullable();
-            $table->string('imagen')->nullable();
+            $table->string('imagen', 255)->nullable();
             $table->foreignId('rol_id')->default(3)->constrained('roles');
             $table->boolean('activo')->default(true);
             $table->timestamps();

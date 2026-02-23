@@ -4,38 +4,38 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Estado;
+use App\Enums\EstadoSlug;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\Builder;
+use App\Models\User;
 
 class Solicitud extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'solicitudes';
 
     protected $fillable = [
-        'cliente_id',
+        'user_cliente_id',
         'vehiculo_id',
-        'empleado_id',
-        'direccion_recogida',
-        'latitud',
-        'longitud',
-        'estado_servicio',
-        'resolucion_itv',
+        'user_empleado_id',
+        'direccion',
+        'estado_id',
+        'resolucion_id',
+        'pago_id',
         'fecha_programada',
         'hora_recogida',
         'hora_itv',
         'hora_entrega',
-        'precio',
-        'notas',
+        'notas'
     ];
+
+    // RELACIONES 
 
     public function cliente()
     {
-        return $this->belongsTo(User::class, 'cliente_id');
-    }
-
-    public function empleado()
-    {
-        return $this->belongsTo(User::class, 'empleado_id');
+        return $this->belongsTo(User::class, 'user_cliente_id');
     }
 
     public function vehiculo()
@@ -43,14 +43,164 @@ class Solicitud extends Model
         return $this->belongsTo(Vehiculo::class);
     }
 
-    public function registroItv()
+    public function empleado()
     {
-        return $this->hasOne(Registro::class);
+        return $this->belongsTo(User::class, 'user_empleado_id');
+    }
+
+    public function estado()
+    {
+        return $this->belongsTo(Estado::class);
+    }
+
+    public function resolucion()
+    {
+        return $this->belongsTo(Resolucion::class);
     }
 
     public function pago()
     {
         return $this->hasOne(Pago::class);
     }
-}
 
+    public function historial()
+    {
+        return $this->hasOne(Historial::class);
+    }
+
+    // HELPERS DE DOMINIO 
+
+    public function isFinalizado(): bool
+    {
+        return $this->estado?->slug === EstadoSlug::FINALIZADO->value;
+    }
+
+    /**
+     * Determina si la solicitud puede ser finalizada.
+     * Requiere:
+     * - Resolución existente y diferente de pendiente
+     * - Pago asociado
+     */
+    public function puedeFinalizar(): bool
+    {
+        $resolucionValida = $this->resolucion
+            && !$this->resolucion->isPendiente();
+
+        $pagoValido = $this->pago !== null;
+
+        return $resolucionValida && $pagoValido;
+    }
+
+    // EVENTOS 
+
+    protected static function booted()
+    {
+        static::uniqueCar();
+        static::automaticHour();
+    }
+
+    protected static function uniqueCar()
+    {
+        static::creating(function ($solicitud) {
+
+            $existe = self::where('vehiculo_id', $solicitud->vehiculo_id)
+                ->whereHas('estado', function ($q) {
+                    $q->whereNotIn('slug', [
+                        EstadoSlug::FINALIZADO->value,
+                        EstadoSlug::CANCELADO->value,
+                    ]);
+                })
+                ->exists();
+
+            if ($existe) {
+                throw ValidationException::withMessages([
+                    'vehiculo_id' => 'El vehículo ya tiene una solicitud activa.',
+                ]);
+            }
+        });
+    }
+
+    protected static function automaticHour()
+    {
+        static::updating(function ($solicitud) {
+
+            if (! $solicitud->isDirty('estado_id')) {
+                return;
+            }
+
+            // usamos la relación ya cargada si existe
+            $nuevoEstado = Estado::find($solicitud->estado_id);
+            if (!$nuevoEstado) {
+                return;
+            }
+
+            $slug = $nuevoEstado->slug;
+            $ahora = now();
+
+            if ($slug === EstadoSlug::EN_RECOGIDA->value && !$solicitud->hora_recogida) {
+                $solicitud->hora_recogida = $ahora;
+            }
+
+            if ($slug === EstadoSlug::EN_ITV->value && !$solicitud->hora_itv) {
+                $solicitud->hora_itv = $ahora;
+            }
+
+            if ($slug === EstadoSlug::FINALIZADO->value && !$solicitud->hora_entrega) {
+                $solicitud->hora_entrega = $ahora;
+            }
+        });
+    }
+
+    // SCOPES 
+
+    public function scopeVisibleFor(Builder $query, User $user): Builder
+    {
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        if ($user->isEmployee()) {
+            return $query->where('user_empleado_id', $user->id);
+        }
+
+        if ($user->isCustomer()) {
+            return $query->where('user_cliente_id', $user->id);
+        }
+
+        return $query->whereRaw('0 = 1');
+    }
+
+    public function scopeNoFinalizadas(Builder $query): Builder
+    {
+        return $query->whereHas(
+            'estado',
+            fn($q) =>
+            $q->where('slug', '!=', EstadoSlug::FINALIZADO->value)
+        );
+    }
+
+    public function scopeFinalizadas(Builder $query): Builder
+    {
+        return $query->whereHas(
+            'estado',
+            fn($q) =>
+            $q->where('slug', EstadoSlug::FINALIZADO->value)
+        );
+    }
+
+    public function scopeWithBaseRelations(Builder $query): Builder
+    {
+        return $query->with(['cliente', 'vehiculo', 'estado', 'pago']);
+    }
+
+    public function loadFull()
+    {
+        return $this->load([
+            'vehiculo',
+            'cliente',
+            'empleado',
+            'estado',
+            'resolucion',
+        ]);
+    }
+}

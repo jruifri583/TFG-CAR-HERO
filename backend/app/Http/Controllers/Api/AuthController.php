@@ -5,10 +5,10 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    // Registro de usuario
     public function register(Request $request)
     {
         $request->validate([
@@ -21,7 +21,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = Auth::login($user);
+        // Genera token de Sanctum
+        $token = $user->createToken('register-token')->plainTextToken;
 
         return response()->json([
             'user' => $user,
@@ -29,32 +30,39 @@ class AuthController extends Controller
         ], 201);
     }
 
+    // Login de usuario
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        if (!$token = Auth::attempt($credentials)) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['error' => 'Credenciales inválidas'], 401);
         }
 
+        // Genera token de Sanctum
+        $token = $user->createToken('login-token')->plainTextToken;
+
         return response()->json([
-            'user' => Auth::user(),
+            'user' => $user,
             'token' => $token,
-            'token_type' => 'bearer',
         ]);
     }
 
-    public function me()
+    // Usuario logeado
+    public function me(Request $request)
     {
-        return response()->json(Auth::user());
+        return response()->json($request->user());
     }
 
-    public function logout()
+    // Logout
+    public function logout(Request $request)
     {
-        Auth::logout();
+        $request->user()->currentAccessToken()->delete(); // Borra solo el token actual
         return response()->json(['message' => 'Sesión cerrada']);
     }
 }

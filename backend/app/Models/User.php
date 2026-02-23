@@ -1,18 +1,22 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Vehiculo;
 use App\Models\Solicitud;
+use App\Enums\RolSlug;
+
 
 class User extends Authenticatable
 {
     use HasFactory, HasApiTokens, Notifiable;
 
     protected $table = 'users';
+    protected $with = ['rol'];
 
 
     protected $fillable = [
@@ -40,16 +44,6 @@ class User extends Authenticatable
         'updated_at' => 'datetime',
     ];
 
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
-
     // Relaciones
 
     // Vehículos de este usuario
@@ -74,5 +68,42 @@ class User extends Authenticatable
     public function rol()
     {
         return $this->belongsTo(Rol::class, 'rol_id');
+    }
+
+    public function getImagenAttribute($value)
+    {
+        return $value ?? 'default_user.png';
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->rol?->slug === RolSlug::ADMINISTRADOR->value;
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->rol?->slug === RolSlug::EMPLEADO->value;
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->rol?->slug === RolSlug::CLIENTE->value;
+    }
+    public function scopeClientes($q)
+    {
+        return $q->whereHas(
+            'rol',
+            fn($r) =>
+            $r->where('slug', RolSlug::CLIENTE)
+        );
+    }
+
+    public function scopeEmpleados($q)
+    {
+        return $q->whereHas(
+            'rol',
+            fn($r) =>
+            $r->where('slug', RolSlug::EMPLEADO)
+        );
     }
 }

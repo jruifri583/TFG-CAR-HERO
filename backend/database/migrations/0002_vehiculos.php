@@ -9,10 +9,10 @@ return new class extends Migration {
     {
         Schema::create('vehiculos', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('usuario_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('matricula', 20)->unique();
             $table->string('vin', 20)->unique();
-            $table->string('imagen')->nullable();
+            $table->string('imagen', 255)->nullable();
             $table->string('marca', 100)->nullable();
             $table->string('modelo', 100)->nullable();
             $table->year('año')->nullable();
