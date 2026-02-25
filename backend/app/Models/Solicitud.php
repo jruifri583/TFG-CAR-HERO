@@ -31,6 +31,13 @@ class Solicitud extends Model
         'notas'
     ];
 
+    protected $casts = [
+    'fecha_programada' => 'datetime',
+    'hora_recogida' => 'datetime',
+    'hora_itv' => 'datetime',
+    'hora_entrega' => 'datetime',
+    ];
+
     // RELACIONES 
 
     public function cliente()

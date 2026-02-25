@@ -11,12 +11,31 @@ class Vehiculo extends Model
 
     protected $table = 'vehiculos';
 
-    protected $fillable = ['user_id', 'matricula', 'vin', 'marca', 'modelo', 'año', 'kilometros', 'fecha_ultima_itv'];
+    protected $fillable = ['user_id', 'matricula', 'imagen', 'vin', 'marca', 'modelo', 'año', 'kilometros', 'fecha_ultima_itv'];
+
+    protected $casts = [
+        'fecha_ultima_itv' => 'date',
+        'año' => 'integer',
+        'kilometros' => 'integer',
+    ];
 
     // Relación: Un vehículo pertenece a un usuario (cliente)
     public function cliente()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function getImagenAttribute($value)
+    {
+    if (!$value) {
+        return asset('avatars/default_car.png'); 
+    }
+
+    if (filter_var($value, FILTER_VALIDATE_URL)) {
+        return $value;
+    }
+
+    return asset('avatars/' . $value);
     }
 
     // Relación: Un vehículo puede tener muchas solicitudes de ITV

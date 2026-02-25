@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\GoogleController;
 use Illuminate\Http\Request;
 
 
+
+
 // --- Rutas Públicas ---
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

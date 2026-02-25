@@ -16,41 +16,36 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 
-interface User {
+interface Solicitud {
   id: number;
   imagen: string | null;
-  email: string;
-  nombre: string;
-  apellidos: string | null;
-  telefono: string | null;
-  rol?: { nombre: string; slug: string };
-  activo: boolean;
+  matricula: string;
+  vin: string;
 }
 
-export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
+export default function SolicitudesPage() {
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchSolicitudes = async () => {
       try {
-        const res = await api.get(`/users?page=${currentPage}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const res = await api.get(`/solicitudes?page=${currentPage}`);
 
-        console.log("Respuesta API:", res.data);
+        console.log("Estructura de la respuesta:", res.data);
 
-        setUsers(res.data.data);
-        setTotalPages(res.data.last_page);
+        setSolicitudes(res.data.data);
+
+        setTotalPages(
+          res.data.meta ? res.data.meta.last_page : res.data.last_page,
+        );
       } catch (error) {
-        console.error("Error cargando usuarios:", error);
+        console.error("Error cargando vehiculos:", error);
       }
     };
 
-    fetchUsers();
+    fetchSolicitudes();
   }, [currentPage]);
 
   const goToPage = (page: number) => {
@@ -60,41 +55,37 @@ export default function UsersPage() {
 
   return (
     <>
-      <span className="text-4xl font-bold mb-4 inline-block">Usuarios</span>
+      <span className="text-4xl font-bold mb-4 inline-block">Solicitudes</span>
 
       <Table>
         <TableHeader>
           <TableRow>
             <TableCell>Imagen</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Nombre</TableCell>
-            <TableCell>Apellidos</TableCell>
-            <TableCell>Teléfono</TableCell>
-            <TableCell>Rol</TableCell>
-            <TableCell>Activo</TableCell>
+            <TableCell>Matricula</TableCell>
+            <TableCell>Vin</TableCell>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
+          {solicitudes?.map((solicitud) => (
+            <TableRow key={solicitud.id}>
               <TableCell>
-                {user.imagen ? (
+                {solicitud.imagen ? (
                   <img
-                    src={user.imagen}
-                    alt="Imagen de usuario"
+                    src={solicitud.imagen}
+                    alt="Imagen de solicitud"
                     className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "http://localhost:8000/avatars/default_car.png";
+                    }}
                   />
                 ) : (
                   "-"
                 )}
               </TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.nombre}</TableCell>
-              <TableCell>{user.apellidos || "-"}</TableCell>
-              <TableCell>{user.telefono || "-"}</TableCell>
-              <TableCell>{user.rol?.nombre || "-"}</TableCell>
-              <TableCell>{user.activo ? "Sí" : "No"}</TableCell>
+              <TableCell>{solicitud.matricula}</TableCell>
+              <TableCell>{solicitud.vin}</TableCell>
             </TableRow>
           ))}
         </TableBody>

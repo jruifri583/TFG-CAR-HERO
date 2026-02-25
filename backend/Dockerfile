@@ -17,10 +17,8 @@ WORKDIR /var/www/html
 COPY . . 
 
 # Instalar dependencias PHP
-RUN composer install --ignore-platform-reqs
+RUN composer install --no-interaction --prefer-dist
 
-# Generar clave de Laravel
-RUN php artisan key:generate || true
 
 EXPOSE 8000
 

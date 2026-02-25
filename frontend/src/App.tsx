@@ -6,6 +6,8 @@ import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
 import DashboardPage from "@/pages/Dashboard";
 import UsersPage from "./pages/Users";
+import VehiculosPage from "./pages/Vehiculos";
+import SolicitudesPage from "./pages/Solicitudes";
 
 function App() {
   return (
@@ -14,16 +16,17 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route element={<MainLayout />}>
-          
-          {/* Protegidas */}
-          <Route path="/dashboard" element={<DashboardPage />}></Route>
-          <Route path="/users" element={<UsersPage />}></Route>
+          <Route path="/" element={<MainLayout />}>
+            {/* Protegidas */}
+            <Route path="/dashboard" element={<DashboardPage />}></Route>
+            <Route path="/users" element={<UsersPage />}></Route>
+            <Route path="/vehiculos" element={<VehiculosPage />}></Route>
+            <Route path="/solicitudes" element={<SolicitudesPage />}></Route>
           </Route>
         </Routes>
       </BrowserRouter>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;

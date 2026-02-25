@@ -4,35 +4,52 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use Google_Client;
+use Google\Client as GoogleClient; // Namespace moderno
+use Exception;
 
 class GoogleController extends Controller
 {
     public function loginWithGoogle(Request $request)
     {
-        $idToken = $request->input('id_token');
-        if (!$idToken) return response()->json(['error' => 'ID token requerido'], 422);
+        try {
+            $idToken = $request->input('id_token');
+            if (!$idToken) {
+                return response()->json(['error' => 'ID token requerido'], 422);
+            }
 
-        $client = new Google_Client(['client_id' => env('GOOGLE_CLIENT_ID')]);
-        $payload = $client->verifyIdToken($idToken);
+            // Usar la clase con el namespace correcto
+            $client = new GoogleClient(['client_id' => config('services.google.client_id')]); 
+            $payload = $client->verifyIdToken($idToken);
 
-        if (!$payload) return response()->json(['error' => 'Token inválido'], 401);
+            if (!$payload) {
+                return response()->json(['error' => 'Token inválido'], 401);
+            }
 
-        $user = User::updateOrCreate(
-            ['email' => $payload['email']],
-            [
-                'nombre' => $payload['name'],
-                'imagen' => $payload['picture'],
-                'rol_id' => 3,
-                'activo' => true,
-            ]
-        );
+            // OJO: Verifica que estos nombres coincidan con tu DB
+            $user = User::updateOrCreate(
+                ['email' => $payload['email']],
+                [
+                    'nombre' => $payload['name'],   // ¿Es 'nombre' o 'name'?
+                    'imagen' => $payload['picture'], // ¿Es 'imagen' o 'image'?
+                    'rol_id' => 3,
+                    'activo' => true,
+                    'password' => bcrypt(str()->random(16)), // Algunos campos requieren password aunque no se use
+                ]
+            );
 
-        $token = $user->createToken('google-token')->plainTextToken;
+            $token = $user->createToken('google-token')->plainTextToken;
 
-        return response()->json([
-            'user' => $user,
-            'token' => $token
-        ]);
+            return response()->json([
+                'user' => $user,
+                'token' => $token
+            ]);
+
+        } catch (Exception $e) {
+            // Esto te dirá el error exacto en la respuesta JSON
+            return response()->json([
+                'error' => 'Error interno en el servidor',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -22,7 +22,14 @@ class UserController extends Controller
     public function index()
     {
     $users = User::with('rol')->paginate(5);
-    return UserResource::collection($users);
+
+    return response()->json([
+        'data' => UserResource::collection($users)->resolve(),
+        'current_page' => $users->currentPage(),
+        'last_page' => $users->lastPage(),
+        'per_page' => $users->perPage(),
+        'total' => $users->total(),
+    ], 200);
     }
 
     /**

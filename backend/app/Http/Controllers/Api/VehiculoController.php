@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StoreVehiculoRequest;
 use App\Http\Requests\UpdateVehiculoRequest;
 use App\Http\Resources\VehiculoResource;
+use Illuminate\Http\Request;
 
 class VehiculoController extends Controller
 {
@@ -18,10 +19,19 @@ class VehiculoController extends Controller
     }
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $vehiculos = Vehiculo::with('cliente')->visibleFor(Auth::user())->paginate(5);
-        return response()->json(VehiculoResource::collection($vehiculos), 200);
+    try {
+        // Usamos el Scope que ya tienes en el modelo para filtrar por seguridad
+        // y paginamos los resultados.
+        $vehiculos = Vehiculo::visibleFor($request->user())->paginate(5);
+
+        return VehiculoResource::collection($vehiculos);
+        
+    } catch (\Exception $e) {
+        \Log::error("Error en Vehiculos: " . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
     }
 
     
