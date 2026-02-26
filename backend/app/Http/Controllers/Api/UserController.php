@@ -20,8 +20,27 @@ class UserController extends Controller
      * Listar todos los usuarios
      */
     public function index()
-    {
-    $users = User::with('rol')->paginate(5);
+{
+    $query = User::with('rol');
+
+    // ⚡ Ordenación
+    $sort = request()->query('sort');       // campo a ordenar
+    $order = request()->query('order', 'asc'); // asc o desc
+
+    // Solo permitir columnas válidas para seguridad
+    $allowedSorts = ['id','email','nombre','apellidos','telefono','activo','rol_id'];
+    if ($sort && in_array($sort, $allowedSorts)) {
+        // Si se ordena por rol, hacemos join
+        if ($sort === 'rol_id') {
+            $query = $query->join('roles', 'users.rol_id', '=', 'roles.id')
+                           ->orderBy('roles.nombre', $order)
+                           ->select('users.*');
+        } else {
+            $query = $query->orderBy($sort, $order);
+        }
+    }
+
+    $users = $query->paginate(5);
 
     return response()->json([
         'data' => UserResource::collection($users)->resolve(),
@@ -30,7 +49,7 @@ class UserController extends Controller
         'per_page' => $users->perPage(),
         'total' => $users->total(),
     ], 200);
-    }
+}
 
     /**
      * Crear un nuevo usuario

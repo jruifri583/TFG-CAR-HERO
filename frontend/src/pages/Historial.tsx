@@ -16,37 +16,36 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 
-interface Vehiculo {
-  id: number;
-  imagen: string | null;
-  matricula: string;
-  vin: string;
+interface Historial {
+  solicitud_id: number;
+  fecha_itv: string | null;
+  resolucion: { nombre: string } | null;
 }
 
-export default function VehiculosPage() {
-  const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+export default function HistorialPage() {
+  const [historiales, setHistoriales] = useState<Historial[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const fetchVehiculos = async () => {
+  const fetchHistoriales = async () => {
     try {
       const res = await api.get(
-        `/vehiculos?page=${currentPage}${
+        `/historiales?page=${currentPage}${
           sortField ? `&sort=${sortField}&order=${sortOrder}` : ""
         }`,
       );
 
-      setVehiculos(res.data.data);
-      setTotalPages(res.data.last_page);
+      setHistoriales(res.data.data);
+      setTotalPages(res.data.last_page || res.data.meta?.last_page || 1);
     } catch (error) {
-      console.error("Error cargando vehiculos:", error);
+      console.error("Error cargando historiales:", error);
     }
   };
 
   useEffect(() => {
-    fetchVehiculos();
+    fetchHistoriales();
   }, [currentPage, sortField, sortOrder]);
 
   const goToPage = (page: number) => {
@@ -71,49 +70,42 @@ export default function VehiculosPage() {
 
   return (
     <>
-      <span className="text-4xl font-bold mb-4 inline-block">Vehículos</span>
+      <span className="text-4xl font-bold mb-4 inline-block">Historial</span>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell>Imagen</TableCell>
             <TableCell
               className="cursor-pointer"
-              onClick={() => handleSort("matricula")}
+              onClick={() => handleSort("solicitud_id")}
             >
-              Matrícula{renderSortArrow("matricula")}
+              Solicitud{renderSortArrow("solicitud_id")}
             </TableCell>
             <TableCell
               className="cursor-pointer"
-              onClick={() => handleSort("vin")}
+              onClick={() => handleSort("fecha_itv")}
             >
-              VIN{renderSortArrow("vin")}
+              Fecha{renderSortArrow("fecha_itv")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer"
+              onClick={() => handleSort("resolucion_id")}
+            >
+              Resolución{renderSortArrow("resolucion_id")}
             </TableCell>
             <TableCell>Acciones</TableCell>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {vehiculos.map((vehiculo) => (
-            <TableRow key={vehiculo.id}>
-              <TableCell>
-                {vehiculo.imagen ? (
-                  <img
-                    src={vehiculo.imagen}
-                    alt="Imagen de vehiculo"
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "http://localhost:8000/avatars/default_car.png";
-                    }}
-                  />
-                ) : (
-                  "-"
-                )}
+          {historiales.map((h) => (
+            <TableRow key={h.solicitud_id}>
+              <TableCell className="w-1/4">{h.solicitud_id}</TableCell>
+              <TableCell className="w-1/4">{h.fecha_itv ?? "-"}</TableCell>
+              <TableCell className="w-1/4">
+                {h.resolucion?.nombre ?? "-"}
               </TableCell>
-              <TableCell>{vehiculo.matricula}</TableCell>
-              <TableCell>{vehiculo.vin}</TableCell>
-              <TableCell>{/* Botones de acciones */}</TableCell>
+              <TableCell>{/* Acciones */}</TableCell>
             </TableRow>
           ))}
         </TableBody>

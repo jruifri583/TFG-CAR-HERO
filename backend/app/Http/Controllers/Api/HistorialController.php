@@ -24,15 +24,33 @@ class HistorialController extends Controller
      * Listar historiales accesibles para el usuario
      */
     public function index()
-    {
-        $user = Auth::user();
+{
+    $user = Auth::user();
 
-        $historiales = Historial::all()->filter(function ($historial) use ($user) {
-            return Gate::allows('view', $historial);
-        })->values(); 
+    $query = Historial::visibleFor($user)
+        ->with('resolucion:id,nombre')
+        ->select('id','solicitud_id','fecha_itv','resolucion_id');
 
-        return response()->json($historiales);
+    // ⚡ Ordenación
+    $sort = request()->query('sort');
+    $order = request()->query('order', 'asc');
+    $allowedSorts = ['solicitud_id','fecha_itv','resolucion_id'];
+
+    if ($sort && in_array($sort, $allowedSorts)) {
+        if ($sort === 'resolucion_id') {
+            // Join para ordenar por el nombre de resolución
+            $query->join('resoluciones', 'historiales.resolucion_id', '=', 'resoluciones.id')
+                  ->orderBy('resoluciones.nombre', $order)
+                  ->select('historiales.*'); // evitar conflicto de columnas
+        } else {
+            $query->orderBy($sort, $order);
+        }
     }
+
+    $historiales = $query->paginate(5);
+
+    return response()->json($historiales);
+}
 
     /**
      * Mostrar un historial específico

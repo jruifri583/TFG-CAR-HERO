@@ -31,31 +31,51 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await api.get(`/users?page=${currentPage}`, {
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get(
+        `/users?page=${currentPage}${
+          sortField ? `&sort=${sortField}&order=${sortOrder}` : ""
+        }`,
+        {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        });
+        },
+      );
 
-        console.log("Respuesta API:", res.data);
+      setUsers(res.data.data);
+      setTotalPages(res.data.last_page);
+    } catch (error) {
+      console.error("Error cargando usuarios:", error);
+    }
+  };
 
-        setUsers(res.data.data);
-        setTotalPages(res.data.last_page);
-      } catch (error) {
-        console.error("Error cargando usuarios:", error);
-      }
-    };
-
+  useEffect(() => {
     fetchUsers();
-  }, [currentPage]);
+  }, [currentPage, sortField, sortOrder]);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    setCurrentPage(1);
+  };
+
+  const renderSortArrow = (field: string) => {
+    if (sortField !== field) return null;
+    return sortOrder === "asc" ? " ↑" : " ↓";
   };
 
   return (
@@ -65,13 +85,44 @@ export default function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell>Imagen</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Nombre</TableCell>
-            <TableCell>Apellidos</TableCell>
-            <TableCell>Teléfono</TableCell>
-            <TableCell>Rol</TableCell>
-            <TableCell>Activo</TableCell>
+            <TableCell className="w-1/7">Imagen</TableCell>
+            <TableCell
+              className="cursor-pointer w-1/7"
+              onClick={() => handleSort("email")}
+            >
+              Email{renderSortArrow("email")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer w-1/7"
+              onClick={() => handleSort("nombre")}
+            >
+              Nombre{renderSortArrow("nombre")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer w-1/7"
+              onClick={() => handleSort("apellidos")}
+            >
+              Apellidos{renderSortArrow("apellidos")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer w-1/7"
+              onClick={() => handleSort("telefono")}
+            >
+              Teléfono{renderSortArrow("telefono")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer w-1/7"
+              onClick={() => handleSort("rol_id")}
+            >
+              Rol{renderSortArrow("rol_id")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer w-1/7"
+              onClick={() => handleSort("activo")}
+            >
+              Activo{renderSortArrow("activo")}
+            </TableCell>
+            <TableCell className="w-1/7">Acciones</TableCell>
           </TableRow>
         </TableHeader>
 
@@ -95,12 +146,15 @@ export default function UsersPage() {
               <TableCell>{user.telefono || "-"}</TableCell>
               <TableCell>{user.rol?.nombre || "-"}</TableCell>
               <TableCell>{user.activo ? "Sí" : "No"}</TableCell>
+              <TableCell>
+                {/* Botones de acciones, editar, borrar, etc. */}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      {/* 🔹 PAGINACIÓN */}
+      {/* PAGINACIÓN */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>
@@ -116,7 +170,6 @@ export default function UsersPage() {
 
             {Array.from({ length: totalPages }).map((_, index) => {
               const page = index + 1;
-
               return (
                 <PaginationItem key={page}>
                   <PaginationLink

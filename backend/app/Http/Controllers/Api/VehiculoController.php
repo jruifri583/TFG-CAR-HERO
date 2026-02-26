@@ -20,19 +20,29 @@ class VehiculoController extends Controller
 
 
     public function index(Request $request)
-    {
+{
     try {
-        // Usamos el Scope que ya tienes en el modelo para filtrar por seguridad
-        // y paginamos los resultados.
-        $vehiculos = Vehiculo::visibleFor($request->user())->paginate(5);
+        $query = Vehiculo::visibleFor($request->user());
+
+        // ⚡ Ordenación
+        $sort = $request->query('sort'); // campo
+        $order = $request->query('order', 'asc'); // asc o desc
+        $allowedSorts = ['id', 'matricula', 'vin'];
+
+        if ($sort && in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $order);
+        }
+
+        // Paginación
+        $vehiculos = $query->paginate(5);
 
         return VehiculoResource::collection($vehiculos);
-        
+
     } catch (\Exception $e) {
         \Log::error("Error en Vehiculos: " . $e->getMessage());
         return response()->json(['error' => $e->getMessage()], 500);
     }
-    }
+}
 
     
     public function store(StoreVehiculoRequest $request)

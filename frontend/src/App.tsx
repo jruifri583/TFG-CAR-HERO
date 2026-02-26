@@ -8,6 +8,7 @@ import DashboardPage from "@/pages/Dashboard";
 import UsersPage from "./pages/Users";
 import VehiculosPage from "./pages/Vehiculos";
 import SolicitudesPage from "./pages/Solicitudes";
+import HistorialPage from "./pages/Historial";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
             <Route path="/users" element={<UsersPage />}></Route>
             <Route path="/vehiculos" element={<VehiculosPage />}></Route>
             <Route path="/solicitudes" element={<SolicitudesPage />}></Route>
+            <Route path="/historial" element={<HistorialPage />}></Route>
           </Route>
         </Routes>
       </BrowserRouter>

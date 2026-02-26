@@ -4,7 +4,7 @@ import {
   Car,
   FileText,
   ClipboardList,
-  RotateCcw,
+  History,
   LogOut,
 } from "lucide-react";
 
@@ -13,7 +13,7 @@ const menu = [
   { label: "Vehículos", icon: Car, to: "/vehiculos" },
   { label: "Solicitudes", icon: FileText, to: "/solicitudes" },
   { label: "Órdenes", icon: ClipboardList, badge: 10 },
-  { label: "Historial", icon: RotateCcw },
+  { label: "Historial", icon: History, to: "/historial" },
 ];
 
 export default function Sidebar() {
@@ -58,7 +58,8 @@ export default function Sidebar() {
       <div className="mt-auto px-4 py-4 border-t border-blue-600">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent text-left">
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent text-left"
+        >
           <LogOut size={18} />
           <span>Cerrar sesión</span>
         </button>

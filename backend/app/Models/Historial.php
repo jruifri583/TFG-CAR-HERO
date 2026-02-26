@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+
 class Historial extends Model
 {
     use HasFactory;
@@ -22,7 +23,7 @@ class Historial extends Model
     ];
 
     protected $casts = [
-        'fecha_itv' => 'date',
+        'fecha_itv' => 'date:d / m / Y',
     ];
 
     /* ================= RELACIONES ================= */
@@ -35,5 +36,12 @@ class Historial extends Model
     public function resolucion(): BelongsTo
     {
         return $this->belongsTo(Resolucion::class);
+    }
+
+    public function scopeVisibleFor($query, $user)
+    {
+    return $query->whereHas('solicitud', fn ($q) =>
+        $q->visibleFor($user)
+    );
     }
 }
