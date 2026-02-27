@@ -1,3 +1,5 @@
+import api from "@/lib/axios";
+import { useAuth } from "@/context/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Users,
@@ -9,23 +11,30 @@ import {
 } from "lucide-react";
 
 const menu = [
+  { label: "Solicitudes", icon: FileText, to: "/solicitudes" },
   { label: "Usuarios", icon: Users, to: "/users" },
   { label: "Vehículos", icon: Car, to: "/vehiculos" },
-  { label: "Solicitudes", icon: FileText, to: "/solicitudes" },
-  { label: "Órdenes", icon: ClipboardList, badge: 10 },
+  { label: "Pagos", icon: ClipboardList, to: "/pagos", badge: 10 },
   { label: "Historial", icon: History, to: "/historial" },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
-  const handleLogout = () => {
-    // Aquí va tu lógica real de logout
-    // ejemplo: localStorage.removeItem("token");
-    console.log("Logout clicked");
-
-    // Redirige a login
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      // Intentar cerrar sesión en el servidor
+      await api.post("/api/logout");
+    } catch (error) {
+      console.warn("La sesión ya no era válida en el servidor.");
+    } finally {
+      setUser(null);
+      localStorage.removeItem("user_data");
+      localStorage.removeItem("token");
+      // Opcional: redirigir a login
+      navigate("/login");
+    }
   };
 
   return (
@@ -54,7 +63,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Logout abajo del todo */}
+      {/* Logout */}
       <div className="mt-auto px-4 py-4 border-t border-blue-600">
         <button
           onClick={handleLogout}

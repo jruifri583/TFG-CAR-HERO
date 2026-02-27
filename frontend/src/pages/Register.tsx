@@ -6,9 +6,13 @@ import axios from "axios";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CardSinBorde, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CardSinBorde,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-
 
 export default function Register() {
   const { setUser } = useAuth();
@@ -17,14 +21,14 @@ export default function Register() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    password_confirmation: ""
+    password_confirmation: "",
   });
 
   // Registro normal
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await api.post("/register", formData);
+      await api.post("/api/register", formData);
       alert("Registro completado. Ahora puedes hacer login.");
       navigate("/login");
     } catch (error: unknown) {
@@ -38,18 +42,23 @@ export default function Register() {
     }
   };
 
-  // Login con Google usando el componente oficial
+  // Login con Google
   const handleGoogleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) return;
 
     try {
-      const res = await api.post("/auth/google", { id_token: response.credential });
-      localStorage.setItem("token", res.data.token);
-      setUser(res.data.user);
+      await api.get("/sanctum/csrf-cookie");
+
+      await api.post("/api/auth/google", {
+        id_token: response.credential,
+      });
+
+      const res = await api.get("/api/me");
+
+      setUser(res.data);
       navigate("/dashboard");
     } catch (error) {
-      console.error("Error login Google", error);
-      alert("Error al iniciar sesión con Google");
+      console.error(error);
     }
   };
 
@@ -75,7 +84,9 @@ export default function Register() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -83,7 +94,9 @@ export default function Register() {
                 <Input
                   type="password"
                   value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                 />
               </div>
               <div className="flex flex-col gap-2">
@@ -91,35 +104,39 @@ export default function Register() {
                 <Input
                   type="password"
                   value={formData.password_confirmation}
-                  onChange={e => setFormData({ ...formData, password_confirmation: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      password_confirmation: e.target.value,
+                    })
+                  }
                 />
               </div>
-            <div className="flex flex-col gap-4 mt-8!">
-              <Button type="submit" className="md:col-span-2 w-full ">
-                Registrarse
-              </Button>
+              <div className="flex flex-col gap-4 mt-8!">
+                <Button type="submit" className="md:col-span-2 w-full ">
+                  Registrarse
+                </Button>
 
-              {/* Botón de Google usando el componente oficial */}
-              <div className=" w-full">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  useOneTap={false}
-                  text="signup_with"
-                
-                />
+                {/* Botón de Google usando el componente oficial */}
+                <div className=" w-full">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                    useOneTap={false}
+                    text="signup_with"
+                  />
+                </div>
               </div>
-            </div>
             </form>
             <div className="mt-4 text-center text-sm">
-            <span>¿Tienes cuenta? </span>
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-primary hover:underline font-medium"
-            >
-              Entra aquí
-            </button>
-          </div>
+              <span>¿Tienes cuenta? </span>
+              <button
+                onClick={() => navigate("/login")}
+                className="text-primary hover:underline font-medium"
+              >
+                Entra aquí
+              </button>
+            </div>
           </CardContent>
         </CardSinBorde>
       </div>

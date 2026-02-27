@@ -21,36 +21,32 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // Genera token de Sanctum
-        $token = $user->createToken('register-token')->plainTextToken;
+        auth()->login($user);
+        $request->session()->regenerate();
 
         return response()->json([
-            'user' => $user,
-            'token' => $token,
+        'user' => $user,
         ], 201);
     }
 
     // Login de usuario
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        $user = User::where('email', $request->email)->first();
+    $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['error' => 'Credenciales inválidas'], 401);
-        }
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['error' => 'Credenciales inválidas'], 401);
+    }
 
-        // Genera token de Sanctum
-        $token = $user->createToken('login-token')->plainTextToken;
 
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
+    return response()->json([
+        'user' => $user,
+    ]);
     }
 
     // Usuario logeado
@@ -62,7 +58,10 @@ class AuthController extends Controller
     // Logout
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete(); // Borra solo el token actual
-        return response()->json(['message' => 'Sesión cerrada']);
+    auth()->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return response()->json(['message' => 'Sesión cerrada']);
     }
 }

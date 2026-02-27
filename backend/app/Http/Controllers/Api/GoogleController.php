@@ -29,7 +29,7 @@ class GoogleController extends Controller
             $user = User::updateOrCreate(
                 ['email' => $payload['email']],
                 [
-                    'nombre' => $payload['name'],   // ¿Es 'nombre' o 'name'?
+                    'nombre' => $payload['name'],
                     'imagen' => $payload['picture'], // ¿Es 'imagen' o 'image'?
                     'rol_id' => 3,
                     'activo' => true,
