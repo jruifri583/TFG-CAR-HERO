@@ -1,4 +1,3 @@
-import api from "@/lib/axios";
 import { useAuth } from "@/context/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -20,21 +19,13 @@ const menu = [
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
-    try {
-      // Intentar cerrar sesión en el servidor
-      await api.post("/api/logout");
-    } catch (error) {
-      console.warn("La sesión ya no era válida en el servidor.");
-    } finally {
-      setUser(null);
-      localStorage.removeItem("user_data");
-      localStorage.removeItem("token");
-      // Opcional: redirigir a login
-      navigate("/login");
-    }
+    const token = localStorage.getItem("token");
+    console.log("Token actual:", token);
+    await logout();
+    navigate("/login");
   };
 
   return (

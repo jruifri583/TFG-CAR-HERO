@@ -1,3 +1,5 @@
+// pages/Register.tsx
+
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/context/useAuth";
 import { useState } from "react";

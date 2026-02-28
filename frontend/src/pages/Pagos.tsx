@@ -32,14 +32,24 @@ export default function PagosPage() {
 
   const fetchPagos = async () => {
     try {
-      const res = await api.get(
-        `/pagos?page=${currentPage}${
-          sortField ? `&sort=${sortField}&order=${sortOrder}` : ""
-        }`,
-      );
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No hay token de autenticación");
+
+      const params = new URLSearchParams();
+      params.append("page", currentPage.toString());
+      if (sortField) {
+        params.append("sort", sortField);
+        params.append("order", sortOrder);
+      }
+
+      const res = await api.get(`/pagos?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       setPagos(res.data.data ?? []);
-      setTotalPages(res.data.last_page || res.data.meta?.last_page || 1);
+      setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
       console.error("Error cargando pagos:", error);
       setPagos([]);

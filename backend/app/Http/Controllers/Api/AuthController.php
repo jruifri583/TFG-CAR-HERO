@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -8,7 +9,9 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // Registro de usuario
+    // ======================
+    // REGISTER
+    // ======================
     public function register(Request $request)
     {
         $request->validate([
@@ -21,47 +24,64 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        auth()->login($user);
-        $request->session()->regenerate();
+        $user->tokens()->delete();
+
+        $token = $user->createToken('auth')->plainTextToken;
 
         return response()->json([
-        'user' => $user,
+            'user' => $user,
+            'token' => $token,
         ], 201);
     }
 
-    // Login de usuario
+    // ======================
+    // LOGIN
+    // ======================
     public function login(Request $request)
     {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-    $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-    if (!$user || !Hash::check($request->password, $user->password)) {
-        return response()->json(['error' => 'Credenciales inválidas'], 401);
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => 'Credenciales inválidas'], 401);
+        }
+
+        // Borra tokens antiguos si quieres
+        $user->tokens()->delete();
+
+        // Crea nuevo token personal
+        $token = $user->createToken('auth')->plainTextToken;
+
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+        ]);
     }
 
-
-    return response()->json([
-        'user' => $user,
-    ]);
-    }
-
-    // Usuario logeado
+    // ======================
+    // ME
+    // ======================
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json([
+            'user' => $request->user()
+        ]);
     }
 
-    // Logout
+    // ======================
+    // LOGOUT
+    // ======================
     public function logout(Request $request)
     {
-    auth()->logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
+        $user = $request->user();
+        if ($user) {
+            $user->tokens()->delete(); // borra todos los tokens
+        }
 
-    return response()->json(['message' => 'Sesión cerrada']);
+        return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
 }

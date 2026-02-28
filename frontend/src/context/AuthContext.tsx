@@ -1,3 +1,5 @@
+// context/AuthContext.tsx
+
 import { createContext } from "react";
 import type { User, LoginCredentials } from "@/types/auth";
 

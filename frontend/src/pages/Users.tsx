@@ -36,19 +36,24 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get(
-        `/users?page=${currentPage}${
-          sortField ? `&sort=${sortField}&order=${sortOrder}` : ""
-        }`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No hay token de autenticación");
+
+      const params = new URLSearchParams();
+      params.append("page", currentPage.toString());
+      if (sortField) {
+        params.append("sort", sortField);
+        params.append("order", sortOrder);
+      }
+
+      const res = await api.get(`/users?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       setUsers(res.data.data);
-      setTotalPages(res.data.last_page);
+      setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
       console.error("Error cargando usuarios:", error);
     }

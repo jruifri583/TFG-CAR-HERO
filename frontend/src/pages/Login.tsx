@@ -1,3 +1,5 @@
+// pages/Login.tsx
+
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
@@ -16,30 +18,24 @@ import api from "@/lib/axios";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { setUser } = useAuth();
+  const { login, setUser } = useAuth();
   const navigate = useNavigate();
 
+  // Login tradicional
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
-      // 1️⃣ obtener CSRF cookie
-      await api.get("/sanctum/csrf-cookie");
+      await login({ email, password });
 
-      // 2️⃣ login Laravel
-      await api.post("api/login", {
-        email,
-        password,
-      });
-
-      // 3️⃣ obtener usuario autenticado
-      const res = await api.get("/api/me");
-
-      setUser(res.data);
+      // Recupera token de localStorage
+      const token = localStorage.getItem("token");
+      if (token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      }
 
       navigate("/dashboard");
     } catch {
-      alert("Error al iniciar sesión.");
+      alert("Error al iniciar sesión");
     }
   };
 
@@ -48,15 +44,22 @@ export default function LoginPage() {
     if (!response.credential) return;
 
     try {
-      await api.get("/sanctum/csrf-cookie");
-
-      // El login ya me trae los datos del usuario
       const loginRes = await api.post("/api/auth/google", {
         id_token: response.credential,
       });
 
-      // Guardamos los datos que vinieron del POST
-      setUser(loginRes.data);
+      const { user, token } = loginRes.data;
+
+      // 🔹 Guardar token y user
+      localStorage.setItem("token", token);
+      localStorage.setItem("user_data", JSON.stringify(user));
+
+      // 🔹 Configurar Axios
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // 🔹 Actualizar estado
+      setUser(user);
+
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
@@ -68,12 +71,14 @@ export default function LoginPage() {
     alert("Error al iniciar sesión con Google");
   };
 
+  // Si viene token en query param
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
       localStorage.setItem("token", token);
-      window.history.replaceState({}, document.title, "/"); // limpia query
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      window.history.replaceState({}, document.title, "/");
       navigate("/dashboard");
     }
   }, [navigate]);
@@ -116,7 +121,6 @@ export default function LoginPage() {
                 <Button type="submit" className="md:col-span-2 w-full">
                   Entrar
                 </Button>
-                {/* Botón de Google usando el componente oficial */}
 
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}

@@ -31,7 +31,19 @@ export default function SolicitudesPage() {
   useEffect(() => {
     const fetchSolicitudes = async () => {
       try {
-        const res = await api.get(`/solicitudes?page=${currentPage}`);
+        // 🔹 Obtener token del localStorage
+        const token = localStorage.getItem("token");
+        if (!token) {
+          console.warn("No hay token guardado, redirigiendo a login...");
+          return;
+        }
+
+        // 🔹 Llamada a la API con Bearer
+        const res = await api.get(`/api/solicitudes?page=${currentPage}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         console.log("Estructura de la respuesta:", res.data);
 
@@ -41,7 +53,7 @@ export default function SolicitudesPage() {
           res.data.meta ? res.data.meta.last_page : res.data.last_page,
         );
       } catch (error) {
-        console.error("Error cargando vehiculos:", error);
+        console.error("Error cargando solicitudes:", error);
       }
     };
 
