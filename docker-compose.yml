@@ -36,7 +36,7 @@ services:
       DB_USERNAME: user
       DB_PASSWORD: 12345?
       FRONTEND_URL: http://localhost:5173
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command: sh -c "until nc -z db 3306; do echo 'Esperando a que MySQL esté listo...'; sleep 2; done; php artisan serve --host=0.0.0.0 --port=8000"
 
   db:
     image: mysql:8.0

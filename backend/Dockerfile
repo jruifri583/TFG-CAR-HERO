@@ -2,7 +2,8 @@ FROM php:8.2-cli
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev zip curl libpng-dev libonig-dev libxml2-dev
+    git unzip libzip-dev zip curl libpng-dev libonig-dev libxml2-dev \
+    netcat-openbsd
 
 # Extensiones PHP necesarias para Laravel
 RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd xml dom
@@ -17,9 +18,11 @@ WORKDIR /var/www/html
 COPY . . 
 
 # Instalar dependencias PHP
-RUN composer install --no-interaction --prefer-dist
+RUN composer install \
+    --no-interaction \
+    --prefer-dist \
+    --no-scripts
 
 
 EXPOSE 8000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
