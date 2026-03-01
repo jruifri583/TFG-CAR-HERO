@@ -87,9 +87,9 @@ export default function LoginPage() {
     <div className="grid grid-cols-2 min-h-screen w-full ">
       <div className="hidden md:block bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center"></div>
       <div className="flex flex-col items-center justify-center gap-16">
-        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-26"></div>
+        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40"></div>
 
-        <CardSinBorde className="w-full p-4 max-w-87.5">
+        <CardSinBorde className="w-full p-1 max-w-87.5 h-120">
           <CardHeader>
             <CardTitle className="text-3xl font-bold ">Login</CardTitle>
           </CardHeader>

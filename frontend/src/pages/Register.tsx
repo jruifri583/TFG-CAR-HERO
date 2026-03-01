@@ -73,14 +73,14 @@ export default function Register() {
       <div className="hidden md:block bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center"></div>
 
       <div className="flex flex-col items-center justify-center gap-16">
-        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40 mb-6"></div>
+        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-40"></div>
 
-        <CardSinBorde className="w-full p-4 max-w-87.5">
+        <CardSinBorde className="w-full p-1 max-w-87.5 h-120">
           <CardHeader>
             <CardTitle className="text-3xl font-bold">Registrarse</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="flex flex-col mt-8 gap-6">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               <div className="flex flex-col gap-2">
                 <Label>Email</Label>
                 <Input
