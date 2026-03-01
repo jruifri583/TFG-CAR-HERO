@@ -5,8 +5,8 @@ namespace Illuminate\Http\Resources\JsonApi\Concerns;
 use Generator;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\AsPivot;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Concerns\AsPivot;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -160,7 +160,7 @@ trait ResolvesJsonApiElements
     /**
      * Resolves `relationships` for the resource's data object.
      *
-     * @return string|int
+     * @return array
      *
      * @throws \RuntimeException
      */
@@ -324,7 +324,7 @@ trait ResolvesJsonApiElements
     public function resolveIncludedResourceObjects(JsonApiRequest $request): Collection
     {
         if (! $this->resource instanceof Model) {
-            return [];
+            return new Collection;
         }
 
         $this->compileResourceRelationships($request);

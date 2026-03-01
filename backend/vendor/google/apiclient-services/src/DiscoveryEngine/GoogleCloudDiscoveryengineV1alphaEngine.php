@@ -75,6 +75,10 @@ class GoogleCloudDiscoveryengineV1alphaEngine extends \Google\Collection
    * `SOLUTION_TYPE_CHAT` solution.
    */
   public const SOLUTION_TYPE_SOLUTION_TYPE_GENERATIVE_CHAT = 'SOLUTION_TYPE_GENERATIVE_CHAT';
+  /**
+   * Used for AI Mode.
+   */
+  public const SOLUTION_TYPE_SOLUTION_TYPE_AI_MODE = 'SOLUTION_TYPE_AI_MODE';
   protected $collection_key = 'dataStoreIds';
   /**
    * Optional. Immutable. This the application type which this engine resource
@@ -136,9 +140,10 @@ class GoogleCloudDiscoveryengineV1alphaEngine extends \Google\Collection
    * state settings are ignored. * `agent-gallery` * `no-code-agent-builder` *
    * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` *
    * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-
-   * sharing` * `personalization-memory` * `disable-agent-sharing` * `disable-
-   * image-generation` * `disable-video-generation` * `disable-onedrive-upload`
-   * * `disable-talk-to-content` * `disable-google-drive-upload`
+   * sharing` * `personalization-memory` * `personalization-suggested-
+   * highlights` * `disable-agent-sharing` * `disable-image-generation` *
+   * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-
+   * content` * `disable-google-drive-upload` * `disable-welcome-emails`
    *
    * @var string[]
    */
@@ -177,6 +182,8 @@ class GoogleCloudDiscoveryengineV1alphaEngine extends \Google\Collection
    * @var string
    */
   public $name;
+  protected $observabilityConfigType = GoogleCloudDiscoveryengineV1alphaObservabilityConfig::class;
+  protected $observabilityConfigDataType = '';
   protected $recommendationMetadataType = GoogleCloudDiscoveryengineV1alphaEngineRecommendationMetadata::class;
   protected $recommendationMetadataDataType = '';
   protected $searchEngineConfigType = GoogleCloudDiscoveryengineV1alphaEngineSearchEngineConfig::class;
@@ -379,9 +386,10 @@ class GoogleCloudDiscoveryengineV1alphaEngine extends \Google\Collection
    * state settings are ignored. * `agent-gallery` * `no-code-agent-builder` *
    * `prompt-gallery` * `model-selector` * `notebook-lm` * `people-search` *
    * `people-search-org-chart` * `bi-directional-audio` * `feedback` * `session-
-   * sharing` * `personalization-memory` * `disable-agent-sharing` * `disable-
-   * image-generation` * `disable-video-generation` * `disable-onedrive-upload`
-   * * `disable-talk-to-content` * `disable-google-drive-upload`
+   * sharing` * `personalization-memory` * `personalization-suggested-
+   * highlights` * `disable-agent-sharing` * `disable-image-generation` *
+   * `disable-video-generation` * `disable-onedrive-upload` * `disable-talk-to-
+   * content` * `disable-google-drive-upload` * `disable-welcome-emails`
    *
    * @param string[] $features
    */
@@ -495,6 +503,22 @@ class GoogleCloudDiscoveryengineV1alphaEngine extends \Google\Collection
     return $this->name;
   }
   /**
+   * Optional. Observability config for the engine.
+   *
+   * @param GoogleCloudDiscoveryengineV1alphaObservabilityConfig $observabilityConfig
+   */
+  public function setObservabilityConfig(GoogleCloudDiscoveryengineV1alphaObservabilityConfig $observabilityConfig)
+  {
+    $this->observabilityConfig = $observabilityConfig;
+  }
+  /**
+   * @return GoogleCloudDiscoveryengineV1alphaObservabilityConfig
+   */
+  public function getObservabilityConfig()
+  {
+    return $this->observabilityConfig;
+  }
+  /**
    * Output only. Additional information of a recommendation engine. Only
    * applicable if solution_type is SOLUTION_TYPE_RECOMMENDATION.
    *
@@ -548,7 +572,8 @@ class GoogleCloudDiscoveryengineV1alphaEngine extends \Google\Collection
    * Required. The solutions of the engine.
    *
    * Accepted values: SOLUTION_TYPE_UNSPECIFIED, SOLUTION_TYPE_RECOMMENDATION,
-   * SOLUTION_TYPE_SEARCH, SOLUTION_TYPE_CHAT, SOLUTION_TYPE_GENERATIVE_CHAT
+   * SOLUTION_TYPE_SEARCH, SOLUTION_TYPE_CHAT, SOLUTION_TYPE_GENERATIVE_CHAT,
+   * SOLUTION_TYPE_AI_MODE
    *
    * @param self::SOLUTION_TYPE_* $solutionType
    */
