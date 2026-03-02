@@ -124,8 +124,8 @@ export default function Register() {
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
                     onError={handleGoogleError}
+                    size="medium"
                     useOneTap={false}
-                    text="signup_with"
                   />
                 </div>
               </div>

@@ -1,30 +1,29 @@
 FROM php:8.2-cli
 
-# Instalar dependencias del sistema
+# ARG UID
+# ARG GID
+
+# RUN groupadd -g ${GID} laravel \
+#    && useradd -u ${UID} -g laravel -m laravel
+
+# dependencias
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev zip curl libpng-dev libonig-dev libxml2-dev \
-    netcat-openbsd
+    libpng-dev libonig-dev libxml2-dev zip unzip git curl libzip-dev pkg-config \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Extensiones PHP necesarias para Laravel
-RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev zip curl libpng-dev libonig-dev libxml2-dev \
-    netcat-openbsd procps && rm -rf /var/lib/apt/lists/*
+RUN curl -sS https://getcomposer.org/installer | php \
+    && mv composer.phar /usr/local/bin/composer \
+    && chmod +x /usr/local/bin/composer
 
-# Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar solo la carpeta backend
-COPY . . 
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --prefer-dist --no-scripts
 
-# Instalar dependencias PHP
-RUN composer install \
-    --no-interaction \
-    --prefer-dist \
-    --no-scripts
+COPY . .
 
 
 EXPOSE 8000
-
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]

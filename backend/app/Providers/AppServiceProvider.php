@@ -15,16 +15,18 @@ class AppServiceProvider extends ServiceProvider
     }
 
     public function boot(): void
-    {
-       View::composer(['vehiculos.create', 'vehiculos.edit'], function ($view) {
+{
+    if ($this->app->runningInConsole()) {
+        return;
+    }
+
+    View::composer(['vehiculos.create', 'vehiculos.edit'], function ($view) {
         /** @var User $user */
         $user = Auth::user();
-        
-        $usuarios = ($user && $user->isAdmin()) 
-            ? User::clientes()->get() 
+        $usuarios = ($user && $user->isAdmin())
+            ? User::clientes()->get()
             : collect();
-
         $view->with('usuarios', $usuarios);
     });
-    }
+}
 }

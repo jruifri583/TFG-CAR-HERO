@@ -126,6 +126,7 @@ export default function LoginPage() {
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
                   useOneTap
+                  size="medium"
                   text="continue_with"
                 />
               </div>
