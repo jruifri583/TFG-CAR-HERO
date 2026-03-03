@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pago;
+use Illuminate\Http\Request;
 use App\Http\Requests\StorePagoRequest;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PagoResource;
@@ -14,18 +15,22 @@ class PagoController extends Controller
     /**
      * Listar pagos con relaciones.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-     /** @var User $user */
-        $user = Auth::user();
-    
+    /** @var User $user */
+    $user = Auth::user();
+
+    $allowedSorts = ['created_at', 'importe', 'solicitud_id', 'metodo_pago_id', 'estado_pago_id']; 
+    $sortField = in_array($request->get('sort'), $allowedSorts) ? $request->get('sort') : 'created_at';
+    $sortOrder = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
+
     $pagos = Pago::with(['solicitud.cliente', 'metodoPago', 'estadoPago'])
                  ->visibleFor($user)
-                 ->paginate(10);
+                 ->orderBy($sortField, $sortOrder)
+                 ->paginate(5);
 
-    return response()->json(PagoResource::collection($pagos), 200);
+    return PagoResource::collection($pagos)->response();
     }
-
     /**
      * Crear un nuevo pago.
      */

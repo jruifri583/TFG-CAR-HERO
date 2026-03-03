@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string;
     password: string;
   }) => {
-    const res = await api.post("/api/login", { email, password });
+    const res = await api.post("/login", { email, password });
 
     const { user, token } = res.data;
 
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const loginWithGoogle = async (id_token: string) => {
-    const res = await api.post("/api/auth/google", { id_token });
+    const res = await api.post("/auth/google", { id_token });
 
     const { user, token } = res.data;
 

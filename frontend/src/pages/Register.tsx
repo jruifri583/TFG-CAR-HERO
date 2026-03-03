@@ -51,11 +51,11 @@ export default function Register() {
     try {
       await api.get("/sanctum/csrf-cookie");
 
-      await api.post("/api/auth/google", {
+      await api.post("/auth/google", {
         id_token: response.credential,
       });
 
-      const res = await api.get("/api/me");
+      const res = await api.get("/me");
 
       setUser(res.data);
       navigate("/dashboard");

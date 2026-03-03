@@ -9,6 +9,6 @@ class SolicitudesSeeder extends Seeder
 {
     public function run()
     {
-        Solicitud::factory()->count(4)->create();
+        Solicitud::factory()->count(50)->create();
     }
 }

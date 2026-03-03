@@ -23,5 +23,15 @@ export default defineConfig({
     fs: {
       strict: false,
     },
+    proxy: {
+      "/api": {
+        target: "http://backend:8000",
+        changeOrigin: true,
+      },
+      "/avatars": {
+        target: "http://backend:8000",
+        changeOrigin: true,
+      },
+    },
   },
 });

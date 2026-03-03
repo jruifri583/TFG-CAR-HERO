@@ -44,7 +44,7 @@ export default function LoginPage() {
     if (!response.credential) return;
 
     try {
-      const loginRes = await api.post("/api/auth/google", {
+      const loginRes = await api.post("/auth/google", {
         id_token: response.credential,
       });
 

@@ -20,11 +20,7 @@ class PagoResource extends JsonResource
             'importe' => $this->importe,
 
             // Relación: Solicitud resumida
-            'solicitud' => [
-                'id' => $this->solicitud?->id,
-                'user_cliente_id' => $this->solicitud?->cliente?->nombre ?? null,
-                'fecha_programada' => $this->fecha_programada?->format('d/m/Y H:i'),
-            ],
+            'solicitud' => $this->solicitud?->id,
 
             // Relación: Método de pago
             'metodo_pago' => [
@@ -37,6 +33,7 @@ class PagoResource extends JsonResource
                 'id' => $this->estadoPago?->id,
                 'nombre' => $this->estadoPago?->nombre ?? null,
             ],
+            'created_at' => $this->created_at?->toISOString(),
         ];
     }
 }

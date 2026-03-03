@@ -1,3 +1,5 @@
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -86,6 +88,12 @@ export default function UsersPage() {
   return (
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Usuarios</span>
+      <div className="flex justify-end mb-4">
+        <ButtonGroup>
+          <Button>Button 1</Button>
+          <Button>Button 2</Button>
+        </ButtonGroup>
+      </div>
 
       <Table>
         <TableHeader>
@@ -140,6 +148,10 @@ export default function UsersPage() {
                     src={user.imagen}
                     alt="Imagen de usuario"
                     className="w-10 h-10 rounded-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "/avatars/default_user.png";
+                    }}
                   />
                 ) : (
                   "-"

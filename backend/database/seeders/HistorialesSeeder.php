@@ -4,11 +4,19 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Historial;
+use App\Models\Solicitud;
 
 class HistorialesSeeder extends Seeder
 {
     public function run()
     {
-        Historial::factory()->count(1)->create();
+        Solicitud::inRandomOrder()
+            ->limit(10)
+            ->get()
+            ->each(function ($solicitud) {
+                Historial::factory()->create([
+                    'solicitud_id' => $solicitud->id,
+                ]);
+            });
     }
 }

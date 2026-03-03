@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Eye } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -17,10 +19,11 @@ import {
 import api from "@/lib/axios";
 
 interface Pago {
-  solicitud_id: number;
+  id: number;
+  solicitud: number;
   importe: number | null;
   metodo_pago: { nombre: string } | null;
-  estado_pago: { nombre: string } | null;
+  created_at: string | null;
 }
 
 export default function PagosPage() {
@@ -29,6 +32,7 @@ export default function PagosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const navigate = useNavigate();
 
   const fetchPagos = async () => {
     try {
@@ -47,6 +51,7 @@ export default function PagosPage() {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("pagos response:", res.data);
 
       setPagos(res.data.data ?? []);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
@@ -88,43 +93,54 @@ export default function PagosPage() {
         <TableHeader>
           <TableRow>
             <TableCell
-              className="cursor-pointer"
+              className="cursor-pointer w-1/5"
               onClick={() => handleSort("solicitud_id")}
             >
               Solicitud{renderSortArrow("solicitud_id")}
             </TableCell>
             <TableCell
-              className="cursor-pointer"
+              className="cursor-pointer w-1/5"
               onClick={() => handleSort("importe")}
             >
               Importe{renderSortArrow("importe")}
             </TableCell>
             <TableCell
-              className="cursor-pointer"
+              className="cursor-pointer w-1/5"
               onClick={() => handleSort("metodo_pago_id")}
             >
               Método de Pago{renderSortArrow("metodo_pago_id")}
             </TableCell>
             <TableCell
-              className="cursor-pointer"
-              onClick={() => handleSort("estado_pago_id")}
+              className="cursor-pointer w-1/5"
+              onClick={() => handleSort("created_at")}
             >
-              Estado de Pago{renderSortArrow("estado_pago_id")}
+              Fecha de pago{renderSortArrow("created_at")}
             </TableCell>
             <TableCell>Acciones</TableCell>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {(pagos ?? []).map((h) => (
-            <TableRow key={h.solicitud_id}>
-              <TableCell className="w-1/4">{h.solicitud_id}</TableCell>
-              <TableCell className="w-1/4">{h.importe ?? "-"}</TableCell>
-              <TableCell className="w-1/4">
+          {(pagos ?? []).map((h, index) => (
+            <TableRow key={`pago-${index}`}>
+              <TableCell className="w-1/5">{h.solicitud ?? "-"}</TableCell>
+              <TableCell className="w-1/5">{h.importe ?? "-"}</TableCell>
+              <TableCell className="w-1/5">
                 {h.metodo_pago?.nombre ?? "-"}
               </TableCell>
-              <TableCell>{h.estado_pago?.nombre ?? "-"}</TableCell>
-              <TableCell>{/* Acciones */}</TableCell>
+              <TableCell>
+                {h.created_at
+                  ? new Date(h.created_at).toLocaleDateString("es-ES")
+                  : "-"}
+              </TableCell>
+              <TableCell className="w-1/5 flex items-center justify-center">
+                <button
+                  onClick={() => navigate(`/pagos/${h.id}`)}
+                  className="text-gray-500 hover:text-blue-600 transition-colors"
+                >
+                  <Eye size={20} />
+                </button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

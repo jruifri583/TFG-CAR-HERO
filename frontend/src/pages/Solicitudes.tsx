@@ -1,3 +1,5 @@
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -68,6 +70,12 @@ export default function SolicitudesPage() {
   return (
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Solicitudes</span>
+      <div className="flex justify-end mb-4">
+        <ButtonGroup>
+          <Button>Button 1</Button>
+          <Button>Button 2</Button>
+        </ButtonGroup>
+      </div>
 
       <Table>
         <TableHeader>

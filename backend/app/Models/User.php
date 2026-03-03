@@ -73,14 +73,14 @@ class User extends Authenticatable
     public function getImagenAttribute($value)
     {
     if (!$value) {
-        return asset('avatars/default_user.png'); 
+        return 'avatars/default_user.png';
     }
 
     if (filter_var($value, FILTER_VALIDATE_URL)) {
         return $value;
     }
 
-    return asset('avatars/' . $value);
+    return 'avatars/' . $value;
     }
 
     public function isAdmin(): bool

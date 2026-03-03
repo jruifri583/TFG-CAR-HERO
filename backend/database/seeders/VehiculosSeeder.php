@@ -9,6 +9,6 @@ class VehiculosSeeder extends Seeder
 {
     public function run()
     {
-        Vehiculo::factory()->count(20)->create();
+        Vehiculo::factory()->count(50)->create();
     }
 }

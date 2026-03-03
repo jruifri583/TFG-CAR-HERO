@@ -1,3 +1,5 @@
+import { ButtonGroup } from "@/components/ui/button-group";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -82,24 +84,30 @@ export default function VehiculosPage() {
   return (
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Vehículos</span>
+      <div className="flex justify-end mb-4">
+        <ButtonGroup>
+          <Button>Button 1</Button>
+          <Button>Button 2</Button>
+        </ButtonGroup>
+      </div>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell>Imagen</TableCell>
+            <TableCell className="w-1/5">Imagen</TableCell>
             <TableCell
-              className="cursor-pointer"
+              className="cursor-pointer w-1/5"
               onClick={() => handleSort("matricula")}
             >
               Matrícula{renderSortArrow("matricula")}
             </TableCell>
             <TableCell
-              className="cursor-pointer"
+              className="cursor-pointer w-1/5"
               onClick={() => handleSort("vin")}
             >
               VIN{renderSortArrow("vin")}
             </TableCell>
-            <TableCell>Acciones</TableCell>
+            <TableCell className="w-1/5">Acciones</TableCell>
           </TableRow>
         </TableHeader>
 
