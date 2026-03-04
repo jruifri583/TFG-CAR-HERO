@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -84,4 +85,25 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Sesión cerrada correctamente']);
     }
+
+    public function updateImagen(Request $request)
+{
+    $request->validate([
+        'imagen' => 'required|image|max:2048',
+    ]);
+
+    /** @var User $user */
+    $user = Auth::user();
+
+    // Elimina la imagen anterior si no es la de Google ni la default
+    if ($user->getRawOriginal('imagen') && !filter_var($user->getRawOriginal('imagen'), FILTER_VALIDATE_URL)) {
+        Storage::disk('public')->delete('avatars/' . $user->getRawOriginal('imagen'));
+    }
+
+    $filename = $request->file('imagen')->store('avatars', 'public');
+    $user->imagen = basename($filename);
+    $user->save();
+
+    return response()->json(['user' => $user->fresh()]);
+}
 }

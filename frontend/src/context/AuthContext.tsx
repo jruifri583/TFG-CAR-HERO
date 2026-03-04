@@ -10,6 +10,8 @@ export interface AuthContextType {
   loginWithGoogle: (token: string, userData: User) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  isEditing: boolean;
+  setIsEditing: (v: boolean) => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(

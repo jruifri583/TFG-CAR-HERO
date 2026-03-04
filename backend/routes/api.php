@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\VehiculoController;
 use App\Http\Controllers\Api\HistorialController;
 use App\Http\Controllers\Api\GoogleController;
 use Illuminate\Http\Request;
+use App\Enums\RolSlug;
 
 
 
@@ -22,10 +23,15 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Auth
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/me', [AuthController::class, 'update']);
+    Route::post('/me/imagen', [AuthController::class, 'updateImagen']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Recursos
-    Route::apiResource('users', UserController::class);
+    Route::middleware('rol:' . RolSlug::ADMINISTRADOR->value)->group(function () {
+        Route::resource('users', UserController::class);
+    });
+
     Route::apiResource('vehiculos', VehiculoController::class);
     Route::get('historiales', [HistorialController::class, 'index']);
     Route::apiResource('pagos', PagoController::class);

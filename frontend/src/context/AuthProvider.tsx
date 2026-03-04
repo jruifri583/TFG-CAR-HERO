@@ -7,6 +7,7 @@ import type { User } from "@/types/auth";
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const login = async ({
     email,
@@ -59,7 +60,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, login, loginWithGoogle, logout, loading }}
+      value={{
+        user,
+        setUser,
+        login,
+        loginWithGoogle,
+        logout,
+        loading,
+        isEditing,
+        setIsEditing,
+      }}
     >
       {children}
     </AuthContext.Provider>

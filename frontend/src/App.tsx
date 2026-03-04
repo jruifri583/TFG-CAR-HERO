@@ -11,6 +11,7 @@ import SolicitudesPage from "@/pages/Solicitudes";
 import HistorialPage from "@/pages/Historial";
 import PagosPage from "@/pages/Pagos";
 import PagoDetailPage from "@/pages/PagoDetail";
+import PerfilPage from "@/pages/Perfil";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/historial" element={<HistorialPage />}></Route>
             <Route path="/pagos" element={<PagosPage />}></Route>
             <Route path="/pagos/:id" element={<PagoDetailPage />} />
+            <Route path="/perfil" element={<PerfilPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
