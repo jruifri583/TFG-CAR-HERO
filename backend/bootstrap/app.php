@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
+        $middleware->alias([
+        'rol' => \App\Http\Middleware\RolAdminMiddleware::class, 
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

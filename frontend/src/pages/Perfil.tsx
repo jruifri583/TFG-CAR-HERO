@@ -23,7 +23,6 @@ interface User {
 
 export default function PerfilPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Partial<User>>({});
   const { isEditing, setIsEditing } = useAuth();
 
@@ -46,7 +45,7 @@ export default function PerfilPage() {
 
   const handleCancel = () => {
     setForm(user ?? {});
-    setEditing(false);
+    setIsEditing(false);
   };
 
   const handleSave = async () => {
@@ -62,57 +61,57 @@ export default function PerfilPage() {
       <span className="text-4xl font-bold mb-6 inline-block">Perfil</span>
 
       <div className="space-y-3">
-        <InputGroup data-readonly={!editing ? "true" : undefined}>
+        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
           <InputGroupText>Email</InputGroupText>
           <InputGroupInput
             type="email"
             value={form.email ?? ""}
-            readOnly={!editing}
+            readOnly={!isEditing}
             onChange={(e) => handleChange("email", e.target.value)}
           />
         </InputGroup>
-        <InputGroup data-readonly={!editing ? "true" : undefined}>
+        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
           <InputGroupText>Nombre</InputGroupText>
           <InputGroupInput
             type="text"
             value={form.nombre ?? ""}
-            readOnly={!editing}
+            readOnly={!isEditing}
             onChange={(e) => handleChange("nombre", e.target.value)}
           />
         </InputGroup>
-        <InputGroup data-readonly={!editing ? "true" : undefined}>
+        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
           <InputGroupText>Apellidos</InputGroupText>
           <InputGroupInput
             type="text"
             value={form.apellidos ?? ""}
-            readOnly={!editing}
+            readOnly={!isEditing}
             onChange={(e) => handleChange("apellidos", e.target.value)}
           />
         </InputGroup>
-        <InputGroup data-readonly={!editing ? "true" : undefined}>
+        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
           <InputGroupText>NIF</InputGroupText>
           <InputGroupInput
             type="text"
             value={form.nif ?? ""}
-            readOnly={!editing}
+            readOnly={!isEditing}
             onChange={(e) => handleChange("nif", e.target.value)}
           />
         </InputGroup>
-        <InputGroup data-readonly={!editing ? "true" : undefined}>
+        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
           <InputGroupText>Teléfono</InputGroupText>
           <InputGroupInput
             type="text"
             value={form.telefono ?? ""}
-            readOnly={!editing}
+            readOnly={!isEditing}
             onChange={(e) => handleChange("telefono", e.target.value)}
           />
         </InputGroup>
-        <InputGroup data-readonly={!editing ? "true" : undefined}>
+        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
           <InputGroupText>Dirección</InputGroupText>
           <InputGroupInput
             type="text"
             value={form.direccion ?? ""}
-            readOnly={!editing}
+            readOnly={!isEditing}
             onChange={(e) => handleChange("direccion", e.target.value)}
           />
         </InputGroup>
@@ -124,7 +123,7 @@ export default function PerfilPage() {
             readOnly
           />
         </InputGroup>
-        {editing && (
+        {isEditing && (
           <InputGroup>
             <InputGroupText>Contraseña</InputGroupText>
             <InputGroupInput
@@ -139,8 +138,8 @@ export default function PerfilPage() {
       </div>
 
       <div className="flex gap-2 mt-6">
-        {!editing ? (
-          <Button onClick={() => setEditing(true)}>Editar</Button>
+        {!isEditing ? (
+          <Button onClick={() => setIsEditing(true)}>Editar</Button>
         ) : (
           <>
             <Button variant="outline" onClick={handleCancel}>

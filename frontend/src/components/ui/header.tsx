@@ -40,8 +40,11 @@ export default function Header() {
               </strong>
             </span>
 
-            {isPerfilPage && !isEditing ? null : null}
-            {isPerfilPage && isEditing ? (
+            {!isPerfilPage ? (
+              <Button asChild>
+                <NavLink to="/perfil">Ver perfil</NavLink>
+              </Button>
+            ) : isEditing ? (
               <>
                 <input
                   ref={fileInputRef}
@@ -58,9 +61,7 @@ export default function Header() {
                 </Button>
               </>
             ) : (
-              <Button asChild>
-                <NavLink to="/perfil">Ver perfil</NavLink>
-              </Button>
+              <div className="h-9" /> // 👈 placeholder del mismo alto que el botón
             )}
           </div>
           <Avatar className="size-40 border-4 border-white rounded-full">
