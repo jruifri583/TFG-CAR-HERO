@@ -80,7 +80,7 @@ class User extends Authenticatable
         return $value;
     }
 
-    return 'avatars/' . $value;
+    return '/storage/avatars/' . $value;
     }
 
     public function isAdmin(): bool

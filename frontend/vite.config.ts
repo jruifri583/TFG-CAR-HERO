@@ -28,7 +28,7 @@ export default defineConfig({
         target: "http://backend:8000",
         changeOrigin: true,
       },
-      "/avatars": {
+      "/storage": {
         target: "http://backend:8000",
         changeOrigin: true,
       },

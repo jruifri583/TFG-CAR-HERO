@@ -34,4 +34,26 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/login');
     }
+
+    public function updateImagen(Request $request)
+{
+    $request->validate([
+        'imagen' => 'required|image|max:2048',
+    ]);
+
+    /** @var User $user */
+    $user = $request->user();
+
+    // Elimina imagen anterior si es local
+    $oldImagen = $user->getRawOriginal('imagen');
+    if ($oldImagen && !filter_var($oldImagen, FILTER_VALIDATE_URL)) {
+        Storage::disk('public')->delete('avatars/' . $oldImagen);
+    }
+
+    $filename = $request->file('imagen')->store('avatars', 'public');
+    $user->imagen = basename($filename);
+    $user->save();
+
+    return response()->json(['user' => $user->fresh()]);
+}
 }

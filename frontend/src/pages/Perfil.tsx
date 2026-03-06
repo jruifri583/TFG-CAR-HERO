@@ -1,11 +1,8 @@
-import {
-  InputGroup,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { CardContent, CardSinBorde } from "@/components/ui/card";
 import { useAuth } from "@/context/useAuth";
 
 interface User {
@@ -24,7 +21,7 @@ interface User {
 export default function PerfilPage() {
   const [user, setUser] = useState<User | null>(null);
   const [form, setForm] = useState<Partial<User>>({});
-  const { isEditing, setIsEditing } = useAuth();
+  const { isEditing, setIsEditing, setUser: setContextUser } = useAuth();
 
   useEffect(() => {
     const fetchMe = async () => {
@@ -51,104 +48,139 @@ export default function PerfilPage() {
   const handleSave = async () => {
     const res = await api.put("/me", form);
     setUser(res.data.user);
+    setContextUser(res.data.user);
     setIsEditing(false);
   };
 
   if (!user) return <p>Cargando...</p>;
 
+  const readOnlyClass = !isEditing
+    ? "pointer-events-none focus:ring-0 focus:outline-none"
+    : "";
+
   return (
-    <div className="max-w-lg">
+    <div className="w-full">
       <span className="text-4xl font-bold mb-6 inline-block">Perfil</span>
+      <CardSinBorde className="w-full">
+        <CardContent className="grid grid-cols-3 gap-4">
+          <div className="col-span-2 grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">Email</label>
+              <Input
+                type="email"
+                value={form.email ?? ""}
+                readOnly={!isEditing}
+                className={readOnlyClass}
+                onChange={(e) => handleChange("email", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">Nombre</label>
+              <Input
+                type="text"
+                value={form.nombre ?? ""}
+                readOnly={!isEditing}
+                className={readOnlyClass}
+                onChange={(e) => handleChange("nombre", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">Apellidos</label>
+              <Input
+                type="text"
+                value={form.apellidos ?? ""}
+                readOnly={!isEditing}
+                className={readOnlyClass}
+                onChange={(e) => handleChange("apellidos", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">NIF</label>
+              <Input
+                type="text"
+                value={form.nif ?? ""}
+                readOnly={!isEditing}
+                className={readOnlyClass}
+                onChange={(e) => handleChange("nif", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">Teléfono</label>
+              <Input
+                type="text"
+                value={form.telefono ?? ""}
+                readOnly={!isEditing}
+                className={readOnlyClass}
+                onChange={(e) => handleChange("telefono", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">Dirección</label>
+              <Input
+                type="text"
+                value={form.direccion ?? ""}
+                readOnly={!isEditing}
+                className={readOnlyClass}
+                onChange={(e) => handleChange("direccion", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm text-muted-foreground">Rol</label>
+              <Input
+                type="text"
+                value={user.rol?.nombre ?? ""}
+                readOnly
+                className="pointer-events-none"
+              />
+            </div>
+            {isEditing && (
+              <div className="space-y-1">
+                <label className="text-sm text-muted-foreground">
+                  Contraseña
+                </label>
+                <Input
+                  type="password"
+                  placeholder="Nueva contraseña (opcional)"
+                  onChange={(e) =>
+                    handleChange("password" as keyof User, e.target.value)
+                  }
+                />
+              </div>
+            )}
+          </div>
 
-      <div className="space-y-3">
-        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
-          <InputGroupText>Email</InputGroupText>
-          <InputGroupInput
-            type="email"
-            value={form.email ?? ""}
-            readOnly={!isEditing}
-            onChange={(e) => handleChange("email", e.target.value)}
-          />
-        </InputGroup>
-        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
-          <InputGroupText>Nombre</InputGroupText>
-          <InputGroupInput
-            type="text"
-            value={form.nombre ?? ""}
-            readOnly={!isEditing}
-            onChange={(e) => handleChange("nombre", e.target.value)}
-          />
-        </InputGroup>
-        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
-          <InputGroupText>Apellidos</InputGroupText>
-          <InputGroupInput
-            type="text"
-            value={form.apellidos ?? ""}
-            readOnly={!isEditing}
-            onChange={(e) => handleChange("apellidos", e.target.value)}
-          />
-        </InputGroup>
-        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
-          <InputGroupText>NIF</InputGroupText>
-          <InputGroupInput
-            type="text"
-            value={form.nif ?? ""}
-            readOnly={!isEditing}
-            onChange={(e) => handleChange("nif", e.target.value)}
-          />
-        </InputGroup>
-        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
-          <InputGroupText>Teléfono</InputGroupText>
-          <InputGroupInput
-            type="text"
-            value={form.telefono ?? ""}
-            readOnly={!isEditing}
-            onChange={(e) => handleChange("telefono", e.target.value)}
-          />
-        </InputGroup>
-        <InputGroup data-readonly={!isEditing ? "true" : undefined}>
-          <InputGroupText>Dirección</InputGroupText>
-          <InputGroupInput
-            type="text"
-            value={form.direccion ?? ""}
-            readOnly={!isEditing}
-            onChange={(e) => handleChange("direccion", e.target.value)}
-          />
-        </InputGroup>
-        <InputGroup data-readonly="true">
-          <InputGroupText>Rol</InputGroupText>
-          <InputGroupInput
-            type="text"
-            value={user.rol?.nombre ?? ""}
-            readOnly
-          />
-        </InputGroup>
-        {isEditing && (
-          <InputGroup>
-            <InputGroupText>Contraseña</InputGroupText>
-            <InputGroupInput
-              type="password"
-              placeholder="Nueva contraseña (opcional)"
-              onChange={(e) =>
-                handleChange("password" as keyof User, e.target.value)
-              }
-            />
-          </InputGroup>
-        )}
-      </div>
-
-      <div className="flex gap-2 mt-6">
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)}>Editar</Button>
-        ) : (
-          <>
-            <Button variant="outline" onClick={handleCancel}>
-              Cancelar
-            </Button>
-            <Button onClick={handleSave}>Guardar</Button>
-          </>
-        )}
-      </div>
+          {/* Columna de botones */}
+          <div className="flex flex-col justify-end gap-2">
+            {!isEditing ? (
+              <>
+                <Button className="w-50" onClick={() => setIsEditing(true)}>
+                  Editar
+                </Button>
+                <Button
+                  className="w-50"
+                  variant="outline"
+                  onClick={() => window.history.back()}
+                >
+                  Atrás
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  className="w-50"
+                  variant="outline"
+                  onClick={handleCancel}
+                >
+                  Cancelar
+                </Button>
+                <Button className="w-50" onClick={handleSave}>
+                  Guardar
+                </Button>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </CardSinBorde>
     </div>
   );
 }

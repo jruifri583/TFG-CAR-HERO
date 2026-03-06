@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -62,6 +63,32 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+
+    public function update(Request $request)
+{
+    /** @var User $user */
+    $user = $request->user();
+
+    $validated = $request->validate([
+        'nombre'    => 'sometimes|string|max:255',
+        'apellidos' => 'sometimes|string|max:255|nullable',
+        'nif'       => 'sometimes|string|max:20|nullable',
+        'telefono'  => 'sometimes|string|max:20|nullable',
+        'direccion' => 'sometimes|string|max:255|nullable',
+        'email'     => 'sometimes|email|unique:users,email,' . $user->id,
+        'password'  => 'sometimes|string|min:8|nullable',
+    ]);
+
+    if (!empty($validated['password'])) {
+        $validated['password'] = bcrypt($validated['password']);
+    } else {
+        unset($validated['password']);
+    }
+
+    $user->update($validated);
+
+    return response()->json(['user' => $user->fresh()]);
+}
 
     // ======================
     // ME

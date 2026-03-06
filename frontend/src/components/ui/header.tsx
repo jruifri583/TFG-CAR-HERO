@@ -17,6 +17,7 @@ export default function Header() {
 
     const formData = new FormData();
     formData.append("imagen", file);
+    console.log("imagen:", user?.imagen);
 
     try {
       const res = await api.post("/me/imagen", formData, {
@@ -54,6 +55,7 @@ export default function Header() {
                   onChange={handleImageChange}
                 />
                 <Button
+                  className="w-50"
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
@@ -61,7 +63,7 @@ export default function Header() {
                 </Button>
               </>
             ) : (
-              <div className="h-9" /> // 👈 placeholder del mismo alto que el botón
+              <div className="h-9" />
             )}
           </div>
           <Avatar className="size-40 border-4 border-white rounded-full">
