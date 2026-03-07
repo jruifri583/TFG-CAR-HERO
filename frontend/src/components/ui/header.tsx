@@ -6,7 +6,7 @@ import { useRef } from "react";
 import api from "@/lib/axios";
 
 export default function Header() {
-  const { user, setUser, isEditing, setIsEditing } = useAuth();
+  const { user, setUser, isEditing } = useAuth();
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isPerfilPage = location.pathname === "/perfil";
