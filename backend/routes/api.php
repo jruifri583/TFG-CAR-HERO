@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\PagoController;
 use App\Http\Controllers\Api\VehiculoController;
 use App\Http\Controllers\Api\HistorialController;
 use App\Http\Controllers\Api\GoogleController;
+use App\Http\Controllers\Api\SolicitudController;
+use App\Http\Controllers\Api\DashboardController;
 use Illuminate\Http\Request;
 use App\Enums\RolSlug;
 
@@ -35,6 +37,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('vehiculos', VehiculoController::class);
     Route::get('historiales', [HistorialController::class, 'index']);
     Route::apiResource('pagos', PagoController::class);
+    Route::apiResource('solicitudes', SolicitudController::class);
 
-    
+    Route::get('/contadores', [DashboardController::class, 'contadores']);
+    Route::get('/dashboard/solicitudes-por-estado', [DashboardController::class, 'solicitudesPorEstado']);
+    Route::get('/dashboard/solicitudes-por-mes', [DashboardController::class, 'solicitudesPorMes']);
+    Route::get('/dashboard/pagos-recientes', [DashboardController::class, 'pagosRecientes']);
+  
 });

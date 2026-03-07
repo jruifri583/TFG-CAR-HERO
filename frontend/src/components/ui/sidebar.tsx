@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import api from "@/lib/axios";
 import { useAuth } from "@/context/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -9,17 +11,47 @@ import {
   LogOut,
 } from "lucide-react";
 
-const menu = [
-  { label: "Solicitudes", icon: FileText, to: "/solicitudes" },
-  { label: "Usuarios", icon: Users, to: "/users" },
-  { label: "Vehículos", icon: Car, to: "/vehiculos" },
-  { label: "Pagos", icon: ClipboardList, to: "/pagos", badge: 10 },
-  { label: "Historial", icon: History, to: "/historial" },
-];
-
 export default function Sidebar() {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [contadores, setContadores] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    api.get("/contadores").then((res) => setContadores(res.data));
+  }, []);
+
+  const menu = [
+    {
+      label: "Solicitudes",
+      icon: FileText,
+      to: "/solicitudes",
+      badge: contadores.solicitudes,
+    },
+    {
+      label: "Usuarios",
+      icon: Users,
+      to: "/users",
+      badge: contadores.usuarios,
+    },
+    {
+      label: "Vehículos",
+      icon: Car,
+      to: "/vehiculos",
+      badge: contadores.vehiculos,
+    },
+    {
+      label: "Pagos",
+      icon: ClipboardList,
+      to: "/pagos",
+      badge: contadores.pagos,
+    },
+    {
+      label: "Historial",
+      icon: History,
+      to: "/historial",
+      badge: contadores.historial,
+    },
+  ];
 
   const handleLogout = async () => {
     const token = localStorage.getItem("token");

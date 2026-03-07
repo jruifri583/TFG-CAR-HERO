@@ -1,3 +1,4 @@
+import { Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -15,6 +16,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
+import { useNavigate } from "react-router-dom";
 
 interface Historial {
   solicitud_id: number;
@@ -28,6 +30,7 @@ export default function HistorialPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const navigate = useNavigate();
 
   const fetchHistoriales = async () => {
     try {
@@ -105,7 +108,14 @@ export default function HistorialPage() {
               <TableCell className="w-1/4">
                 {h.resolucion?.nombre ?? "-"}
               </TableCell>
-              <TableCell>{/* Acciones */}</TableCell>
+              <TableCell>
+                <button
+                  onClick={() => navigate(`/historial/${h.solicitud_id}`)}
+                  className="text-gray-500 hover:text-blue-600 transition-colors"
+                >
+                  <Eye size={20} />
+                </button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

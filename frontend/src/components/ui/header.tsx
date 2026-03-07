@@ -55,7 +55,6 @@ export default function Header() {
                   onChange={handleImageChange}
                 />
                 <Button
-                  className="w-50"
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
