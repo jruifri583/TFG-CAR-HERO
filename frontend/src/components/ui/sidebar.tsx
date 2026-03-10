@@ -15,8 +15,19 @@ import {
 export default function Sidebar() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const [contadores, setContadores] = useState<Record<string, number>>({});
+  const [contadores, setContadores] = useState<
+    Record<string, number | undefined>
+  >({});
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  const RUTA_CONTADOR: Record<string, string> = {
+    "/solicitudes": "solicitudes",
+    "/users": "usuarios",
+    "/vehiculos": "vehiculos",
+    "/pagos": "pagos",
+    "/historial": "historial",
+  };
 
   useEffect(() => {
     const desde = localStorage.getItem("last_login");
@@ -31,16 +42,6 @@ export default function Sidebar() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const location = useLocation();
-
-  const RUTA_CONTADOR: Record<string, string> = {
-    "/solicitudes": "solicitudes",
-    "/users": "usuarios",
-    "/vehiculos": "vehiculos",
-    "/pagos": "pagos",
-    "/historial": "historial",
-  };
 
   useEffect(() => {
     const key = RUTA_CONTADOR[location.pathname];
@@ -108,7 +109,7 @@ export default function Sidebar() {
             {/* Icono con badge */}
             <div className="relative shrink-0">
               <Icon size={20} />
-              {collapsed && badge && badge > 0 && (
+              {collapsed && badge != null && badge > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full leading-none">
                   {badge > 99 ? "99+" : badge}
                 </span>
@@ -119,7 +120,7 @@ export default function Sidebar() {
             {!collapsed && (
               <>
                 <span className="flex-1 text-sm">{label}</span>
-                {badge && badge > 0 ? (
+                {badge != null && badge > 0 ? (
                   <span className="bg-white text-blue-600 text-xs px-2 py-0.5 rounded-full">
                     {badge}
                   </span>

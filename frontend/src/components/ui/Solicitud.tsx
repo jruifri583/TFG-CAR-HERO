@@ -13,7 +13,7 @@ const ESTADOS = [
 
 interface Solicitud {
   id: number;
-  estado: { slug: string; nombre: string };
+  estado: { slug: string; nombre: string } | null;
   hora_recogida: string | null;
   hora_itv: string | null;
   hora_entrega: string | null;
@@ -38,7 +38,7 @@ function formatHora(iso: string | null): string {
 }
 
 export default function Solicitud({ solicitud }: Props) {
-  const estadoActual = solicitud.estado.slug;
+  const estadoActual = solicitud.estado?.slug ?? "";
   const cancelado = estadoActual === "cancelado";
 
   const indexActual = ESTADOS.findIndex((e) => e.slug === estadoActual);

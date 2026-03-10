@@ -12,6 +12,7 @@ import HistorialPage from "@/pages/Historial";
 import PagosPage from "@/pages/Pagos";
 import PagoDetailPage from "@/pages/PagoDetail";
 import PerfilPage from "@/pages/Perfil";
+import SolicitudDetailPage from "./pages/SolicitudDetailPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/users" element={<UsersPage />}></Route>
             <Route path="/vehiculos" element={<VehiculosPage />}></Route>
             <Route path="/solicitudes" element={<SolicitudesPage />}></Route>
+            <Route path="/solicitudes/:id" element={<SolicitudDetailPage />} />
             <Route path="/historial" element={<HistorialPage />}></Route>
             <Route path="/pagos" element={<PagosPage />}></Route>
             <Route path="/pagos/:id" element={<PagoDetailPage />} />

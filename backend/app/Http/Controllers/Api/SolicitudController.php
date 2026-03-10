@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Solicitud;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use App\Http\Requests\StoreSolicitudRequest;
 use App\Http\Requests\UpdateSolicitudRequest;
 use App\Services\EstadoService;
@@ -15,31 +16,27 @@ use App\Http\Resources\SolicitudResource;
 
 class SolicitudController extends Controller
 {
-    public function __construct()
+    /* public function __construct()
     {
         $this->authorizeResource(Solicitud::class, 'solicitud');
-    }
+    } */
 
 
-    public function index()
-    {
-        $user = Auth::user();
+    public function index(Request $request)
+{
+    $user = $request->user();
+    $allowed = ['fecha_programada', 'estado_id', 'created_at'];
+    $sort = in_array($request->get('sort'), $allowed) ? $request->get('sort') : 'created_at';
+    $order = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
 
-        $solicitudes = Solicitud::noFinalizadas()
-            ->visibleFor($user)
-            ->withBaseRelations()
-            ->paginate(5);
+    $solicitudes = Solicitud::visibleFor($user)
+        ->withBaseRelations()
+        ->with(['empleado'])
+        ->orderBy($sort, $order)
+        ->paginate(5);
 
-        $solicitudesFinalizadas = Solicitud::finalizadas()
-            ->visibleFor($user)
-            ->withBaseRelations()
-            ->paginate(5);
-
-        return response()->json([
-            'solicitudes' => SolicitudResource::collection($solicitudes),
-            'solicitudesFinalizadas' => SolicitudResource::collection($solicitudesFinalizadas),
-        ], 200);
-    }
+    return SolicitudResource::collection($solicitudes)->response();
+}
 
 
     public function meta()
@@ -68,12 +65,12 @@ class SolicitudController extends Controller
     }
 
 
-    public function show(Solicitud $solicitud)
-    {
-        $solicitud->loadFull();
-
-        return response()->json($solicitud);
-    }
+    public function show(Request $request, Solicitud $solicitud)
+{
+    $this->authorize('view', $solicitud);
+    $solicitud->loadFull();
+    return (new SolicitudResource($solicitud))->response();
+}
 
 
     public function update(

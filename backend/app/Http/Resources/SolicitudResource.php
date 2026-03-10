@@ -18,10 +18,10 @@ class SolicitudResource extends JsonResource
         return [
             'id' => $this->id,
             'direccion' => $this->direccion,
-            'fecha_programada' => $this->fecha_programada?->format('d/m/Y H:i'),
-            'hora_recogida' => $this->hora_recogida?->format('H:i:s'),
-            'hora_itv' => $this->hora_itv?->format('H:i:s'),
-            'hora_entrega' => $this->hora_entrega?->format('H:i:s'),
+            'fecha_programada' => $this->fecha_programada?->toISOString(),
+            'hora_recogida'    => $this->hora_recogida?->toISOString(),
+            'hora_itv'         => $this->hora_itv?->toISOString(),
+            'hora_entrega'     => $this->hora_entrega?->toISOString(),
             'notas' => $this->notas,
 
             'cliente' => [
@@ -29,6 +29,7 @@ class SolicitudResource extends JsonResource
                 'nombre' => $this->cliente?->nombre,
                 'apellidos' => $this->cliente?->apellidos,
                 'email' => $this->cliente?->email,
+                'imagen'   => $this->cliente?->imagen,
             ],
 
             'empleado' => $this->empleado ? [
@@ -36,6 +37,7 @@ class SolicitudResource extends JsonResource
                 'nombre' => $this->empleado->nombre,
                 'apellidos' => $this->empleado->apellidos,
                 'email' => $this->empleado->email,
+                'imagen'   => $this->empleado->imagen,
             ] : null,
 
             'vehiculo' => $this->vehiculo ? [
@@ -43,11 +45,13 @@ class SolicitudResource extends JsonResource
                 'matricula' => $this->vehiculo->matricula,
                 'marca' => $this->vehiculo->marca,
                 'modelo' => $this->vehiculo->modelo,
+                'imagen'   => $this->vehiculo->imagen,
             ] : null,
 
             'estado' => $this->estado ? [
                 'id' => $this->estado->id,
                 'nombre' => $this->estado->nombre,
+                'slug'   => $this->estado->slug,
             ] : null,
 
             'resolucion' => $this->resolucion ? [

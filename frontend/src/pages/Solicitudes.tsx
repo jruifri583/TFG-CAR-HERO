@@ -1,4 +1,14 @@
-import { Search, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Search,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Pencil,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -18,9 +28,10 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
-import Solicitud from "@/components/ui/solicitud";
+import SolicitudTracker from "@/components/ui/Solicitud";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 interface Solicitud {
   id: number;
@@ -51,6 +62,9 @@ const ESTADO_COLORS: Record<string, string> = {
   finalizado: "bg-green-100 text-green-800",
 };
 
+type SortField = "fecha_programada" | "estado_id" | "created_at";
+type SortOrder = "asc" | "desc";
+
 function fmt(iso: string | null) {
   if (!iso) return "-";
   return format(new Date(iso), "dd MMM yyyy", { locale: es });
@@ -61,11 +75,16 @@ export default function SolicitudesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await api.get(`/solicitudes?page=${currentPage}`);
+        const res = await api.get(`/solicitudes`, {
+          params: { page: currentPage, sort: sortField, order: sortOrder },
+        });
         setSolicitudes(res.data.data);
         setTotalPages(res.data.meta?.last_page ?? res.data.last_page ?? 1);
       } catch (error) {
@@ -73,7 +92,27 @@ export default function SolicitudesPage() {
       }
     };
     fetch();
-  }, [currentPage]);
+  }, [currentPage, sortField, sortOrder]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+    setCurrentPage(1);
+  };
+
+  const renderSortArrow = (field: SortField) => {
+    if (sortField !== field)
+      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp size={14} className="inline ml-1" />
+    ) : (
+      <ArrowDown size={14} className="inline ml-1" />
+    );
+  };
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -107,8 +146,18 @@ export default function SolicitudesPage() {
             <TableCell>Vehículo</TableCell>
             <TableCell>Cliente</TableCell>
             <TableCell>Empleado</TableCell>
-            <TableCell>Estado</TableCell>
-            <TableCell>Fecha programada</TableCell>
+            <TableCell
+              className="cursor-pointer"
+              onClick={() => handleSort("estado_id")}
+            >
+              Estado{renderSortArrow("estado_id")}
+            </TableCell>
+            <TableCell
+              className="cursor-pointer"
+              onClick={() => handleSort("fecha_programada")}
+            >
+              Fecha programada{renderSortArrow("fecha_programada")}
+            </TableCell>
             <TableCell>Dirección</TableCell>
             <TableCell>Acciones</TableCell>
           </TableRow>
@@ -122,7 +171,6 @@ export default function SolicitudesPage() {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => toggleExpand(s.id)}
               >
-                {/* Expand icon */}
                 <TableCell>
                   {expandedId === s.id ? (
                     <ChevronUp size={16} />
@@ -131,7 +179,6 @@ export default function SolicitudesPage() {
                   )}
                 </TableCell>
 
-                {/* Vehículo */}
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <img
@@ -153,7 +200,6 @@ export default function SolicitudesPage() {
                   </div>
                 </TableCell>
 
-                {/* Cliente */}
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <img
@@ -170,7 +216,6 @@ export default function SolicitudesPage() {
                   </div>
                 </TableCell>
 
-                {/* Empleado */}
                 <TableCell className="text-sm">
                   {s.empleado ? (
                     `${s.empleado.nombre} ${s.empleado.apellidos}`
@@ -179,7 +224,6 @@ export default function SolicitudesPage() {
                   )}
                 </TableCell>
 
-                {/* Estado */}
                 <TableCell>
                   <span
                     className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
@@ -188,27 +232,37 @@ export default function SolicitudesPage() {
                   </span>
                 </TableCell>
 
-                {/* Fecha programada */}
                 <TableCell className="text-sm">
                   {fmt(s.fecha_programada)}
                 </TableCell>
 
-                {/* Dirección */}
                 <TableCell className="text-sm max-w-[150px] truncate">
                   {s.direccion}
                 </TableCell>
 
-                {/* Acciones */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  {/* Botones aquí */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate(`/solicitudes/${s.id}`)}
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      title="Ver"
+                    >
+                      <Eye size={17} />
+                    </button>
+                    <button
+                      className="text-muted-foreground hover:text-primary transition-colors"
+                      title="Editar"
+                    >
+                      <Pencil size={17} />
+                    </button>
+                  </div>
                 </TableCell>
               </TableRow>
 
-              {/* Fila expandible con el tracker */}
               {expandedId === s.id && (
                 <TableRow key={`tracker-${s.id}`}>
                   <TableCell colSpan={8} className="p-0">
-                    <Solicitud solicitud={s} />
+                    <SolicitudTracker solicitud={s} />
                   </TableCell>
                 </TableRow>
               )}
