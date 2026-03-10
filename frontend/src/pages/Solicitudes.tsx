@@ -1,5 +1,4 @@
-import { Search } from "lucide-react";
-import { Plus } from "lucide-react";
+import { Search, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -19,54 +18,70 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
+import Solicitud from "@/components/ui/solicitud";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface Solicitud {
   id: number;
-  imagen: string | null;
-  matricula: string;
-  vin: string;
+  direccion: string;
+  fecha_programada: string | null;
+  hora_recogida: string | null;
+  hora_itv: string | null;
+  hora_entrega: string | null;
+  notas: string | null;
+  cliente: { nombre: string; apellidos: string; imagen: string | null } | null;
+  vehiculo: {
+    matricula: string;
+    marca: string;
+    modelo: string;
+    imagen: string | null;
+  } | null;
+  estado: { slug: string; nombre: string };
+  empleado: { nombre: string; apellidos: string } | null;
+}
+
+const ESTADO_COLORS: Record<string, string> = {
+  pendiente: "bg-yellow-100 text-yellow-800",
+  asignado: "bg-blue-100 text-blue-800",
+  en_recogida: "bg-orange-100 text-orange-800",
+  en_itv: "bg-purple-100 text-purple-800",
+  retornando: "bg-indigo-100 text-indigo-800",
+  cancelado: "bg-red-100 text-red-800",
+  finalizado: "bg-green-100 text-green-800",
+};
+
+function fmt(iso: string | null) {
+  if (!iso) return "-";
+  return format(new Date(iso), "dd MMM yyyy", { locale: es });
 }
 
 export default function SolicitudesPage() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchSolicitudes = async () => {
+    const fetch = async () => {
       try {
-        // 🔹 Obtener token del localStorage
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.warn("No hay token guardado, redirigiendo a login...");
-          return;
-        }
-
-        // 🔹 Llamada a la API con Bearer
-        const res = await api.get(`/api/solicitudes?page=${currentPage}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        console.log("Estructura de la respuesta:", res.data);
-
+        const res = await api.get(`/solicitudes?page=${currentPage}`);
         setSolicitudes(res.data.data);
-
-        setTotalPages(
-          res.data.meta ? res.data.meta.last_page : res.data.last_page,
-        );
+        setTotalPages(res.data.meta?.last_page ?? res.data.last_page ?? 1);
       } catch (error) {
         console.error("Error cargando solicitudes:", error);
       }
     };
-
-    fetchSolicitudes();
+    fetch();
   }, [currentPage]);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
+  };
+
+  const toggleExpand = (id: number) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
   return (
@@ -88,38 +103,120 @@ export default function SolicitudesPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell>Imagen</TableCell>
-            <TableCell>Matricula</TableCell>
-            <TableCell>Vin</TableCell>
+            <TableCell></TableCell>
+            <TableCell>Vehículo</TableCell>
+            <TableCell>Cliente</TableCell>
+            <TableCell>Empleado</TableCell>
+            <TableCell>Estado</TableCell>
+            <TableCell>Fecha programada</TableCell>
+            <TableCell>Dirección</TableCell>
+            <TableCell>Acciones</TableCell>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {solicitudes?.map((solicitud) => (
-            <TableRow key={solicitud.id}>
-              <TableCell>
-                {solicitud.imagen ? (
-                  <img
-                    src={solicitud.imagen}
-                    alt="Imagen de solicitud"
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "http://localhost:8000/avatars/default_car.png";
-                    }}
-                  />
-                ) : (
-                  "-"
-                )}
-              </TableCell>
-              <TableCell>{solicitud.matricula}</TableCell>
-              <TableCell>{solicitud.vin}</TableCell>
-            </TableRow>
+          {solicitudes?.map((s) => (
+            <>
+              <TableRow
+                key={s.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => toggleExpand(s.id)}
+              >
+                {/* Expand icon */}
+                <TableCell>
+                  {expandedId === s.id ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </TableCell>
+
+                {/* Vehículo */}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
+                      className="w-10 h-10 rounded object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/avatars/default_car.png";
+                      }}
+                    />
+                    <div>
+                      <p className="font-medium text-sm">
+                        {s.vehiculo?.marca} {s.vehiculo?.modelo}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {s.vehiculo?.matricula}
+                      </p>
+                    </div>
+                  </div>
+                </TableCell>
+
+                {/* Cliente */}
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={s.cliente?.imagen ?? "/avatars/default_user.png"}
+                      className="w-8 h-8 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/avatars/default_user.png";
+                      }}
+                    />
+                    <span className="text-sm">
+                      {s.cliente?.nombre} {s.cliente?.apellidos}
+                    </span>
+                  </div>
+                </TableCell>
+
+                {/* Empleado */}
+                <TableCell className="text-sm">
+                  {s.empleado ? (
+                    `${s.empleado.nombre} ${s.empleado.apellidos}`
+                  ) : (
+                    <span className="text-muted-foreground">Sin asignar</span>
+                  )}
+                </TableCell>
+
+                {/* Estado */}
+                <TableCell>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
+                  >
+                    {s.estado.nombre}
+                  </span>
+                </TableCell>
+
+                {/* Fecha programada */}
+                <TableCell className="text-sm">
+                  {fmt(s.fecha_programada)}
+                </TableCell>
+
+                {/* Dirección */}
+                <TableCell className="text-sm max-w-[150px] truncate">
+                  {s.direccion}
+                </TableCell>
+
+                {/* Acciones */}
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {/* Botones aquí */}
+                </TableCell>
+              </TableRow>
+
+              {/* Fila expandible con el tracker */}
+              {expandedId === s.id && (
+                <TableRow key={`tracker-${s.id}`}>
+                  <TableCell colSpan={8} className="p-0">
+                    <Solicitud solicitud={s} />
+                  </TableCell>
+                </TableRow>
+              )}
+            </>
           ))}
         </TableBody>
       </Table>
 
-      {/* 🔹 PAGINACIÓN */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>
@@ -132,10 +229,8 @@ export default function SolicitudesPage() {
                 }}
               />
             </PaginationItem>
-
             {Array.from({ length: totalPages }).map((_, index) => {
               const page = index + 1;
-
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -151,7 +246,6 @@ export default function SolicitudesPage() {
                 </PaginationItem>
               );
             })}
-
             <PaginationItem>
               <PaginationNext
                 href="#"

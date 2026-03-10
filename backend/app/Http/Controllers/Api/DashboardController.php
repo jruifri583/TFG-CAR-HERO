@@ -8,18 +8,27 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     public function contadores(Request $request)
-    {
-        /** @var \App\Models\User $user */
-        $user = $request->user();
+{
+    /** @var \App\Models\User $user */
+    $user = $request->user();
+    $desde = $request->get('desde');
 
-        return response()->json([
-            'solicitudes' => \App\Models\Solicitud::visibleFor($user)->count(),
-            'usuarios'    => \App\Models\User::count(),
-            'vehiculos'   => \App\Models\Vehiculo::visibleFor($user)->count(),
-            'pagos'       => \App\Models\Pago::visibleFor($user)->count(),
-            'historial'   => \App\Models\Historial::visibleFor($user)->count(),
-        ]);
-    }
+    return response()->json([
+        'solicitudes' => \App\Models\Solicitud::visibleFor($user)
+            ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->count(),
+        'usuarios' => \App\Models\User::when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->count(),
+        'vehiculos' => \App\Models\Vehiculo::visibleFor($user)
+            ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->count(),
+        'pagos' => \App\Models\Pago::visibleFor($user)
+            ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->count(),
+        'historial' => \App\Models\Historial::visibleFor($user)
+            ->count(), 
+    ]);
+}
 
     public function solicitudesPorEstado()
 {

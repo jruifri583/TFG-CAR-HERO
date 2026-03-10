@@ -17,26 +17,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string;
   }) => {
     const res = await api.post("/login", { email, password });
-
     const { user, token } = res.data;
 
-    // Guardar token en localStorage
     localStorage.setItem("token", token);
     localStorage.setItem("user_data", JSON.stringify(user));
+    localStorage.setItem("last_login", new Date().toISOString()); // 👈
 
-    // Configurar Axios para usar Bearer token en todas las peticiones
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-    // Actualizar estado
     setUser(user);
   };
 
   const loginWithGoogle = async (id_token: string) => {
     const res = await api.post("/auth/google", { id_token });
-
     const { user, token } = res.data;
 
     localStorage.setItem("token", token);
+    localStorage.setItem("last_login", new Date().toISOString()); // 👈
+
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setUser(user);
   };

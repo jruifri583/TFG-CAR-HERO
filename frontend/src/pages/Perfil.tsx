@@ -62,8 +62,9 @@ export default function PerfilPage() {
     <div className="w-full">
       <span className="text-4xl font-bold mb-6 inline-block">Perfil</span>
       <CardSinBorde className="w-full">
-        <CardContent className="grid grid-cols-3 gap-4">
-          <div className="col-span-2 grid grid-cols-2 gap-4">
+        <CardContent className="flex flex-col gap-4">
+          {/* Campos */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm text-muted-foreground">Email</label>
               <Input
@@ -149,8 +150,8 @@ export default function PerfilPage() {
             )}
           </div>
 
-          {/* Columna de botones */}
-          <div className="flex flex-col justify-end gap-2">
+          {/* Botones */}
+          <div className="flex flex-wrap gap-2 justify-end">
             {!isEditing ? (
               <>
                 <Button className="w-50" onClick={() => setIsEditing(true)}>
