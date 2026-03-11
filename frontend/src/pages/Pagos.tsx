@@ -7,6 +7,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableHead,
 } from "@/components/ui/table";
 import {
   Pagination,
@@ -92,31 +93,31 @@ export default function PagosPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell
+            <TableHead
               className="cursor-pointer w-1/5"
               onClick={() => handleSort("solicitud_id")}
             >
               Solicitud{renderSortArrow("solicitud_id")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/5"
               onClick={() => handleSort("importe")}
             >
               Importe{renderSortArrow("importe")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/5"
               onClick={() => handleSort("metodo_pago_id")}
             >
               Método de Pago{renderSortArrow("metodo_pago_id")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/5"
               onClick={() => handleSort("created_at")}
             >
               Fecha de pago{renderSortArrow("created_at")}
-            </TableCell>
-            <TableCell>Acciones</TableCell>
+            </TableHead>
+            <TableHead className="w-1/5">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 

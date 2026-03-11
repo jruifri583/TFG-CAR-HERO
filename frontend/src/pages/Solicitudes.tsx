@@ -1,8 +1,6 @@
 import {
   Search,
   Plus,
-  ChevronDown,
-  ChevronUp,
   Eye,
   Pencil,
   ArrowUp,
@@ -18,6 +16,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableHead,
 } from "@/components/ui/table";
 import {
   Pagination,
@@ -28,7 +27,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
-import SolicitudTracker from "@/components/ui/Solicitud";
+import Solicitud from "@/components/ui/Solicitud";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -74,7 +73,6 @@ export default function SolicitudesPage() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const navigate = useNavigate();
@@ -119,10 +117,6 @@ export default function SolicitudesPage() {
     setCurrentPage(page);
   };
 
-  const toggleExpand = (id: number) => {
-    setExpandedId(expandedId === id ? null : id);
-  };
-
   return (
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Solicitudes</span>
@@ -142,43 +136,31 @@ export default function SolicitudesPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell></TableCell>
-            <TableCell>Vehículo</TableCell>
-            <TableCell>Cliente</TableCell>
-            <TableCell>Empleado</TableCell>
-            <TableCell
+            <TableHead>ID</TableHead>
+            <TableHead>Vehículo</TableHead>
+            <TableHead>Cliente</TableHead>
+            <TableHead>Empleado</TableHead>
+            <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("estado_id")}
             >
               Estado{renderSortArrow("estado_id")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("fecha_programada")}
             >
               Fecha programada{renderSortArrow("fecha_programada")}
-            </TableCell>
-            <TableCell>Dirección</TableCell>
-            <TableCell>Acciones</TableCell>
+            </TableHead>
+            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {solicitudes?.map((s) => (
             <>
-              <TableRow
-                key={s.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => toggleExpand(s.id)}
-              >
-                <TableCell>
-                  {expandedId === s.id ? (
-                    <ChevronUp size={16} />
-                  ) : (
-                    <ChevronDown size={16} />
-                  )}
-                </TableCell>
-
+              <TableRow key={s.id}>
+                <TableCell className="text-sm font-medium">#{s.id}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <img
@@ -235,11 +217,6 @@ export default function SolicitudesPage() {
                 <TableCell className="text-sm">
                   {fmt(s.fecha_programada)}
                 </TableCell>
-
-                <TableCell className="text-sm max-w-[150px] truncate">
-                  {s.direccion}
-                </TableCell>
-
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <button
@@ -258,14 +235,6 @@ export default function SolicitudesPage() {
                   </div>
                 </TableCell>
               </TableRow>
-
-              {expandedId === s.id && (
-                <TableRow key={`tracker-${s.id}`}>
-                  <TableCell colSpan={8} className="p-0">
-                    <SolicitudTracker solicitud={s} />
-                  </TableCell>
-                </TableRow>
-              )}
             </>
           ))}
         </TableBody>

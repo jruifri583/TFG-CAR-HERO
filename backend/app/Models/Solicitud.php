@@ -208,6 +208,8 @@ class Solicitud extends Model
             'empleado',
             'estado',
             'resolucion',
+            'pago.metodoPago',
+            'pago.estadoPago',
         ]);
     }
 }

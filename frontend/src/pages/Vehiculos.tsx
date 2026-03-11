@@ -9,6 +9,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableHead,
 } from "@/components/ui/table";
 import {
   Pagination,
@@ -102,20 +103,20 @@ export default function VehiculosPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell className="w-1/5">Imagen</TableCell>
-            <TableCell
+            <TableHead className="w-1/5">Imagen</TableHead>
+            <TableHead
               className="cursor-pointer w-1/5"
               onClick={() => handleSort("matricula")}
             >
               Matrícula{renderSortArrow("matricula")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/5"
               onClick={() => handleSort("vin")}
             >
               VIN{renderSortArrow("vin")}
-            </TableCell>
-            <TableCell className="w-1/5">Acciones</TableCell>
+            </TableHead>
+            <TableHead className="w-1/5">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 

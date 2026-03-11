@@ -9,6 +9,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableHead,
 } from "@/components/ui/table";
 import {
   Pagination,
@@ -106,44 +107,44 @@ export default function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell className="w-1/7">Imagen</TableCell>
-            <TableCell
+            <TableHead className="w-1/7">Imagen</TableHead>
+            <TableHead
               className="cursor-pointer w-1/7"
               onClick={() => handleSort("email")}
             >
               Email{renderSortArrow("email")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/7"
               onClick={() => handleSort("nombre")}
             >
               Nombre{renderSortArrow("nombre")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/7"
               onClick={() => handleSort("apellidos")}
             >
               Apellidos{renderSortArrow("apellidos")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/7"
               onClick={() => handleSort("telefono")}
             >
               Teléfono{renderSortArrow("telefono")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/7"
               onClick={() => handleSort("rol_id")}
             >
               Rol{renderSortArrow("rol_id")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer w-1/7"
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
-            </TableCell>
-            <TableCell className="w-1/7">Acciones</TableCell>
+            </TableHead>
+            <TableHead className="w-1/7">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 

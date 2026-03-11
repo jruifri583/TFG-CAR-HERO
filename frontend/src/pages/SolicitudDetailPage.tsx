@@ -4,7 +4,7 @@ import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardContent, CardSinBorde } from "@/components/ui/card";
-import Solicitud from "@/components/ui/Solicitud";
+import SolicitudCircularTracker from "@/components/ui/SolicitudCircularTracker";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -51,13 +51,19 @@ function fmt(iso: string | null) {
   return format(new Date(iso), "dd MMM yyyy HH:mm", { locale: es });
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
   return (
     <div className="space-y-1">
       <label className="text-sm text-muted-foreground">{label}</label>
       <Input
         type="text"
-        value={value}
+        value={value ?? ""}
         readOnly
         className="pointer-events-none focus:ring-0 focus:outline-none"
       />
@@ -82,13 +88,6 @@ export default function SolicitudDetailPage() {
         Solicitud #{solicitud.id}
       </span>
 
-      {/* Tracker */}
-      <CardSinBorde className="w-full">
-        <CardContent className="p-0">
-          <Solicitud solicitud={solicitud} />
-        </CardContent>
-      </CardSinBorde>
-
       {/* Datos principales */}
       <CardSinBorde className="w-full">
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -102,9 +101,6 @@ export default function SolicitudDetailPage() {
             label="Resolución"
             value={solicitud.resolucion?.nombre ?? "-"}
           />
-          <Field label="Hora recogida" value={fmt(solicitud.hora_recogida)} />
-          <Field label="Hora ITV" value={fmt(solicitud.hora_itv)} />
-          <Field label="Hora entrega" value={fmt(solicitud.hora_entrega)} />
           <Field label="Notas" value={solicitud.notas ?? "-"} />
         </CardContent>
       </CardSinBorde>
@@ -198,6 +194,31 @@ export default function SolicitudDetailPage() {
           )}
         </CardContent>
       </CardSinBorde>
+
+      {/* Horas + Tracker */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Horas */}
+        <CardSinBorde className="w-full">
+          <CardContent className="space-y-4">
+            <p className="font-semibold text-lg">Seguimiento horario</p>
+            <div className="grid grid-cols-1 gap-4">
+              <Field
+                label="Hora recogida"
+                value={fmt(solicitud.hora_recogida)}
+              />
+              <Field label="Hora ITV" value={fmt(solicitud.hora_itv)} />
+              <Field label="Hora entrega" value={fmt(solicitud.hora_entrega)} />
+            </div>
+          </CardContent>
+        </CardSinBorde>
+
+        {/* Tracker circular */}
+        <CardSinBorde className="w-full">
+          <CardContent className="flex justify-center items-center">
+            <SolicitudCircularTracker estado={solicitud.estado} />
+          </CardContent>
+        </CardSinBorde>
+      </div>
 
       {/* Botones */}
       <div className="flex justify-end gap-2">

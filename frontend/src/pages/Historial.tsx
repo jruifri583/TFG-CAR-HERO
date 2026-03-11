@@ -6,6 +6,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
+  TableHead,
 } from "@/components/ui/table";
 import {
   Pagination,
@@ -78,25 +79,25 @@ export default function HistorialPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell
+            <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("solicitud_id")}
             >
               Solicitud{renderSortArrow("solicitud_id")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("fecha_itv")}
             >
               Fecha{renderSortArrow("fecha_itv")}
-            </TableCell>
-            <TableCell
+            </TableHead>
+            <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("resolucion_id")}
             >
               Resolución{renderSortArrow("resolucion_id")}
-            </TableCell>
-            <TableCell>Acciones</TableCell>
+            </TableHead>
+            <TableHead className="w-1/5">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 

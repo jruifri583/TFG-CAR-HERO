@@ -37,7 +37,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('vehiculos', VehiculoController::class);
     Route::get('historiales', [HistorialController::class, 'index']);
     Route::apiResource('pagos', PagoController::class);
-    Route::apiResource('solicitudes', SolicitudController::class);
+    Route::apiResource('solicitudes', SolicitudController::class)->parameters([
+    'solicitudes' => 'solicitud'
+]);
 
     Route::get('/contadores', [DashboardController::class, 'contadores']);
     Route::get('/dashboard/solicitudes-por-estado', [DashboardController::class, 'solicitudesPorEstado']);
