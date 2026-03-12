@@ -1,5 +1,4 @@
-import { Search } from "lucide-react";
-import { Plus } from "lucide-react";
+import { Search, Plus, Eye, Pencil } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -20,12 +19,16 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
+import { useNavigate } from "react-router-dom";
 
 interface Vehiculo {
   id: number;
   imagen: string | null;
   matricula: string;
   vin: string;
+  marca: string;
+  modelo: string;
+  año: number | null;
 }
 
 export default function VehiculosPage() {
@@ -34,25 +37,17 @@ export default function VehiculosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const navigate = useNavigate();
 
   const fetchVehiculos = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No hay token de autenticación");
-
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
       if (sortField) {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
-
-      const res = await api.get(`/vehiculos?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const res = await api.get(`/vehiculos?${params.toString()}`);
       setVehiculos(res.data.data);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
@@ -103,20 +98,38 @@ export default function VehiculosPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-1/5">Imagen</TableHead>
+            <TableHead>Imagen</TableHead>
             <TableHead
-              className="cursor-pointer w-1/5"
+              className="cursor-pointer"
               onClick={() => handleSort("matricula")}
             >
               Matrícula{renderSortArrow("matricula")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/5"
+              className="cursor-pointer"
               onClick={() => handleSort("vin")}
             >
               VIN{renderSortArrow("vin")}
             </TableHead>
-            <TableHead className="w-1/5">Acciones</TableHead>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("marca")}
+            >
+              Marca{renderSortArrow("marca")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("modelo")}
+            >
+              Modelo{renderSortArrow("modelo")}
+            </TableHead>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("año")}
+            >
+              Año{renderSortArrow("año")}
+            </TableHead>
+            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -124,29 +137,42 @@ export default function VehiculosPage() {
           {vehiculos.map((vehiculo) => (
             <TableRow key={vehiculo.id}>
               <TableCell>
-                {vehiculo.imagen ? (
-                  <img
-                    src={vehiculo.imagen}
-                    alt="Imagen de vehiculo"
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "http://localhost:8000/avatars/default_car.png";
-                    }}
-                  />
-                ) : (
-                  "-"
-                )}
+                <img
+                  src={vehiculo.imagen ?? "/avatars/default_car.png"}
+                  className="w-10 h-10 rounded object-cover mx-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "/avatars/default_car.png";
+                  }}
+                />
               </TableCell>
               <TableCell>{vehiculo.matricula}</TableCell>
               <TableCell>{vehiculo.vin}</TableCell>
-              <TableCell>{/* Botones de acciones */}</TableCell>
+              <TableCell>{vehiculo.marca}</TableCell>
+              <TableCell>{vehiculo.modelo}</TableCell>
+              <TableCell>{vehiculo.año ?? "-"}</TableCell>
+              <TableCell>
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    title="Ver"
+                  >
+                    <Eye size={30} />
+                  </button>
+                  <button
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    title="Editar"
+                  >
+                    <Pencil size={30} />
+                  </button>
+                </div>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      {/* PAGINACIÓN */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>
@@ -159,7 +185,6 @@ export default function VehiculosPage() {
                 }}
               />
             </PaginationItem>
-
             {Array.from({ length: totalPages }).map((_, index) => {
               const page = index + 1;
               return (
@@ -177,7 +202,6 @@ export default function VehiculosPage() {
                 </PaginationItem>
               );
             })}
-
             <PaginationItem>
               <PaginationNext
                 href="#"

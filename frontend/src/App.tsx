@@ -32,6 +32,7 @@ function App() {
             <Route path="/pagos" element={<PagosPage />}></Route>
             <Route path="/pagos/:id" element={<PagoDetailPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
+            <Route path="/perfil/:id" element={<PerfilPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

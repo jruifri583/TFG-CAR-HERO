@@ -134,12 +134,12 @@ export default function PagosPage() {
                   ? new Date(h.created_at).toLocaleDateString("es-ES")
                   : "-"}
               </TableCell>
-              <TableCell className="w-1/5 flex items-center justify-center">
+              <TableCell className="flex items-center justify-center gap-2">
                 <button
                   onClick={() => navigate(`/pagos/${h.id}`)}
                   className="text-gray-500 hover:text-blue-600 transition-colors"
                 >
-                  <Eye size={20} />
+                  <Eye size={30} />
                 </button>
               </TableCell>
             </TableRow>

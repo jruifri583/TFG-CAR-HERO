@@ -160,18 +160,19 @@ export default function SolicitudesPage() {
           {solicitudes?.map((s) => (
             <>
               <TableRow key={s.id}>
-                <TableCell className="text-sm font-medium">#{s.id}</TableCell>
+                <TableCell className="text-sm font-medium">{s.id}</TableCell>
+
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <img
                       src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-                      className="w-10 h-10 rounded object-cover"
+                      className="w-10 h-10 rounded object-cover shrink-0"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           "/avatars/default_car.png";
                       }}
                     />
-                    <div>
+                    <div className="flex-1 text-center">
                       <p className="font-medium text-sm">
                         {s.vehiculo?.marca} {s.vehiculo?.modelo}
                       </p>
@@ -186,13 +187,13 @@ export default function SolicitudesPage() {
                   <div className="flex items-center gap-2">
                     <img
                       src={s.cliente?.imagen ?? "/avatars/default_user.png"}
-                      className="w-8 h-8 rounded-full object-cover"
+                      className="w-8 h-8 rounded-full object-cover shrink-0"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src =
                           "/avatars/default_user.png";
                       }}
                     />
-                    <span className="text-sm">
+                    <span className="text-sm flex-1 text-center">
                       {s.cliente?.nombre} {s.cliente?.apellidos}
                     </span>
                   </div>
@@ -218,19 +219,19 @@ export default function SolicitudesPage() {
                   {fmt(s.fecha_programada)}
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <button
                       onClick={() => navigate(`/solicitudes/${s.id}`)}
                       className="text-muted-foreground hover:text-primary transition-colors"
                       title="Ver"
                     >
-                      <Eye size={17} />
+                      <Eye size={30} />
                     </button>
                     <button
                       className="text-muted-foreground hover:text-primary transition-colors"
                       title="Editar"
                     >
-                      <Pencil size={17} />
+                      <Pencil size={30} />
                     </button>
                   </div>
                 </TableCell>

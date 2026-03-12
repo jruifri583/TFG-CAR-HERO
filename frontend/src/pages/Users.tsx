@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Eye, Pencil, Search } from "lucide-react";
 import { Plus } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
+import { useNavigate } from "react-router-dom";
 
 interface User {
   id: number;
@@ -38,6 +39,7 @@ export default function UsersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
@@ -107,51 +109,51 @@ export default function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-1/7">Imagen</TableHead>
+            <TableHead className="w-1/8">Imagen</TableHead>
             <TableHead
-              className="cursor-pointer w-1/7"
+              className="cursor-pointer w-1/8"
               onClick={() => handleSort("email")}
             >
               Email{renderSortArrow("email")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/7"
+              className="cursor-pointer w-1/8"
               onClick={() => handleSort("nombre")}
             >
               Nombre{renderSortArrow("nombre")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/7"
+              className="cursor-pointer w-1/8"
               onClick={() => handleSort("apellidos")}
             >
               Apellidos{renderSortArrow("apellidos")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/7"
+              className="cursor-pointer w-1/8"
               onClick={() => handleSort("telefono")}
             >
               Teléfono{renderSortArrow("telefono")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/7"
+              className="cursor-pointer w-1/8"
               onClick={() => handleSort("rol_id")}
             >
               Rol{renderSortArrow("rol_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/7"
+              className="cursor-pointer w-1/8"
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
             </TableHead>
-            <TableHead className="w-1/7">Acciones</TableHead>
+            <TableHead className="w-1/8">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell>
+              <TableCell className="flex items-center justify-center">
                 {user.imagen ? (
                   <img
                     src={user.imagen}
@@ -173,7 +175,21 @@ export default function UsersPage() {
               <TableCell>{user.rol?.nombre || "-"}</TableCell>
               <TableCell>{user.activo ? "Sí" : "No"}</TableCell>
               <TableCell>
-                {/* Botones de acciones, editar, borrar, etc. */}
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => navigate(`/perfil/${user.id}`)}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    title="Ver"
+                  >
+                    <Eye size={30} />
+                  </button>
+                  <button
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                    title="Editar"
+                  >
+                    <Pencil size={30} />
+                  </button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

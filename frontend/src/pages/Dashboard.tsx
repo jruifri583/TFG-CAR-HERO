@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Car, FileText, ClipboardList } from "lucide-react";
+import { Users, Car, FileText, CreditCard } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -86,7 +86,7 @@ export default function DashboardPage() {
       <span className="text-4xl font-bold inline-block">Dashboard</span>
 
       {/* Tarjetas de totales */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export default function DashboardPage() {
             </span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-secondary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm text-muted-foreground">
               Vehículos
@@ -113,12 +113,10 @@ export default function DashboardPage() {
             </span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-ring">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Solicitudes
-            </CardTitle>
-            <FileText size={18} className="text-muted-foreground" />
+            <CardTitle className="text-sm text-white">Solicitudes</CardTitle>
+            <FileText size={18} className="text-white" />
           </CardHeader>
           <CardContent>
             <span className="text-3xl font-bold">
@@ -126,15 +124,13 @@ export default function DashboardPage() {
             </span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-primary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Pagos
-            </CardTitle>
-            <ClipboardList size={18} className="text-muted-foreground" />
+            <CardTitle className="text-sm text-white">Pagos</CardTitle>
+            <CreditCard size={18} className="text-white" />
           </CardHeader>
           <CardContent>
-            <span className="text-3xl font-bold">
+            <span className="text-3xl font-bold text-white">
               {contadores?.pagos ?? "-"}
             </span>
           </CardContent>
@@ -142,7 +138,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Gráficas */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-8">
         <Card>
           <CardHeader>
             <CardTitle>Solicitudes por mes</CardTitle>

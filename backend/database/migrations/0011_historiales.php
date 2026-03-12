@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->date('fecha_itv');
             $table->foreignId('resolucion_id')->constrained('resoluciones');
             $table->text('notas')->nullable();
+            $table->timestamps();
         });
     }
     public function down(): void

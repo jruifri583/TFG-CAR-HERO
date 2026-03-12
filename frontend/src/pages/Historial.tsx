@@ -114,7 +114,7 @@ export default function HistorialPage() {
                   onClick={() => navigate(`/historial/${h.solicitud_id}`)}
                   className="text-gray-500 hover:text-blue-600 transition-colors"
                 >
-                  <Eye size={20} />
+                  <Eye size={30} />
                 </button>
               </TableCell>
             </TableRow>
