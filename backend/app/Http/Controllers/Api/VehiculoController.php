@@ -27,7 +27,7 @@ class VehiculoController extends Controller
         // ⚡ Ordenación
         $sort = $request->query('sort'); // campo
         $order = $request->query('order', 'asc'); // asc o desc
-        $allowedSorts = ['id', 'matricula', 'vin'];
+        $allowedSorts = ['id', 'matricula', 'marca', 'modelo', 'año'];
 
         if ($sort && in_array($sort, $allowedSorts)) {
             $query->orderBy($sort, $order);

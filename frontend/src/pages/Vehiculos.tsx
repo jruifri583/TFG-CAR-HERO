@@ -1,4 +1,12 @@
-import { Search, Plus, Eye, Pencil } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Eye,
+  Pencil,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -25,17 +33,18 @@ interface Vehiculo {
   id: number;
   imagen: string | null;
   matricula: string;
-  vin: string;
   marca: string;
   modelo: string;
   año: number | null;
 }
 
+type SortField = "matricula" | "marca" | "modelo" | "año";
+
 export default function VehiculosPage() {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const navigate = useNavigate();
 
@@ -64,7 +73,7 @@ export default function VehiculosPage() {
     setCurrentPage(page);
   };
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -74,9 +83,14 @@ export default function VehiculosPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: string) => {
-    if (sortField !== field) return null;
-    return sortOrder === "asc" ? " ↑" : " ↓";
+  const renderSortArrow = (field: SortField) => {
+    if (sortField !== field)
+      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp size={14} className="inline ml-1" />
+    ) : (
+      <ArrowDown size={14} className="inline ml-1" />
+    );
   };
 
   return (
@@ -104,12 +118,6 @@ export default function VehiculosPage() {
               onClick={() => handleSort("matricula")}
             >
               Matrícula{renderSortArrow("matricula")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("vin")}
-            >
-              VIN{renderSortArrow("vin")}
             </TableHead>
             <TableHead
               className="cursor-pointer"
@@ -147,7 +155,6 @@ export default function VehiculosPage() {
                 />
               </TableCell>
               <TableCell>{vehiculo.matricula}</TableCell>
-              <TableCell>{vehiculo.vin}</TableCell>
               <TableCell>{vehiculo.marca}</TableCell>
               <TableCell>{vehiculo.modelo}</TableCell>
               <TableCell>{vehiculo.año ?? "-"}</TableCell>

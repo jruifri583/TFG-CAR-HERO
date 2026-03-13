@@ -1,5 +1,12 @@
-import { Eye, Pencil, Search } from "lucide-react";
-import { Plus } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Eye,
+  Pencil,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -33,32 +40,31 @@ interface User {
   activo: boolean;
 }
 
+type SortField =
+  | "email"
+  | "nombre"
+  | "apellidos"
+  | "telefono"
+  | "rol_id"
+  | "activo";
+
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No hay token de autenticación");
-
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
       if (sortField) {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
-
-      const res = await api.get(`/users?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      const res = await api.get(`/users?${params.toString()}`);
       setUsers(res.data.data);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
@@ -75,7 +81,7 @@ export default function UsersPage() {
     setCurrentPage(page);
   };
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -85,9 +91,14 @@ export default function UsersPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: string) => {
-    if (sortField !== field) return null;
-    return sortOrder === "asc" ? " ↑" : " ↓";
+  const renderSortArrow = (field: SortField) => {
+    if (sortField !== field)
+      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp size={14} className="inline ml-1" />
+    ) : (
+      <ArrowDown size={14} className="inline ml-1" />
+    );
   };
 
   return (
@@ -109,64 +120,60 @@ export default function UsersPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-1/8">Imagen</TableHead>
+            <TableHead>Imagen</TableHead>
             <TableHead
-              className="cursor-pointer w-1/8"
+              className="cursor-pointer"
               onClick={() => handleSort("email")}
             >
               Email{renderSortArrow("email")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/8"
+              className="cursor-pointer"
               onClick={() => handleSort("nombre")}
             >
               Nombre{renderSortArrow("nombre")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/8"
+              className="cursor-pointer"
               onClick={() => handleSort("apellidos")}
             >
               Apellidos{renderSortArrow("apellidos")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/8"
+              className="cursor-pointer"
               onClick={() => handleSort("telefono")}
             >
               Teléfono{renderSortArrow("telefono")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/8"
+              className="cursor-pointer"
               onClick={() => handleSort("rol_id")}
             >
               Rol{renderSortArrow("rol_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/8"
+              className="cursor-pointer"
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
             </TableHead>
-            <TableHead className="w-1/8">Acciones</TableHead>
+            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {users.map((user) => (
             <TableRow key={user.id}>
-              <TableCell className="flex items-center justify-center">
-                {user.imagen ? (
-                  <img
-                    src={user.imagen}
-                    alt="Imagen de usuario"
-                    className="w-10 h-10 rounded-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "/avatars/default_user.png";
-                    }}
-                  />
-                ) : (
-                  "-"
-                )}
+              <TableCell>
+                <img
+                  src={user.imagen ?? "/avatars/default_user.png"}
+                  alt="Imagen de usuario"
+                  className="w-10 h-10 rounded-full object-cover mx-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "/avatars/default_user.png";
+                  }}
+                />
               </TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.nombre}</TableCell>
@@ -196,7 +203,6 @@ export default function UsersPage() {
         </TableBody>
       </Table>
 
-      {/* PAGINACIÓN */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>
@@ -209,7 +215,6 @@ export default function UsersPage() {
                 }}
               />
             </PaginationItem>
-
             {Array.from({ length: totalPages }).map((_, index) => {
               const page = index + 1;
               return (
@@ -227,7 +232,6 @@ export default function UsersPage() {
                 </PaginationItem>
               );
             })}
-
             <PaginationItem>
               <PaginationNext
                 href="#"

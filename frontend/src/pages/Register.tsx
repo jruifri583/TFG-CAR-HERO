@@ -4,7 +4,6 @@ import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/context/useAuth";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 
 export default function Register() {
-  const { setUser } = useAuth();
+  const { setUser, login } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -29,18 +28,19 @@ export default function Register() {
   // Registro normal
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     try {
-      await api.post("/api/register", formData);
-      alert("Registro completado. Ahora puedes hacer login.");
-      navigate("/login");
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        alert(error.response?.data?.message ?? "Error al registrar");
-      } else if (error instanceof Error) {
-        alert(error.message);
-      } else {
-        alert("Error inesperado");
-      }
+      await api.post("/register", formData);
+
+      // reutiliza tu login
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      alert("Error al registrar");
     }
   };
 
