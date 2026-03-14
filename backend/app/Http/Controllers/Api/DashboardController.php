@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Api\DashboardController;
 use Illuminate\Http\Request;
+use App\Http\Resources\SolicitudResource;
 
 class DashboardController extends Controller
 {
@@ -68,5 +69,28 @@ public function pagosRecientes()
     return response()->json($pagos);
 }
 
+public function solicitudesRecientes()
+{
+    $user = request()->user();
+    $solicitudes = \App\Models\Solicitud::visibleFor($user)
+        ->withBaseRelations()
+        ->whereHas('estado', fn($q) => $q->where('slug', 'pendiente'))
+        ->whereNull('user_empleado_id')
+        ->latest()
+        ->limit(3)
+        ->get();
+    return SolicitudResource::collection($solicitudes);
+}
+
+    public function solicitudesActualizadas()
+{
+    $user = request()->user();
+    $solicitudes = \App\Models\Solicitud::visibleFor($user)
+        ->withBaseRelations()
+        ->latest('updated_at')
+        ->limit(3)
+        ->get();
+    return SolicitudResource::collection($solicitudes);
+}
     
 }

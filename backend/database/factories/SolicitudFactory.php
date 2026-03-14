@@ -17,19 +17,24 @@ class SolicitudFactory extends Factory
 
     public function definition(): array
     {
+        // Fecha en un mes aleatorio de los últimos 12 meses
+        $fechaCreada = fake()->dateTimeBetween('-12 months', 'now');
+
         return [
             'user_cliente_id' => User::inRandomOrder()->first()->id,
-            'vehiculo_id' => Vehiculo::inRandomOrder()->first()->id,
-            'user_empleado_id' => null, 
-            'direccion' => fake()->address(),
-            'estado_id' => Estado::where('slug', EstadoSlug::PENDIENTE->value)->first()->id,     
-            'resolucion_id' => Resolucion::where('slug', ResolucionSlug::PENDIENTE->value)->first()->id, 
-            'fecha_programada' => fake()->dateTimeBetween('now', '+2 weeks'),
-            'hora_recogida' => null,
-            'hora_itv' => null,
-            'hora_entrega' => null,
-            'notas' => fake()->optional()->sentence(),
-            'pago_id' => null,
+            'vehiculo_id'     => Vehiculo::inRandomOrder()->first()->id,
+            'user_empleado_id' => null,
+            'direccion'       => fake()->address(),
+            'estado_id'       => Estado::where('slug', EstadoSlug::PENDIENTE->value)->first()->id,
+            'resolucion_id'   => Resolucion::where('slug', ResolucionSlug::PENDIENTE->value)->first()->id,
+            'fecha_programada' => fake()->dateTimeBetween($fechaCreada, '+2 weeks'),
+            'hora_recogida'   => null,
+            'hora_itv'        => null,
+            'hora_entrega'    => null,
+            'notas'           => fake()->optional()->sentence(),
+            'pago_id'         => null,
+            'created_at'      => $fechaCreada,
+            'updated_at'      => $fechaCreada,
         ];
     }
 }

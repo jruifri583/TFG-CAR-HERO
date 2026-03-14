@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/contadores', [DashboardController::class, 'contadores']);
     Route::get('/dashboard/solicitudes-por-estado', [DashboardController::class, 'solicitudesPorEstado']);
     Route::get('/dashboard/solicitudes-por-mes', [DashboardController::class, 'solicitudesPorMes']);
-    Route::get('/dashboard/pagos-recientes', [DashboardController::class, 'pagosRecientes']);
+    Route::get('/dashboard/solicitudes-recientes', [DashboardController::class, 'solicitudesRecientes']);
+    Route::get('/dashboard/solicitudes-actualizadas', [DashboardController::class, 'solicitudesActualizadas']);
   
 });

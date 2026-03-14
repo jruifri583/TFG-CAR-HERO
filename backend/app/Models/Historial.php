@@ -38,10 +38,8 @@ class Historial extends Model
         return $this->belongsTo(Resolucion::class);
     }
 
-    public function scopeVisibleFor($query, $user)
+     public function scopeVisibleFor($query, $user)
     {
-    return $query->whereHas('solicitud', fn ($q) =>
-        $q->visibleFor($user)
-    );
+        return $query->whereIn('solicitud_id', Solicitud::visibleFor($user)->select('id'));
     }
 }

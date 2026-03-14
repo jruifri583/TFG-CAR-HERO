@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Vehiculo;
 use App\Models\Solicitud;
+use App\Models\Rol;
 use App\Enums\RolSlug;
 
 
@@ -16,8 +17,6 @@ class User extends Authenticatable
     use HasFactory, HasApiTokens, Notifiable;
 
     protected $table = 'users';
-    protected $with = ['rol'];
-
 
     protected $fillable = [
         'email',
@@ -72,15 +71,15 @@ class User extends Authenticatable
 
     public function getImagenAttribute($value)
     {
-    if (!$value) {
-        return 'avatars/default_user.png';
-    }
+        if (!$value) {
+            return 'avatars/default_user.png';
+        }
 
-    if (filter_var($value, FILTER_VALIDATE_URL)) {
-        return $value;
-    }
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
 
-    return '/storage/avatars/' . $value;
+        return '/storage/avatars/' . $value;
     }
 
     public function isAdmin(): bool
@@ -97,21 +96,15 @@ class User extends Authenticatable
     {
         return $this->rol?->slug === RolSlug::CLIENTE->value;
     }
+
+    // Usa subquery en lugar de whereHas para mayor eficiencia
     public function scopeClientes($q)
     {
-        return $q->whereHas(
-            'rol',
-            fn($r) =>
-            $r->where('slug', RolSlug::CLIENTE)
-        );
+        return $q->whereIn('rol_id', Rol::where('slug', RolSlug::CLIENTE)->select('id'));
     }
 
     public function scopeEmpleados($q)
     {
-        return $q->whereHas(
-            'rol',
-            fn($r) =>
-            $r->where('slug', RolSlug::EMPLEADO)
-        );
+        return $q->whereIn('rol_id', Rol::where('slug', RolSlug::EMPLEADO)->select('id'));
     }
 }

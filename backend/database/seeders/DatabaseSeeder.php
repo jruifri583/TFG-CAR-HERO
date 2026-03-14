@@ -20,8 +20,6 @@ class DatabaseSeeder extends Seeder
             MetodosPagoSeeder::class,
             EstadosPagoSeeder::class,
             SolicitudesSeeder::class,
-            PagosSeeder::class,
-            HistorialesSeeder::class,
         ]);
     }
 }

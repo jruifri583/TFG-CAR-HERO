@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use App\Models\Solicitud;
 
 class Pago extends Model
 {
@@ -19,19 +20,19 @@ class Pago extends Model
         return $this->belongsTo(Solicitud::class);
     }
 
-    // Relación con MetodoPago (La que te está fallando)
+    // Relación con MetodoPago
     public function metodoPago()
     {
         return $this->belongsTo(MetodoPago::class, 'metodo_pago_id');
     }
 
-    // Relación con EstadoPago (También la necesitas para tu controlador)
+    // Relación con EstadoPago
     public function estadoPago()
     {
         return $this->belongsTo(EstadoPago::class, 'estado_pago_id');
     }
 
-    // Scope para filtrar la visibilización de los pagos
+    // Scope de visibilidad optimizado con whereIn (evita whereHas con subconsulta correlacionada)
     public function scopeVisibleFor(Builder $query, User $user): Builder
     {
         // Admin ve todo
@@ -41,16 +42,16 @@ class Pago extends Model
 
         // Empleado solo pagos de sus solicitudes
         if ($user->isEmployee()) {
-            return $query->whereHas('solicitud', function ($q) use ($user) {
-                $q->where('user_empleado_id', $user->id);
-            });
+            return $query->whereIn('solicitud_id',
+                Solicitud::where('user_empleado_id', $user->id)->select('id')
+            );
         }
 
         // Cliente solo sus solicitudes
         if ($user->isCustomer()) {
-            return $query->whereHas('solicitud', function ($q) use ($user) {
-                $q->where('user_cliente_id', $user->id);
-            });
+            return $query->whereIn('solicitud_id',
+                Solicitud::where('user_cliente_id', $user->id)->select('id')
+            );
         }
 
         return $query;

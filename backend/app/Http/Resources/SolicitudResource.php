@@ -71,6 +71,7 @@ class SolicitudResource extends JsonResource
                     'nombre' => $this->pago->estadoPago->nombre,
                 ] : null,
             ] : null,
+            'updated_at' => $this->updated_at?->toISOString(),
         ];
     }
 }

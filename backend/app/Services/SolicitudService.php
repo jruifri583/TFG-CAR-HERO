@@ -65,11 +65,14 @@ class SolicitudService
 
             $solicitud->user_empleado_id = $dataFiltered['user_empleado_id'];
 
-            $estadoPendienteId = Estado::where('slug', EstadoSlug::PENDIENTE->value)->value('id');
+            // Una sola query para obtener ambos IDs de estado
+            $estados = Estado::whereIn('slug', [
+                EstadoSlug::PENDIENTE->value,
+                EstadoSlug::ASIGNADO->value,
+            ])->pluck('id', 'slug');
 
-            if ($solicitud->estado_id == $estadoPendienteId) {
-                $nuevoEstadoId = Estado::where('slug', EstadoSlug::ASIGNADO->value)->value('id');
-                $dataFiltered['estado_id'] = $nuevoEstadoId;
+            if ($solicitud->estado_id == $estados[EstadoSlug::PENDIENTE->value]) {
+                $dataFiltered['estado_id'] = $estados[EstadoSlug::ASIGNADO->value];
             }
         }
 

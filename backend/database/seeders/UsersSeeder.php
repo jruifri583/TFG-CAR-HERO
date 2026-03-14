@@ -21,7 +21,7 @@ class UsersSeeder extends Seeder
             [
                 'nombre' => $faker->firstName(),
                 'apellidos' => $faker->lastName(),
-                'password' => Hash::make('admin'),
+                'password' => Hash::make('admin123'),
                 'rol_id' => $administradorRol->id,
                 'activo' => true,
             ]
