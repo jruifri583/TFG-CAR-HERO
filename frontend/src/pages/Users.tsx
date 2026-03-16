@@ -1,12 +1,4 @@
-import {
-  Search,
-  Plus,
-  Eye,
-  Pencil,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
-} from "lucide-react";
+import { Search, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -157,13 +149,16 @@ export default function UsersPage() {
             >
               Activo{renderSortArrow("activo")}
             </TableHead>
-            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id}>
+            <TableRow
+              key={user.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => navigate(`/perfil/${user.id}`)}
+            >
               <TableCell>
                 <img
                   src={user.imagen ?? "/avatars/default_user.png"}
@@ -181,23 +176,6 @@ export default function UsersPage() {
               <TableCell>{user.telefono || "-"}</TableCell>
               <TableCell>{user.rol?.nombre || "-"}</TableCell>
               <TableCell>{user.activo ? "Sí" : "No"}</TableCell>
-              <TableCell>
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => navigate(`/perfil/${user.id}`)}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    title="Ver"
-                  >
-                    <Eye size={30} />
-                  </button>
-                  <button
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    title="Editar"
-                  >
-                    <Pencil size={30} />
-                  </button>
-                </div>
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>

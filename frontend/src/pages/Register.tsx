@@ -84,7 +84,7 @@ export default function Register() {
   };
 
   return (
-    <div className="grid grid-cols-2 min-h-screen w-full">
+    <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen w-full">
       <div className="hidden md:block bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center"></div>
 
       <div className="flex flex-col items-center justify-center gap-16">
@@ -101,12 +101,20 @@ export default function Register() {
             >
               <div className="flex flex-col gap-2">
                 <Label>Email</Label>
-                <Input type="email" {...register("email")} />
+                <Input
+                  type="email"
+                  {...register("email")}
+                  placeholder="Introduce tu email"
+                />
               </div>
 
               <div className="flex flex-col gap-2">
                 <Label>Contraseña</Label>
-                <Input type="password" {...register("password")} />
+                <Input
+                  type="password"
+                  {...register("password")}
+                  placeholder="Introduce tu contraseña"
+                />
                 {errors.password && (
                   <p className="text-red-500 text-xs">
                     {errors.password.message}
@@ -116,7 +124,11 @@ export default function Register() {
 
               <div className="flex flex-col gap-2">
                 <Label>Confirmar Contraseña</Label>
-                <Input type="password" {...register("password_confirmation")} />
+                <Input
+                  type="password"
+                  {...register("password_confirmation")}
+                  placeholder="Confirma tu contraseña"
+                />
                 {errors.password_confirmation && (
                   <p className="text-red-500 text-xs">
                     {errors.password_confirmation.message}

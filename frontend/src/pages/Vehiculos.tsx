@@ -1,12 +1,4 @@
-import {
-  Search,
-  Plus,
-  Eye,
-  Pencil,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
-} from "lucide-react";
+import { Search, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -137,13 +129,16 @@ export default function VehiculosPage() {
             >
               Año{renderSortArrow("año")}
             </TableHead>
-            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {vehiculos.map((vehiculo) => (
-            <TableRow key={vehiculo.id}>
+            <TableRow
+              key={vehiculo.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
+            >
               <TableCell>
                 <img
                   src={vehiculo.imagen ?? "/avatars/default_car.png"}
@@ -158,23 +153,6 @@ export default function VehiculosPage() {
               <TableCell>{vehiculo.marca}</TableCell>
               <TableCell>{vehiculo.modelo}</TableCell>
               <TableCell>{vehiculo.año ?? "-"}</TableCell>
-              <TableCell>
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    title="Ver"
-                  >
-                    <Eye size={30} />
-                  </button>
-                  <button
-                    className="text-muted-foreground hover:text-primary transition-colors"
-                    title="Editar"
-                  >
-                    <Pencil size={30} />
-                  </button>
-                </div>
-              </TableCell>
             </TableRow>
           ))}
         </TableBody>

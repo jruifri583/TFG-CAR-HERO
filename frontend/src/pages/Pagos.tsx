@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -27,33 +27,25 @@ interface Pago {
   created_at: string | null;
 }
 
+type SortField = "solicitud_id" | "importe" | "metodo_pago_id" | "created_at";
+
 export default function PagosPage() {
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const navigate = useNavigate();
 
   const fetchPagos = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No hay token de autenticación");
-
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
       if (sortField) {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
-
-      const res = await api.get(`/pagos?${params.toString()}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      console.log("pagos response:", res.data);
-
+      const res = await api.get(`/pagos?${params.toString()}`);
       setPagos(res.data.data ?? []);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
@@ -71,7 +63,7 @@ export default function PagosPage() {
     setCurrentPage(page);
   };
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
@@ -81,9 +73,14 @@ export default function PagosPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: string) => {
-    if (sortField !== field) return null;
-    return sortOrder === "asc" ? " ↑" : " ↓";
+  const renderSortArrow = (field: SortField) => {
+    if (sortField !== field)
+      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+    return sortOrder === "asc" ? (
+      <ArrowUp size={14} className="inline ml-1" />
+    ) : (
+      <ArrowDown size={14} className="inline ml-1" />
+    );
   };
 
   return (
@@ -94,60 +91,52 @@ export default function PagosPage() {
         <TableHeader>
           <TableRow>
             <TableHead
-              className="cursor-pointer w-1/5"
+              className="cursor-pointer"
               onClick={() => handleSort("solicitud_id")}
             >
               Solicitud{renderSortArrow("solicitud_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/5"
+              className="cursor-pointer"
               onClick={() => handleSort("importe")}
             >
               Importe{renderSortArrow("importe")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/5"
+              className="cursor-pointer"
               onClick={() => handleSort("metodo_pago_id")}
             >
               Método de Pago{renderSortArrow("metodo_pago_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer w-1/5"
+              className="cursor-pointer"
               onClick={() => handleSort("created_at")}
             >
               Fecha de pago{renderSortArrow("created_at")}
             </TableHead>
-            <TableHead className="w-1/5">Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {(pagos ?? []).map((h, index) => (
-            <TableRow key={`pago-${index}`}>
-              <TableCell className="w-1/5">{h.solicitud ?? "-"}</TableCell>
-              <TableCell className="w-1/5">{h.importe ?? "-"}</TableCell>
-              <TableCell className="w-1/5">
-                {h.metodo_pago?.nombre ?? "-"}
-              </TableCell>
+          {pagos.map((pago) => (
+            <TableRow
+              key={pago.id}
+              className="cursor-pointer hover:bg-muted/50 h-14"
+              onClick={() => navigate(`/solicitudes/${pago.solicitud}`)}
+            >
+              <TableCell>{pago.solicitud ?? "-"}</TableCell>
+              <TableCell>{pago.importe ?? "-"}</TableCell>
+              <TableCell>{pago.metodo_pago?.nombre ?? "-"}</TableCell>
               <TableCell>
-                {h.created_at
-                  ? new Date(h.created_at).toLocaleDateString("es-ES")
+                {pago.created_at
+                  ? new Date(pago.created_at).toLocaleDateString("es-ES")
                   : "-"}
-              </TableCell>
-              <TableCell className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => navigate(`/pagos/${h.id}`)}
-                  className="text-gray-500 hover:text-blue-600 transition-colors"
-                >
-                  <Eye size={30} />
-                </button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
 
-      {/* PAGINACIÓN */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>
@@ -160,7 +149,6 @@ export default function PagosPage() {
                 }}
               />
             </PaginationItem>
-
             {Array.from({ length: totalPages }).map((_, index) => {
               const page = index + 1;
               return (
@@ -178,7 +166,6 @@ export default function PagosPage() {
                 </PaginationItem>
               );
             })}
-
             <PaginationItem>
               <PaginationNext
                 href="#"

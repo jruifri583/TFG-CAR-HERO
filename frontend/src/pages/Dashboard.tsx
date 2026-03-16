@@ -363,7 +363,7 @@ export default function DashboardPage() {
             <CardTitle>Solicitudes por estado</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={porEstado}
@@ -372,6 +372,7 @@ export default function DashboardPage() {
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
+                  isAnimationActive={false}
                   label={({ name, percent = 0 }) =>
                     `${name} ${(percent * 100).toFixed(0)}%`
                   }

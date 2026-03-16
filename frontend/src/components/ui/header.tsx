@@ -2,11 +2,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
+import { useHeader } from "@/context/HeaderContext";
 import { useRef } from "react";
 import api from "@/lib/axios";
 
 export default function Header() {
   const { user, setUser, isEditing } = useAuth();
+  const { headerData, onImageChange } = useHeader();
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isPerfilPage = location.pathname === "/perfil";
@@ -14,11 +16,8 @@ export default function Header() {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const formData = new FormData();
     formData.append("imagen", file);
-    console.log("imagen:", user?.imagen);
-
     try {
       const res = await api.post("/me/imagen", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -28,6 +27,56 @@ export default function Header() {
       console.error("Error actualizando imagen:", error);
     }
   };
+
+  const handleExternalImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !onImageChange) return;
+    onImageChange(file);
+  };
+
+  if (headerData) {
+    return (
+      <header className="h-45 flex flex-col relative">
+        <div className="h-full w-full bg-gradiente">
+          <div className="flex gap-3 absolute top-1/2 right-0 -translate-y-1/2 -translate-x-1/8">
+            <div className="flex flex-col self-center gap-3">
+              <span className="text-4xl">
+                <strong>{headerData.matricula}</strong>
+              </span>
+              {headerData.isEditing ? (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleExternalImageChange}
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Cambiar imagen
+                  </Button>
+                </>
+              ) : (
+                <div className="h-9" />
+              )}
+            </div>
+            <Avatar className="size-40 border-4 border-white rounded-full">
+              <AvatarImage
+                src={headerData.imagen ?? "/avatars/default_car.png"}
+              />
+              <AvatarFallback>VH</AvatarFallback>
+            </Avatar>
+          </div>
+        </div>
+        <div className="bg-background h-full w-full"></div>
+      </header>
+    );
+  }
 
   return (
     <header className="h-45 flex flex-col relative">
@@ -40,7 +89,6 @@ export default function Header() {
                 {user ? user.nombre || user.email.split("@")[0] : ""}
               </strong>
             </span>
-
             {!isPerfilPage ? (
               <Button asChild>
                 <NavLink to="/perfil">Ver perfil</NavLink>

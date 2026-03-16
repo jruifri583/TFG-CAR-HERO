@@ -1,12 +1,4 @@
-import {
-  Search,
-  Plus,
-  Eye,
-  Pencil,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
-} from "lucide-react";
+import { Search, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -27,7 +19,6 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
-import Solicitud from "@/components/ui/Solicitud";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -152,91 +143,75 @@ export default function SolicitudesPage() {
             >
               Fecha programada{renderSortArrow("fecha_programada")}
             </TableHead>
-            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {solicitudes?.map((s) => (
-            <>
-              <TableRow key={s.id}>
-                <TableCell className="text-sm font-medium">{s.id}</TableCell>
+            <TableRow
+              key={s.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => navigate(`/solicitudes/${s.id}`)}
+            >
+              <TableCell className="text-sm font-medium">{s.id}</TableCell>
 
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-                      className="w-10 h-10 rounded object-cover shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/avatars/default_car.png";
-                      }}
-                    />
-                    <div className="flex-1 text-center">
-                      <p className="font-medium text-sm">
-                        {s.vehiculo?.marca} {s.vehiculo?.modelo}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {s.vehiculo?.matricula}
-                      </p>
-                    </div>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
+                    className="w-10 h-10 rounded object-cover shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "/avatars/default_car.png";
+                    }}
+                  />
+                  <div className="flex-1 text-center">
+                    <p className="font-medium text-sm">
+                      {s.vehiculo?.marca} {s.vehiculo?.modelo}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {s.vehiculo?.matricula}
+                    </p>
                   </div>
-                </TableCell>
+                </div>
+              </TableCell>
 
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <img
-                      src={s.cliente?.imagen ?? "/avatars/default_user.png"}
-                      className="w-8 h-8 rounded-full object-cover shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/avatars/default_user.png";
-                      }}
-                    />
-                    <span className="text-sm flex-1 text-center">
-                      {s.cliente?.nombre} {s.cliente?.apellidos}
-                    </span>
-                  </div>
-                </TableCell>
-
-                <TableCell className="text-sm">
-                  {s.empleado ? (
-                    `${s.empleado.nombre} ${s.empleado.apellidos}`
-                  ) : (
-                    <span className="text-muted-foreground">Sin asignar</span>
-                  )}
-                </TableCell>
-
-                <TableCell>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
-                  >
-                    {s.estado.nombre}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={s.cliente?.imagen ?? "/avatars/default_user.png"}
+                    className="w-8 h-8 rounded-full object-cover shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "/avatars/default_user.png";
+                    }}
+                  />
+                  <span className="text-sm flex-1 text-center">
+                    {s.cliente?.nombre} {s.cliente?.apellidos}
                   </span>
-                </TableCell>
+                </div>
+              </TableCell>
 
-                <TableCell className="text-sm">
-                  {fmt(s.fecha_programada)}
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <div className="flex items-center justify-center gap-2">
-                    <button
-                      onClick={() => navigate(`/solicitudes/${s.id}`)}
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                      title="Ver"
-                    >
-                      <Eye size={30} />
-                    </button>
-                    <button
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                      title="Editar"
-                    >
-                      <Pencil size={30} />
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            </>
+              <TableCell className="text-sm">
+                {s.empleado ? (
+                  `${s.empleado.nombre} ${s.empleado.apellidos}`
+                ) : (
+                  <span className="text-muted-foreground">Sin asignar</span>
+                )}
+              </TableCell>
+
+              <TableCell>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
+                >
+                  {s.estado.nombre}
+                </span>
+              </TableCell>
+
+              <TableCell className="text-sm">
+                {fmt(s.fecha_programada)}
+              </TableCell>
+            </TableRow>
           ))}
         </TableBody>
       </Table>

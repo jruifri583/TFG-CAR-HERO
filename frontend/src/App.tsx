@@ -1,6 +1,7 @@
 // App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
+import { HeaderProvider } from "@/context/HeaderContext";
 import MainLayout from "@/components/ui/MainLayout";
 import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
@@ -10,9 +11,9 @@ import VehiculosPage from "@/pages/Vehiculos";
 import SolicitudesPage from "@/pages/Solicitudes";
 import HistorialPage from "@/pages/Historial";
 import PagosPage from "@/pages/Pagos";
-import PagoDetailPage from "@/pages/PagoDetail";
 import PerfilPage from "@/pages/Perfil";
-import SolicitudDetailPage from "./pages/SolicitudDetailPage";
+import SolicitudDetailPage from "./pages/SolicitudDetail";
+import VehiculoDetailPage from "./pages/VehiculoDetail";
 
 function App() {
   return (
@@ -21,16 +22,22 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/" element={<MainLayout />}>
-            {/* Protegidas */}
-            <Route path="/dashboard" element={<DashboardPage />}></Route>
-            <Route path="/users" element={<UsersPage />}></Route>
-            <Route path="/vehiculos" element={<VehiculosPage />}></Route>
-            <Route path="/solicitudes" element={<SolicitudesPage />}></Route>
+          <Route
+            path="/"
+            element={
+              <HeaderProvider>
+                <MainLayout />
+              </HeaderProvider>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/users" element={<UsersPage />} />
+            <Route path="/vehiculos" element={<VehiculosPage />} />
+            <Route path="/vehiculos/:id" element={<VehiculoDetailPage />} />
+            <Route path="/solicitudes" element={<SolicitudesPage />} />
             <Route path="/solicitudes/:id" element={<SolicitudDetailPage />} />
-            <Route path="/historial" element={<HistorialPage />}></Route>
-            <Route path="/pagos" element={<PagosPage />}></Route>
-            <Route path="/pagos/:id" element={<PagoDetailPage />} />
+            <Route path="/historial" element={<HistorialPage />} />
+            <Route path="/pagos" element={<PagosPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/:id" element={<PerfilPage />} />
           </Route>
