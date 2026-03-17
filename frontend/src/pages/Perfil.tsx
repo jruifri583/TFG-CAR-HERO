@@ -8,6 +8,7 @@ import { useAuth } from "@/context/useAuth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 const ROLES = [
   { id: 1, nombre: "Administrador", slug: "administrador" },
@@ -285,6 +286,28 @@ export default function PerfilPage() {
                 </div>
               )}
             </div>
+            {isAdmin && !isOwnProfile && !isEditing && (
+              <div className="flex gap-2 mt-4">
+                <ButtonGroup>
+                  <Button
+                    className="w-50"
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate(`/perfil/${id}/nuevo-vehiculo`)}
+                  >
+                    Añadir vehículo
+                  </Button>
+                  <Button
+                    className="w-50"
+                    type="button"
+                    variant="outline"
+                    onClick={() => navigate(`/perfil/${id}/nueva-solicitud`)}
+                  >
+                    Crear solicitud
+                  </Button>
+                </ButtonGroup>
+              </div>
+            )}
 
             <div className="flex flex-wrap gap-2 justify-end mt-4">
               {!isEditing ? (

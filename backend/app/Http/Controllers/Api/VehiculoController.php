@@ -10,6 +10,7 @@ use App\Http\Requests\StoreVehiculoRequest;
 use App\Http\Requests\UpdateVehiculoRequest;
 use App\Http\Resources\VehiculoResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class VehiculoController extends Controller
 {
@@ -24,20 +25,20 @@ class VehiculoController extends Controller
     try {
         $query = Vehiculo::visibleFor($request->user());
 
-        // ⚡ Ordenación
-        $sort = $request->query('sort'); // campo
-        $order = $request->query('order', 'asc'); // asc o desc
-        $allowedSorts = ['id', 'matricula', 'marca', 'modelo', 'año'];
+        // Filtro por user_id
+        if ($request->has('user_id')) {
+            $query->where('user_id', $request->query('user_id'));
+        }
 
+        $sort = $request->query('sort');
+        $order = $request->query('order', 'asc');
+        $allowedSorts = ['id', 'matricula', 'marca', 'modelo', 'año'];
         if ($sort && in_array($sort, $allowedSorts)) {
             $query->orderBy($sort, $order);
         }
 
-        // Paginación
         $vehiculos = $query->paginate(5);
-
         return VehiculoResource::collection($vehiculos);
-
     } catch (\Exception $e) {
         \Log::error("Error en Vehiculos: " . $e->getMessage());
         return response()->json(['error' => $e->getMessage()], 500);
@@ -91,4 +92,20 @@ class VehiculoController extends Controller
             'message' => 'Vehículo eliminado.'
         ]);
     }
+
+    public function updateImagen(Request $request, Vehiculo $vehiculo)
+{
+    $request->validate(['imagen' => 'required|image|max:2048']);
+
+    $oldImagen = $vehiculo->getRawOriginal('imagen');
+    if ($oldImagen && !str_contains($oldImagen, 'default')) {
+        Storage::disk('public')->delete('avatars/' . $oldImagen);
+    }
+
+    $filename = $request->file('imagen')->store('avatars', 'public');
+    $vehiculo->imagen = basename($filename);
+    $vehiculo->save();
+
+    return response()->json(['imagen' => $vehiculo->fresh()->imagen]);
+}
 }

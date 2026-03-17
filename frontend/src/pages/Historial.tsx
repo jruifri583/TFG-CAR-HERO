@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Search } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface Historial {
   solicitud_id: number;
@@ -83,7 +84,12 @@ export default function HistorialPage() {
   return (
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Historial</span>
-
+      <div className="flex justify-end mb-4">
+        <Button className="w-47" variant="outline">
+          <Search className="mr-2 h-4 w-4" />
+          Buscar
+        </Button>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>

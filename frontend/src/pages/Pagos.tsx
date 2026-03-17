@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Search } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -18,6 +18,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
+import { Button } from "@/components/ui/button";
 
 interface Pago {
   id: number;
@@ -86,6 +87,12 @@ export default function PagosPage() {
   return (
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Pagos</span>
+      <div className="flex justify-end mb-4">
+        <Button className="w-47" variant="outline">
+          <Search className="mr-2 h-4 w-4" />
+          Buscar
+        </Button>
+      </div>
 
       <Table>
         <TableHeader>

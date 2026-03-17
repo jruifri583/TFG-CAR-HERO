@@ -306,10 +306,15 @@ export default function VehiculoDetailPage() {
             <div className="flex flex-wrap gap-2 justify-end mt-6">
               {!isEditing ? (
                 <>
-                  <Button type="button" onClick={() => setIsEditing(true)}>
+                  <Button
+                    className="w-50"
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                  >
                     Editar
                   </Button>
                   <Button
+                    className="w-50"
                     type="button"
                     variant="outline"
                     onClick={() => navigate(-1)}
@@ -320,13 +325,16 @@ export default function VehiculoDetailPage() {
               ) : (
                 <>
                   <Button
+                    className="w-50"
                     type="button"
                     variant="outline"
                     onClick={handleCancel}
                   >
                     Cancelar
                   </Button>
-                  <Button type="submit">Guardar</Button>
+                  <Button className="w-50" type="submit">
+                    Guardar
+                  </Button>
                 </>
               )}
             </div>

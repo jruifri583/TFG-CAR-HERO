@@ -155,6 +155,12 @@ export default function LoginPage() {
             </div>
           </CardContent>
         </CardSinBorde>
+        <button
+          onClick={() => navigate("/contacto")}
+          className="fixed bottom-4 left-4 text-sm text-primary md:text-white hover:text-accent transition-colors drop-shadow-md"
+        >
+          Contacto
+        </button>
       </div>
     </div>
   );

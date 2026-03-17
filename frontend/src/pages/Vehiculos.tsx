@@ -1,5 +1,4 @@
-import { Search, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { ButtonGroup } from "@/components/ui/button-group";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
@@ -89,16 +88,10 @@ export default function VehiculosPage() {
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Vehículos</span>
       <div className="flex justify-end mb-4">
-        <ButtonGroup>
-          <Button className="w-47" variant="outline">
-            <Search className="mr-2 h-4 w-4" />
-            Buscar
-          </Button>
-          <Button className="w-47">
-            <Plus className="mr-2 h-4 w-4" />
-            Añadir
-          </Button>
-        </ButtonGroup>
+        <Button className="w-47" variant="outline">
+          <Search className="mr-2 h-4 w-4" />
+          Buscar
+        </Button>
       </div>
 
       <Table>
@@ -142,7 +135,7 @@ export default function VehiculosPage() {
               <TableCell>
                 <img
                   src={vehiculo.imagen ?? "/avatars/default_car.png"}
-                  className="w-10 h-10 rounded object-cover mx-auto"
+                  className="w-10 h-10 rounded-full object-cover mx-auto"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       "/avatars/default_car.png";

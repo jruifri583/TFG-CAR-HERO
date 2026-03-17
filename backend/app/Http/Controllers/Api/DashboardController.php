@@ -26,8 +26,7 @@ class DashboardController extends Controller
         'pagos' => \App\Models\Pago::visibleFor($user)
             ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
             ->count(),
-        'historial' => \App\Models\Historial::visibleFor($user)
-            ->count(), 
+        'historial' => \App\Models\Historial::visibleFor($user)->when($desde, fn($q) => $q->where('created_at', '>', $desde))->count(), 
     ]);
 }
 

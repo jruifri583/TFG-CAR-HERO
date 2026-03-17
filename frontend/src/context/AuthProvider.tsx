@@ -44,14 +44,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     delete api.defaults.headers.common["Authorization"];
   };
 
-  // ⚡ Opcional: cargar token guardado al iniciar app
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user_data");
 
-    if (token && userData) {
+    if (token) {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      setUser(JSON.parse(userData));
+      api
+        .get("/me")
+        .then((res) => {
+          setUser(res.data.user);
+          localStorage.setItem("user_data", JSON.stringify(res.data.user));
+        })
+        .catch(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user_data");
+        });
     }
   }, []);
 

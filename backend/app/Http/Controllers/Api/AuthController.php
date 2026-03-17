@@ -27,6 +27,7 @@ class AuthController extends Controller
         ]);
 
         $user->tokens()->delete();
+        $user->load('rol');
 
         $token = $user->createToken('auth')->plainTextToken;
 
@@ -40,29 +41,27 @@ class AuthController extends Controller
     // LOGIN
     // ======================
     public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        $user = User::where('email', $request->email)->first();
+    $user = User::where('email', $request->email)->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            return response()->json(['error' => 'Credenciales inválidas'], 401);
-        }
-
-        // Borra tokens antiguos si quieres
-        $user->tokens()->delete();
-
-        // Crea nuevo token personal
-        $token = $user->createToken('auth')->plainTextToken;
-
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ]);
+    if (! $user || ! Hash::check($request->password, $user->password)) {
+        return response()->json(['error' => 'Credenciales inválidas'], 401);
     }
+
+    $user->tokens()->delete();
+    $token = $user->createToken('auth')->plainTextToken;
+    $user->load('rol'); // 👈
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token,
+    ]);
+}
 
     public function update(Request $request)
 {
@@ -96,7 +95,7 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         return response()->json([
-            'user' => $request->user()
+            'user' => $request->user()->load('rol')
         ]);
     }
 

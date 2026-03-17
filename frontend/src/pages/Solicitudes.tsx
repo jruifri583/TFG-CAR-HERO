@@ -1,5 +1,4 @@
-import { Search, Plus, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { ButtonGroup } from "@/components/ui/button-group";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
@@ -112,18 +111,11 @@ export default function SolicitudesPage() {
     <>
       <span className="text-4xl font-bold mb-4 inline-block">Solicitudes</span>
       <div className="flex justify-end mb-4">
-        <ButtonGroup>
-          <Button className="w-47" variant="outline">
-            <Search className="mr-2 h-4 w-4" />
-            Buscar
-          </Button>
-          <Button className="w-47">
-            <Plus className="mr-2 h-4 w-4" />
-            Añadir
-          </Button>
-        </ButtonGroup>
+        <Button className="w-47" variant="outline">
+          <Search className="mr-2 h-4 w-4" />
+          Buscar
+        </Button>
       </div>
-
       <Table>
         <TableHeader>
           <TableRow>

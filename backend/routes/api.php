@@ -35,6 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::apiResource('vehiculos', VehiculoController::class);
+    Route::post('/vehiculos/{vehiculo}/imagen', [VehiculoController::class, 'updateImagen']);
     Route::get('historiales', [HistorialController::class, 'index']);
     Route::apiResource('pagos', PagoController::class);
     Route::apiResource('solicitudes', SolicitudController::class)->parameters([
