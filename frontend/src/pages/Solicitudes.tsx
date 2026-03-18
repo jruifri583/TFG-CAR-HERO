@@ -109,7 +109,6 @@ export default function SolicitudesPage() {
 
   return (
     <>
-      <span className="text-4xl font-bold mb-4 inline-block">Solicitudes</span>
       <div className="flex justify-end mb-4">
         <Button className="w-47" variant="outline">
           <Search className="mr-2 h-4 w-4" />

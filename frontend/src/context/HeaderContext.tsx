@@ -3,14 +3,14 @@ import { createContext, useContext, useState } from "react";
 interface HeaderData {
   nombre: string;
   matricula?: string;
+  subtitulo?: string;
   imagen: string | null;
   isEditing?: boolean;
-  subtitulo?: string;
 }
 
 interface HeaderContextType {
   headerData: HeaderData | null;
-  setHeaderData: (data: HeaderData | null) => void;
+  setHeaderData: React.Dispatch<React.SetStateAction<HeaderData | null>>;
   onImageChange: ((file: File) => void) | null;
   setOnImageChange: (fn: ((file: File) => void) | null) => void;
 }

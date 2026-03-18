@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardContent, CardSinBorde } from "@/components/ui/card";
 import { useAuth } from "@/context/useAuth";
+import { useHeader } from "@/context/HeaderContext";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,6 +74,7 @@ export default function PerfilPage() {
     setUser: setContextUser,
     user: authUser,
   } = useAuth();
+  const { setHeaderData } = useHeader();
 
   const isOwnProfile = !id;
   const isAdmin = authUser?.rol?.slug === "administrador";
@@ -89,6 +91,11 @@ export default function PerfilPage() {
   });
 
   useEffect(() => {
+    // Establece header vacío inmediatamente si es perfil ajeno
+    if (id) {
+      setHeaderData({ nombre: "", imagen: null, isEditing: false });
+    }
+
     const fetchUser = async () => {
       try {
         const res = id ? await api.get(`/users/${id}`) : await api.get("/me");
@@ -104,10 +111,30 @@ export default function PerfilPage() {
           password: "",
           rol_id: userData.rol?.id,
         });
+
+        if (id) {
+          setHeaderData({
+            nombre:
+              `${userData.nombre ?? ""} ${userData.apellidos ?? ""}`.trim(),
+            imagen: userData.imagen,
+            isEditing: false,
+          });
+        }
       } catch (error) {}
     };
     fetchUser();
+
+    return () => {
+      if (id) setHeaderData(null);
+    };
   }, [id]);
+
+  // Actualiza isEditing en el header
+  useEffect(() => {
+    if (id && user) {
+      setHeaderData((prev) => (prev ? { ...prev, isEditing } : prev));
+    }
+  }, [isEditing]);
 
   const handleCancel = () => {
     reset({
@@ -145,9 +172,6 @@ export default function PerfilPage() {
 
   return (
     <div className="w-full">
-      <span className="text-4xl font-bold mb-6 inline-block">
-        {isOwnProfile ? "Perfil" : `${user.nombre} ${user.apellidos ?? ""}`}
-      </span>
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-4">
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -286,6 +310,7 @@ export default function PerfilPage() {
                 </div>
               )}
             </div>
+
             {isAdmin && !isOwnProfile && !isEditing && (
               <div className="flex gap-2 mt-4">
                 <ButtonGroup>
