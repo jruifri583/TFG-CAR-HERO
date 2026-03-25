@@ -27,7 +27,7 @@ class PagoController extends Controller
     $pagos = Pago::with(['solicitud.cliente', 'metodoPago', 'estadoPago'])
                  ->visibleFor($user)
                  ->orderBy($sortField, $sortOrder)
-                 ->paginate(5);
+                 ->paginate(6);
 
     return PagoResource::collection($pagos)->response();
     }

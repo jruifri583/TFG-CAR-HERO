@@ -110,13 +110,14 @@ class Solicitud extends Model
     {
         static::creating(function ($solicitud) {
 
+            // Obtenemos los IDs de los estados terminales (sin subconsulta correlacionada)
+            $estadosExcluidos = Estado::whereIn('slug', [
+                EstadoSlug::FINALIZADO->value,
+                EstadoSlug::CANCELADO->value,
+            ])->pluck('id');
+
             $existe = self::where('vehiculo_id', $solicitud->vehiculo_id)
-                ->whereHas('estado', function ($q) {
-                    $q->whereNotIn('slug', [
-                        EstadoSlug::FINALIZADO->value,
-                        EstadoSlug::CANCELADO->value,
-                    ]);
-                })
+                ->whereNotIn('estado_id', $estadosExcluidos)
                 ->exists();
 
             if ($existe) {
@@ -179,25 +180,20 @@ class Solicitud extends Model
 
     public function scopeNoFinalizadas(Builder $query): Builder
     {
-        return $query->whereHas(
-            'estado',
-            fn($q) =>
-            $q->where('slug', '!=', EstadoSlug::FINALIZADO->value)
-        );
+        $id = Estado::where('slug', EstadoSlug::FINALIZADO->value)->value('id');
+        return $query->where('estado_id', '!=', $id);
     }
 
     public function scopeFinalizadas(Builder $query): Builder
     {
-        return $query->whereHas(
-            'estado',
-            fn($q) =>
-            $q->where('slug', EstadoSlug::FINALIZADO->value)
-        );
+        $id = Estado::where('slug', EstadoSlug::FINALIZADO->value)->value('id');
+        return $query->where('estado_id', $id);
     }
 
     public function scopeWithBaseRelations(Builder $query): Builder
     {
-        return $query->with(['cliente', 'vehiculo', 'estado', 'pago']);
+        // Incluye pago.metodoPago y pago.estadoPago para evitar N+1 en SolicitudResource
+        return $query->with(['cliente', 'vehiculo', 'estado', 'pago.metodoPago', 'pago.estadoPago']);
     }
 
     public function loadFull()

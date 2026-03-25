@@ -33,7 +33,7 @@ class SolicitudController extends Controller
         ->withBaseRelations()
         ->with(['empleado'])
         ->orderBy($sort, $order)
-        ->paginate(5);
+        ->paginate(6);
 
     return SolicitudResource::collection($solicitudes)->response();
 }

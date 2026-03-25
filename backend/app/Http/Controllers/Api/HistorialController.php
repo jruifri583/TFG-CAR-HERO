@@ -47,7 +47,7 @@ class HistorialController extends Controller
         }
     }
 
-    $historiales = $query->paginate(5);
+    $historiales = $query->paginate(6);
 
     return response()->json($historiales);
 }

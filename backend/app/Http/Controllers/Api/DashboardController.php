@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Api\DashboardController;
 use Illuminate\Http\Request;
 use App\Http\Resources\SolicitudResource;
+use App\Models\Estado;
+use App\Enums\EstadoSlug;
 
 class DashboardController extends Controller
 {
@@ -71,9 +72,10 @@ public function pagosRecientes()
 public function solicitudesRecientes()
 {
     $user = request()->user();
+    $estadoPendienteId = Estado::where('slug', EstadoSlug::PENDIENTE->value)->value('id');
     $solicitudes = \App\Models\Solicitud::visibleFor($user)
         ->withBaseRelations()
-        ->whereHas('estado', fn($q) => $q->where('slug', 'pendiente'))
+        ->where('estado_id', $estadoPendienteId)
         ->whereNull('user_empleado_id')
         ->latest()
         ->limit(3)

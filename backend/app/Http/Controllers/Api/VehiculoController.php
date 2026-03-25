@@ -37,7 +37,7 @@ class VehiculoController extends Controller
             $query->orderBy($sort, $order);
         }
 
-        $vehiculos = $query->paginate(5);
+        $vehiculos = $query->paginate(6);
         return VehiculoResource::collection($vehiculos);
     } catch (\Exception $e) {
         \Log::error("Error en Vehiculos: " . $e->getMessage());
@@ -60,7 +60,9 @@ class VehiculoController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $usuarios = $user->isAdmin() ? User::all() : collect();
+        $usuarios = $user->isAdmin()
+            ? User::clientes()->select('id', 'nombre', 'apellidos', 'email')->get()
+            : collect();
 
         return response()->json([
             'user' => $user,

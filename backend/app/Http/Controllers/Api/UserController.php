@@ -40,7 +40,7 @@ class UserController extends Controller
         }
     }
 
-    $users = $query->paginate(5);
+    $users = $query->paginate(6);
 
     return response()->json([
         'data' => UserResource::collection($users)->resolve(),

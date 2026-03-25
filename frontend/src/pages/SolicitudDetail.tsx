@@ -222,10 +222,13 @@ export default function SolicitudDetailPage() {
 
       {/* Botones */}
       <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={() => navigate(-1)}>
+        <Button className="w-50" variant="outline" onClick={() => navigate(-1)}>
           Atrás
         </Button>
-        <Button onClick={() => navigate(`/solicitudes/${id}/editar`)}>
+        <Button
+          className="w-50"
+          onClick={() => navigate(`/solicitudes/${id}/editar`)}
+        >
           Editar
         </Button>
       </div>

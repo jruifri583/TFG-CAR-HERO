@@ -166,6 +166,13 @@ export default function PerfilPage() {
 
   if (!user) return <p>Cargando...</p>;
 
+  console.log({
+    isAdmin,
+    isOwnProfile,
+    isEditing,
+    authUser,
+  });
+
   const readOnlyClass = !isEditing
     ? "pointer-events-none focus:ring-0 focus:outline-none"
     : "";
