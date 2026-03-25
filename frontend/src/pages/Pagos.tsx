@@ -31,6 +31,7 @@ interface Pago {
 type SortField = "solicitud_id" | "importe" | "metodo_pago_id" | "created_at";
 
 export default function PagosPage() {
+  const [loading, setLoading] = useState(true);
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -52,6 +53,8 @@ export default function PagosPage() {
     } catch (error) {
       console.error("Error cargando pagos:", error);
       setPagos([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -83,6 +86,8 @@ export default function PagosPage() {
       <ArrowDown size={14} className="inline ml-1" />
     );
   };
+
+  if (loading) return <p>Cargando...</p>;
 
   return (
     <>

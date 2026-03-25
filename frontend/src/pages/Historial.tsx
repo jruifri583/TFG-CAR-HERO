@@ -29,6 +29,7 @@ interface Historial {
 type SortField = "solicitud_id" | "fecha_itv" | "resolucion_id";
 
 export default function HistorialPage() {
+  const [loading, setLoading] = useState(true);
   const [historiales, setHistoriales] = useState<Historial[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -49,6 +50,8 @@ export default function HistorialPage() {
       setTotalPages(res.data.last_page || res.data.meta?.last_page || 1);
     } catch (error) {
       console.error("Error cargando historiales:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,6 +83,8 @@ export default function HistorialPage() {
       <ArrowDown size={14} className="inline ml-1" />
     );
   };
+
+  if (loading) return <p>Cargando...</p>;
 
   return (
     <>

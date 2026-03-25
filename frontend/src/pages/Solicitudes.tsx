@@ -60,6 +60,7 @@ function fmt(iso: string | null) {
 }
 
 export default function SolicitudesPage() {
+  const [loading, setLoading] = useState(true);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -77,6 +78,8 @@ export default function SolicitudesPage() {
         setTotalPages(res.data.meta?.last_page ?? res.data.last_page ?? 1);
       } catch (error) {
         console.error("Error cargando solicitudes:", error);
+      } finally {
+        setLoading(false);
       }
     };
     fetch();
@@ -106,6 +109,8 @@ export default function SolicitudesPage() {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
+
+  if (loading) return <p>Cargando...</p>;
 
   return (
     <>

@@ -32,6 +32,7 @@ interface Vehiculo {
 type SortField = "matricula" | "marca" | "modelo" | "año";
 
 export default function VehiculosPage() {
+  const [loading, setLoading] = useState(true);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -40,18 +41,23 @@ export default function VehiculosPage() {
   const navigate = useNavigate();
 
   const fetchVehiculos = async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
+
       if (sortField) {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
+
       const res = await api.get(`/vehiculos?${params.toString()}`);
       setVehiculos(res.data.data);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
       console.error("Error cargando vehiculos:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,6 +90,8 @@ export default function VehiculosPage() {
     );
   };
 
+  if (loading) return <p>Cargando...</p>;
+
   return (
     <>
       <div className="flex justify-end mb-4">
@@ -92,7 +100,6 @@ export default function VehiculosPage() {
           Buscar
         </Button>
       </div>
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -149,7 +156,6 @@ export default function VehiculosPage() {
           ))}
         </TableBody>
       </Table>
-
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>

@@ -40,6 +40,7 @@ type SortField =
   | "activo";
 
 export default function UsersPage() {
+  const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -60,6 +61,8 @@ export default function UsersPage() {
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
       console.error("Error cargando usuarios:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,6 +94,8 @@ export default function UsersPage() {
       <ArrowDown size={14} className="inline ml-1" />
     );
   };
+
+  if (loading) return <p>Cargando...</p>;
 
   return (
     <>
