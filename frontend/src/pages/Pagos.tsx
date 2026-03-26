@@ -92,7 +92,7 @@ export default function PagosPage() {
   return (
     <>
       <div className="flex justify-end mb-4">
-        <Button className="w-47" variant="outline">
+        <Button className="w-50" variant="outline">
           <Search className="mr-2 h-4 w-4" />
           Buscar
         </Button>
