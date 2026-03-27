@@ -136,7 +136,7 @@ export default function UsersPage() {
     <>
       <div className="flex justify-end mb-4">
         <ButtonGroup>
-          <Button className="w-50">
+          <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
             <PlusIcon className="mr-2 h-4 w-4" />
             Añadir
           </Button>

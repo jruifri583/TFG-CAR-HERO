@@ -107,4 +107,24 @@ class User extends Authenticatable
     {
         return $q->whereIn('rol_id', Rol::where('slug', RolSlug::EMPLEADO)->select('id'));
     }
+
+    public function scopeFilter($query, $filters)
+{
+    return $query
+        ->when($filters['email'] ?? null, fn($q, $v) =>
+            $q->where('email', 'like', "%$v%")
+        )
+        ->when($filters['nombre'] ?? null, fn($q, $v) =>
+            $q->where('nombre', 'like', "%$v%")
+        )
+        ->when($filters['apellidos'] ?? null, fn($q, $v) =>
+            $q->where('apellidos', 'like', "%$v%")
+        )
+        ->when($filters['telefono'] ?? null, fn($q, $v) =>
+            $q->where('telefono', 'like', "%$v%")
+        )
+        ->when(isset($filters['activo']) && $filters['activo'] !== '', fn($q) =>
+            $q->where('activo', $filters['activo'])
+        );
+}
 }
