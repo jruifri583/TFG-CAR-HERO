@@ -12,11 +12,12 @@ import SolicitudesPage from "@/pages/Solicitudes";
 import HistorialPage from "@/pages/Historial";
 import PagosPage from "@/pages/Pagos";
 import PerfilPage from "@/pages/Perfil";
-import SolicitudDetailPage from "./pages/SolicitudDetail";
-import VehiculoDetailPage from "./pages/VehiculoDetail";
-import ContactoPage from "./pages/Contacto";
-import NuevoVehiculoPage from "./pages/NuevoVehiculo";
-import NuevaSolicitudPage from "./pages/NuevaSolicitud";
+import SolicitudDetailPage from "@/pages/SolicitudDetail";
+import VehiculoDetailPage from "@/pages/VehiculoDetail";
+import ContactoPage from "@/pages/Contacto";
+import NuevoVehiculoPage from "@/pages/NuevoVehiculo";
+import NuevaSolicitudPage from "@/pages/NuevaSolicitud";
+import NuevoUserPage from "@/pages/NuevoUser";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           >
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/nuevo" element={<NuevoUserPage />} />
             <Route path="/vehiculos" element={<VehiculosPage />} />
             <Route path="/vehiculos/:id" element={<VehiculoDetailPage />} />
             <Route

@@ -19,24 +19,32 @@ class UserController extends Controller
     /**
      * Listar todos los usuarios
      */
+
     public function index()
-{
+    {
     $query = User::with('rol');
 
-    // ⚡ Ordenación
-    $sort = request()->query('sort');       // campo a ordenar
-    $order = request()->query('order', 'asc'); // asc o desc
+    // Búsqueda
+    $search = request()->query('search');
+    $query->when($search, function ($q, $v) {
+        $q->where(function ($q2) use ($v) {
+            $q2->where('email', 'like', "%$v%")
+               ->orWhere('nombre', 'like', "%$v%")
+               ->orWhere('telefono', 'like', "%$v%");
+        });
+    });
 
-    // Solo permitir columnas válidas para seguridad
+    // Ordenación
+    $sort = request()->query('sort');
+    $order = request()->query('order', 'asc');
     $allowedSorts = ['id','email','nombre','apellidos','telefono','activo','rol_id'];
     if ($sort && in_array($sort, $allowedSorts)) {
-        // Si se ordena por rol, hacemos join
         if ($sort === 'rol_id') {
-            $query = $query->join('roles', 'users.rol_id', '=', 'roles.id')
-                           ->orderBy('roles.nombre', $order)
-                           ->select('users.*');
+            $query->join('roles', 'users.rol_id', '=', 'roles.id')
+                  ->orderBy('roles.nombre', $order)
+                  ->select('users.*');
         } else {
-            $query = $query->orderBy($sort, $order);
+            $query->orderBy($sort, $order);
         }
     }
 

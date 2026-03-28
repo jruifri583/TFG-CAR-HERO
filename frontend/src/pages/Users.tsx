@@ -1,19 +1,12 @@
 import {
-  Filter,
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
   PlusIcon,
+  X,
+  Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import {
@@ -24,7 +17,6 @@ import {
   TableCell,
   TableHead,
 } from "@/components/ui/table";
-
 import {
   Pagination,
   PaginationContent,
@@ -33,10 +25,8 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
-import { ButtonGroup } from "@/components/ui/button-group";
 
 interface User {
   id: number;
@@ -64,34 +54,20 @@ export default function UsersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-
-  const [filters, setFilters] = useState({
-    email: "",
-    nombre: "",
-    apellidos: "",
-    telefono: "",
-    activo: "",
-  });
-
+  const [search, setSearch] = useState("");
+  const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (searchValue = search) => {
     try {
       const params = new URLSearchParams();
-
       params.append("page", currentPage.toString());
-
       if (sortField) {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
-
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
-
+      if (searchValue) params.append("search", searchValue);
       const res = await api.get(`/users?${params.toString()}`);
-
       setUsers(res.data.data);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
@@ -104,6 +80,14 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, [currentPage, sortField, sortOrder]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchUsers(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -134,115 +118,79 @@ export default function UsersPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <ButtonGroup>
-          <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Añadir
-          </Button>
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button className="w-50" variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtrar
-              </Button>
-            </SheetTrigger>
-
-            <SheetContent side="right" className="w-80">
-              <SheetHeader>
-                <SheetTitle>Filtros</SheetTitle>
-              </SheetHeader>
-
-              <div className="mt-4 space-y-4">
-                <Input
-                  type="text"
-                  placeholder="Email"
-                  value={filters.email}
-                  onChange={(e) =>
-                    setFilters({ ...filters, email: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                />
-
-                <Input
-                  type="text"
-                  placeholder="Nombre"
-                  value={filters.nombre}
-                  onChange={(e) =>
-                    setFilters({ ...filters, nombre: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                />
-
-                <Input
-                  type="text"
-                  placeholder="Apellidos"
-                  value={filters.apellidos}
-                  onChange={(e) =>
-                    setFilters({ ...filters, apellidos: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                />
-
-                <Input
-                  type="text"
-                  placeholder="Teléfono"
-                  value={filters.telefono}
-                  onChange={(e) =>
-                    setFilters({ ...filters, telefono: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                />
-
-                <select
-                  value={filters.activo}
-                  onChange={(e) =>
-                    setFilters({ ...filters, activo: e.target.value })
-                  }
-                  className="w-full border p-2 rounded"
-                >
-                  <option value="">Activo</option>
-                  <option value="1">Sí</option>
-                  <option value="0">No</option>
-                </select>
-
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    setCurrentPage(1);
-                    fetchUsers();
-                  }}
-                >
-                  Aplicar filtros
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </ButtonGroup>
+      <div className="flex justify-end mb-4 gap-2 items-center">
+        <div className="relative flex items-center">
+          {!search && (
+            <Search
+              size={14}
+              className="absolute left-2.5 text-muted-foreground pointer-events-none"
+            />
+          )}
+          <Input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+      ${search ? "pl-3" : "pl-8"}
+      ${inputFocused || search ? "w-64" : "w-32"}
+      focus:ring-2 focus:ring-ring`}
+          />
+          {search && (
+            <button
+              className="absolute right-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearch("")}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Añadir
+        </Button>
       </div>
 
-      {/* TABLA */}
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Imagen</TableHead>
-            <TableHead onClick={() => handleSort("email")}>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("email")}
+            >
               Email{renderSortArrow("email")}
             </TableHead>
-            <TableHead onClick={() => handleSort("nombre")}>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("nombre")}
+            >
               Nombre{renderSortArrow("nombre")}
             </TableHead>
-            <TableHead onClick={() => handleSort("apellidos")}>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("apellidos")}
+            >
               Apellidos{renderSortArrow("apellidos")}
             </TableHead>
-            <TableHead onClick={() => handleSort("telefono")}>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("telefono")}
+            >
               Teléfono{renderSortArrow("telefono")}
             </TableHead>
-            <TableHead onClick={() => handleSort("rol_id")}>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("rol_id")}
+            >
               Rol{renderSortArrow("rol_id")}
             </TableHead>
-            <TableHead onClick={() => handleSort("activo")}>
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => handleSort("activo")}
+            >
               Activo{renderSortArrow("activo")}
             </TableHead>
           </TableRow>
@@ -252,12 +200,18 @@ export default function UsersPage() {
           {users.map((user) => (
             <TableRow
               key={user.id}
+              className="cursor-pointer hover:bg-muted/50"
               onClick={() => navigate(`/perfil/${user.id}`)}
             >
               <TableCell>
                 <img
                   src={user.imagen ?? "/avatars/default_user.png"}
-                  className="w-10 h-10 rounded-full"
+                  alt="Imagen de usuario"
+                  className="w-10 h-10 rounded-full object-cover mx-auto"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "/avatars/default_user.png";
+                  }}
                 />
               </TableCell>
               <TableCell>{user.email}</TableCell>
@@ -271,7 +225,6 @@ export default function UsersPage() {
         </TableBody>
       </Table>
 
-      {/* PAGINACIÓN */}
       {totalPages > 1 && (
         <Pagination className="mt-6">
           <PaginationContent>
@@ -284,22 +237,23 @@ export default function UsersPage() {
                 }}
               />
             </PaginationItem>
-
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  href="#"
-                  isActive={currentPage === i + 1}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    goToPage(i + 1);
-                  }}
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
-
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const page = index + 1;
+              return (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href="#"
+                    isActive={currentPage === page}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      goToPage(page);
+                    }}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              );
+            })}
             <PaginationItem>
               <PaginationNext
                 href="#"
