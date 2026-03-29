@@ -25,6 +25,16 @@ class VehiculoController extends Controller
     try {
         $query = Vehiculo::visibleFor($request->user());
 
+        // Búsqueda
+    $search = request()->query('search');
+    $query->when($search, function ($q, $v) {
+        $q->where(function ($q2) use ($v) {
+            $q2->where('marca', 'like', "%$v%")
+               ->orWhere('modelo', 'like', "%$v%")
+               ->orWhere('matricula', 'like', "%$v%");
+        });
+    });
+
         // Filtro por user_id
         if ($request->has('user_id')) {
             $query->where('user_id', $request->query('user_id'));

@@ -16,16 +16,22 @@ class PagoController extends Controller
      * Listar pagos con relaciones.
      */
     public function index(Request $request): JsonResponse
-    {
-    /** @var User $user */
+{
     $user = Auth::user();
 
-    $allowedSorts = ['created_at', 'importe', 'solicitud_id', 'metodo_pago_id', 'estado_pago_id']; 
+    $allowedSorts = ['created_at', 'importe', 'solicitud_id', 'metodo_pago_id', 'estado_pago_id'];
     $sortField = in_array($request->get('sort'), $allowedSorts) ? $request->get('sort') : 'created_at';
     $sortOrder = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
 
     $pagos = Pago::with(['solicitud.cliente', 'metodoPago', 'estadoPago'])
                  ->visibleFor($user)
+                 ->when($request->get('search'), function ($q, $v) {
+                     $q->whereHas('solicitud.cliente', function ($q2) use ($v) {
+                         $q2->where('nombre', 'like', "%$v%")
+                            ->orWhere('apellidos', 'like', "%$v%")
+                            ->orWhere('email', 'like', "%$v%");
+                     })->orWhere('importe', 'like', "%$v%");
+                 })
                  ->orderBy($sortField, $sortOrder)
                  ->paginate(6);
 

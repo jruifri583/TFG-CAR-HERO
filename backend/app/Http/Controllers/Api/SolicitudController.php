@@ -30,10 +30,11 @@ class SolicitudController extends Controller
     $order = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
 
     $solicitudes = Solicitud::visibleFor($user)
-        ->withBaseRelations()
-        ->with(['empleado'])
-        ->orderBy($sort, $order)
-        ->paginate(6);
+    ->withBaseRelations()
+    ->with(['empleado'])
+    ->when($request->get('sin_pago'), fn($q) => $q->whereNull('pago_id'))
+    ->orderBy($sort, $order)
+    ->paginate(6);
 
     return SolicitudResource::collection($solicitudes)->response();
 }

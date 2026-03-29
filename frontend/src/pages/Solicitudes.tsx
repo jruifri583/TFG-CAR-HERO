@@ -59,7 +59,17 @@ function fmt(iso: string | null) {
   return format(new Date(iso), "dd MMM yyyy", { locale: es });
 }
 
-export default function SolicitudesPage() {
+interface Props {
+  sinPago?: boolean;
+  onSelect?: (id: number) => void;
+  selectedId?: number;
+}
+
+export default function SolicitudesPage({
+  sinPago = false,
+  onSelect,
+  selectedId,
+}: Props) {
   const [loading, setLoading] = useState(true);
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,7 +82,12 @@ export default function SolicitudesPage() {
     const fetch = async () => {
       try {
         const res = await api.get(`/solicitudes`, {
-          params: { page: currentPage, sort: sortField, order: sortOrder },
+          params: {
+            page: currentPage,
+            sort: sortField,
+            order: sortOrder,
+            ...(sinPago && { sin_pago: 1 }),
+          },
         });
         setSolicitudes(res.data.data);
         setTotalPages(res.data.meta?.last_page ?? res.data.last_page ?? 1);
@@ -83,7 +98,7 @@ export default function SolicitudesPage() {
       }
     };
     fetch();
-  }, [currentPage, sortField, sortOrder]);
+  }, [currentPage, sortField, sortOrder, sinPago]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -114,12 +129,16 @@ export default function SolicitudesPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Button className="w-50" variant="outline">
-          <Search className="mr-2 h-4 w-4" />
-          Buscar
-        </Button>
-      </div>
+      {/* Solo muestra el botón buscar en modo normal */}
+      {!sinPago && (
+        <div className="flex justify-end mb-4">
+          <Button className="w-50" variant="outline">
+            <Search className="mr-2 h-4 w-4" />
+            Buscar
+          </Button>
+        </div>
+      )}
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -127,12 +146,14 @@ export default function SolicitudesPage() {
             <TableHead>Vehículo</TableHead>
             <TableHead>Cliente</TableHead>
             <TableHead>Empleado</TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("estado_id")}
-            >
-              Estado{renderSortArrow("estado_id")}
-            </TableHead>
+            {!sinPago && (
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("estado_id")}
+              >
+                Estado{renderSortArrow("estado_id")}
+              </TableHead>
+            )}
             <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("fecha_programada")}
@@ -146,8 +167,14 @@ export default function SolicitudesPage() {
           {solicitudes?.map((s) => (
             <TableRow
               key={s.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => navigate(`/solicitudes/${s.id}`)}
+              className={`cursor-pointer transition-colors ${
+                onSelect && selectedId === s.id
+                  ? "bg-primary/10 border-l-4 border-l-primary"
+                  : "hover:bg-muted/50"
+              }`}
+              onClick={() =>
+                onSelect ? onSelect(s.id) : navigate(`/solicitudes/${s.id}`)
+              }
             >
               <TableCell className="text-sm font-medium">{s.id}</TableCell>
 
@@ -196,13 +223,15 @@ export default function SolicitudesPage() {
                 )}
               </TableCell>
 
-              <TableCell>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
-                >
-                  {s.estado.nombre}
-                </span>
-              </TableCell>
+              {!sinPago && (
+                <TableCell>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
+                  >
+                    {s.estado.nombre}
+                  </span>
+                </TableCell>
+              )}
 
               <TableCell className="text-sm">
                 {fmt(s.fecha_programada)}

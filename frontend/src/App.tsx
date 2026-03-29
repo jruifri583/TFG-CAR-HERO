@@ -18,6 +18,7 @@ import ContactoPage from "@/pages/Contacto";
 import NuevoVehiculoPage from "@/pages/NuevoVehiculo";
 import NuevaSolicitudPage from "@/pages/NuevaSolicitud";
 import NuevoUserPage from "@/pages/NuevoUser";
+import NuevoPagoPage from "./pages/NuevoPago";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
             />
             <Route path="/historial" element={<HistorialPage />} />
             <Route path="/pagos" element={<PagosPage />} />
+            <Route path="/pagos/nuevo" element={<NuevoPagoPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/:id" element={<PerfilPage />} />
           </Route>

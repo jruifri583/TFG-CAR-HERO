@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowUp, ArrowDown, ArrowUpDown, Search } from "lucide-react";
+import {
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  Search,
+  PlusIcon,
+  X,
+} from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -19,6 +26,7 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface Pago {
   id: number;
@@ -37,6 +45,8 @@ export default function PagosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [search, setSearch] = useState("");
+  const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
 
   const fetchPagos = async () => {
@@ -91,10 +101,38 @@ export default function PagosPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Button className="w-50" variant="outline">
-          <Search className="mr-2 h-4 w-4" />
-          Buscar
+      <div className="flex justify-end mb-4 gap-2 items-center">
+        <div className="relative flex items-center">
+          {!search && (
+            <Search
+              size={14}
+              className="absolute left-2.5 text-muted-foreground pointer-events-none"
+            />
+          )}
+          <Input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+      ${search ? "pl-3" : "pl-8"}
+      ${inputFocused || search ? "w-64" : "w-32"}
+      focus:ring-2 focus:ring-ring`}
+          />
+          {search && (
+            <button
+              className="absolute right-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearch("")}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+        <Button className="w-50" onClick={() => navigate("/pagos/nuevo")}>
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Añadir
         </Button>
       </div>
 

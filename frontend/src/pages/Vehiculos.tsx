@@ -1,5 +1,5 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -17,6 +17,7 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
+
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 
@@ -38,9 +39,11 @@ export default function VehiculosPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [search, setSearch] = useState("");
+  const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
 
-  const fetchVehiculos = async () => {
+  const fetchVehiculos = async (searchValue = search) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -51,6 +54,7 @@ export default function VehiculosPage() {
         params.append("order", sortOrder);
       }
 
+      if (searchValue) params.append("search", searchValue);
       const res = await api.get(`/vehiculos?${params.toString()}`);
       setVehiculos(res.data.data);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
@@ -64,6 +68,14 @@ export default function VehiculosPage() {
   useEffect(() => {
     fetchVehiculos();
   }, [currentPage, sortField, sortOrder]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setCurrentPage(1);
+      fetchVehiculos(search);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -94,11 +106,35 @@ export default function VehiculosPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Button className="w-50" variant="outline">
-          <Search className="mr-2 h-4 w-4" />
-          Buscar
-        </Button>
+      <div className="flex justify-end mb-4 gap-2 items-center">
+        <div className="relative flex items-center">
+          {!search && (
+            <Search
+              size={14}
+              className="absolute left-2.5 text-muted-foreground pointer-events-none"
+            />
+          )}
+          <Input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+      ${search ? "pl-3" : "pl-8"}
+      ${inputFocused || search ? "w-64" : "w-32"}
+      focus:ring-2 focus:ring-ring`}
+          />
+          {search && (
+            <button
+              className="absolute right-2 text-muted-foreground hover:text-foreground"
+              onClick={() => setSearch("")}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
       <Table>
         <TableHeader>
