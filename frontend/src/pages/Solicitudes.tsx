@@ -1,5 +1,5 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -9,6 +9,7 @@ import {
   TableCell,
   TableHead,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -76,28 +77,37 @@ export default function SolicitudesPage({
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [inputFocused, setInputFocused] = useState(false);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
+  const fetchSolicitudes = async (searchValue = search) => {
+    try {
+      const res = await api.get(`/solicitudes`, {
+        params: {
+          page: currentPage,
+          sort: sortField,
+          order: sortOrder,
+          ...(sinPago && { sin_pago: 1 }),
+          ...(searchValue && { search: searchValue }),
+        },
+      });
+      setSolicitudes(res.data.data);
+      setTotalPages(res.data.meta?.last_page ?? res.data.last_page ?? 1);
+    } catch (error) {
+      console.error("Error cargando solicitudes:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setCurrentPage(1);
+    fetchSolicitudes(value);
+  }, 300);
+
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await api.get(`/solicitudes`, {
-          params: {
-            page: currentPage,
-            sort: sortField,
-            order: sortOrder,
-            ...(sinPago && { sin_pago: 1 }),
-          },
-        });
-        setSolicitudes(res.data.data);
-        setTotalPages(res.data.meta?.last_page ?? res.data.last_page ?? 1);
-      } catch (error) {
-        console.error("Error cargando solicitudes:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
+    fetchSolicitudes();
   }, [currentPage, sortField, sortOrder, sinPago]);
 
   const handleSort = (field: SortField) => {
@@ -129,13 +139,42 @@ export default function SolicitudesPage({
 
   return (
     <>
-      {/* Solo muestra el botón buscar en modo normal */}
       {!sinPago && (
-        <div className="flex justify-end mb-4">
-          <Button className="w-50" variant="outline">
-            <Search className="mr-2 h-4 w-4" />
-            Buscar
-          </Button>
+        <div className="flex justify-end mb-4 gap-2 items-center">
+          <div className="relative flex items-center">
+            {!search && (
+              <Search
+                size={14}
+                className="absolute left-2.5 text-muted-foreground pointer-events-none"
+              />
+            )}
+            <Input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+          ${search ? "pl-3" : "pl-8"}
+          ${inputFocused || search ? "w-64" : "w-32"}
+          focus:ring-2 focus:ring-ring`}
+            />
+            {search && (
+              <button
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setSearch("");
+                  debouncedSearch("");
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
       )}
 

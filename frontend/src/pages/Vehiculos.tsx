@@ -1,4 +1,5 @@
 import { Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import {
@@ -44,7 +45,6 @@ export default function VehiculosPage() {
   const navigate = useNavigate();
 
   const fetchVehiculos = async (searchValue = search) => {
-    setLoading(true);
     try {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
@@ -69,13 +69,10 @@ export default function VehiculosPage() {
     fetchVehiculos();
   }, [currentPage, sortField, sortOrder]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1);
-      fetchVehiculos(search);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setCurrentPage(1);
+    fetchVehiculos(value);
+  }, 300);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -118,18 +115,24 @@ export default function VehiculosPage() {
             type="text"
             placeholder="Buscar..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              debouncedSearch(e.target.value);
+            }}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
             className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
-      ${search ? "pl-3" : "pl-8"}
-      ${inputFocused || search ? "w-64" : "w-32"}
-      focus:ring-2 focus:ring-ring`}
+              ${search ? "pl-3" : "pl-8"}
+              ${inputFocused || search ? "w-64" : "w-32"}
+              focus:ring-2 focus:ring-ring`}
           />
           {search && (
             <button
               className="absolute right-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setSearch("")}
+              onClick={() => {
+                setSearch("");
+                debouncedSearch("");
+              }}
             >
               <X size={14} />
             </button>

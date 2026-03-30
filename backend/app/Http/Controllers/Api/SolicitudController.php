@@ -30,11 +30,21 @@ class SolicitudController extends Controller
     $order = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
 
     $solicitudes = Solicitud::visibleFor($user)
-    ->withBaseRelations()
-    ->with(['empleado'])
-    ->when($request->get('sin_pago'), fn($q) => $q->whereNull('pago_id'))
-    ->orderBy($sort, $order)
-    ->paginate(6);
+        ->withBaseRelations()
+        ->with(['empleado'])
+        ->when($request->get('sin_pago'), fn($q) => $q->whereNull('pago_id'))
+        ->when($request->get('search'), function ($q, $v) {
+            $q->where(function ($q2) use ($v) {
+                $q2->where('id', 'like', "%$v%")
+                   ->orWhere('fecha_programada', 'like', "%$v%")
+                   ->orWhereHas('cliente', fn($q3) => $q3->where('nombre', 'like', "%$v%")
+                       ->orWhere('apellidos', 'like', "%$v%"))
+                   ->orWhereHas('vehiculo', fn($q3) => $q3->where('matricula', 'like', "%$v%")
+                       ->orWhere('marca', 'like', "%$v%"));
+            });
+        })
+        ->orderBy($sort, $order)
+        ->paginate(6);
 
     return SolicitudResource::collection($solicitudes)->response();
 }

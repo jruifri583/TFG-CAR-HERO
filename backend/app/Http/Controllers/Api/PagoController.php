@@ -26,17 +26,16 @@ class PagoController extends Controller
     $pagos = Pago::with(['solicitud.cliente', 'metodoPago', 'estadoPago'])
                  ->visibleFor($user)
                  ->when($request->get('search'), function ($q, $v) {
-                     $q->whereHas('solicitud.cliente', function ($q2) use ($v) {
-                         $q2->where('nombre', 'like', "%$v%")
-                            ->orWhere('apellidos', 'like', "%$v%")
-                            ->orWhere('email', 'like', "%$v%");
-                     })->orWhere('importe', 'like', "%$v%");
-                 })
+    $q->where(function ($q2) use ($v) {
+        $q2->where('solicitud_id', 'like', "%$v%")
+           ->orWhere('created_at', 'like', "%$v%");
+    });
+})
                  ->orderBy($sortField, $sortOrder)
                  ->paginate(6);
 
     return PagoResource::collection($pagos)->response();
-    }
+}
     /**
      * Crear un nuevo pago.
      */

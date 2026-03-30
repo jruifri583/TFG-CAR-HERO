@@ -27,6 +27,7 @@ import {
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useDebouncedCallback } from "use-debounce";
 
 interface Pago {
   id: number;
@@ -49,7 +50,7 @@ export default function PagosPage() {
   const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
 
-  const fetchPagos = async () => {
+  const fetchPagos = async (searchValue = search) => {
     try {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
@@ -57,6 +58,7 @@ export default function PagosPage() {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
+      if (searchValue) params.append("search", searchValue);
       const res = await api.get(`/pagos?${params.toString()}`);
       setPagos(res.data.data ?? []);
       setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
@@ -67,6 +69,11 @@ export default function PagosPage() {
       setLoading(false);
     }
   };
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setCurrentPage(1);
+    fetchPagos(value);
+  }, 300);
 
   useEffect(() => {
     fetchPagos();
@@ -113,18 +120,24 @@ export default function PagosPage() {
             type="text"
             placeholder="Buscar..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              debouncedSearch(e.target.value);
+            }}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
             className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
-      ${search ? "pl-3" : "pl-8"}
-      ${inputFocused || search ? "w-64" : "w-32"}
-      focus:ring-2 focus:ring-ring`}
+              ${search ? "pl-3" : "pl-8"}
+              ${inputFocused || search ? "w-64" : "w-32"}
+              focus:ring-2 focus:ring-ring`}
           />
           {search && (
             <button
               className="absolute right-2 text-muted-foreground hover:text-foreground"
-              onClick={() => setSearch("")}
+              onClick={() => {
+                setSearch("");
+                debouncedSearch("");
+              }}
             >
               <X size={14} />
             </button>
