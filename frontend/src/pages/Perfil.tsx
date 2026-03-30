@@ -29,9 +29,37 @@ const schema = z.object({
     .max(255, "Máximo 255 caracteres")
     .optional()
     .or(z.literal("")),
-  nif: z.string().max(20, "Máximo 20 caracteres").optional().or(z.literal("")),
+  nif: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine(
+      (value) => {
+        if (!value) return true;
+
+        const DNI_LETTERS = "TRWAGMYFPDXBNJZSQVHLCKE";
+
+        if (/^\d{8}[A-Z]$/.test(value)) {
+          const number = parseInt(value.slice(0, 8), 10);
+          return DNI_LETTERS[number % 23] === value[8];
+        }
+
+        if (/^[XYZ]\d{7}[A-Z]$/.test(value)) {
+          const map: Record<string, string> = { X: "0", Y: "1", Z: "2" };
+          const number = map[value[0]] + value.slice(1, 8);
+          return DNI_LETTERS[parseInt(number, 10) % 23] === value[8];
+        }
+
+        return false;
+      },
+      {
+        message: "DNI/NIE inválido",
+      },
+    )
+    .optional(),
   telefono: z
     .string()
+    .regex(/^\d+$/, "El teléfono solo puede contener números")
     .max(50, "Máximo 50 caracteres")
     .optional()
     .or(z.literal("")),
@@ -228,6 +256,9 @@ export default function PerfilPage() {
                   {...register("nif")}
                   readOnly={!isEditing}
                   className={readOnlyClass}
+                  onChange={(e) => {
+                    e.target.value = e.target.value.toUpperCase();
+                  }}
                 />
                 {errors.nif && (
                   <p className="text-red-500 text-xs">{errors.nif.message}</p>
@@ -240,6 +271,7 @@ export default function PerfilPage() {
                 </label>
                 <Input
                   type="text"
+                  inputMode="numeric"
                   {...register("telefono")}
                   readOnly={!isEditing}
                   className={readOnlyClass}

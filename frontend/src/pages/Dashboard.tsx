@@ -213,8 +213,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <span className="text-4xl font-bold inline-block">Dashboard</span>
-
       {/* Tarjetas */}
       <div className="grid grid-cols-4 gap-8">
         <Card>
@@ -276,7 +274,7 @@ export default function DashboardPage() {
           {/* Nuevas */}
           <div>
             <p className="text-sm font-semibold text-muted-foreground mb-2">
-              Pendientes sin asignar
+              Nuevas solicitudes
             </p>
             <table className="w-full text-sm">
               <thead>
@@ -293,7 +291,7 @@ export default function DashboardPage() {
                       colSpan={3}
                       className="py-4 text-center text-muted-foreground"
                     >
-                      Sin solicitudes pendientes
+                      No hay nuevas solicitudes
                     </td>
                   </tr>
                 ) : (

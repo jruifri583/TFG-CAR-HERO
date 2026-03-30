@@ -121,7 +121,7 @@ export default function VehiculosPage() {
             }}
             onFocus={() => setInputFocused(true)}
             onBlur={() => setInputFocused(false)}
-            className={`border rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+            className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
               ${search ? "pl-3" : "pl-8"}
               ${inputFocused || search ? "w-64" : "w-32"}
               focus:ring-2 focus:ring-ring`}

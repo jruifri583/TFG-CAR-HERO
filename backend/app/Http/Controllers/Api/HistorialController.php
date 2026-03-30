@@ -31,17 +31,25 @@ class HistorialController extends Controller
         ->with('resolucion:id,nombre')
         ->select('id','solicitud_id','fecha_itv','resolucion_id');
 
-    // ⚡ Ordenación
+    // Búsqueda
+    $search = request()->query('search');
+    $query->when($search, function ($q, $v) {
+        $q->where(function ($q2) use ($v) {
+            $q2->where('solicitud_id', 'like', "%$v%")
+               ->orWhere('fecha_itv', 'like', "%$v%");
+        });
+    });
+
+    // Ordenación
     $sort = request()->query('sort');
     $order = request()->query('order', 'asc');
     $allowedSorts = ['solicitud_id','fecha_itv','resolucion_id'];
 
     if ($sort && in_array($sort, $allowedSorts)) {
         if ($sort === 'resolucion_id') {
-            // Join para ordenar por el nombre de resolución
             $query->join('resoluciones', 'historiales.resolucion_id', '=', 'resoluciones.id')
                   ->orderBy('resoluciones.nombre', $order)
-                  ->select('historiales.*'); // evitar conflicto de columnas
+                  ->select('historiales.*');
         } else {
             $query->orderBy($sort, $order);
         }

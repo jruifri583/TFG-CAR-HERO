@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, Search } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Search, X } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -18,13 +18,19 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useDebouncedCallback } from "use-debounce";
 
 interface Historial {
   solicitud_id: number;
   fecha_itv: string | null;
-  resolucion: { nombre: string } | null;
+  resolucion: { slug: string; nombre: string };
 }
+
+const RESOLUCION_COLORS: Record<string, string> = {
+  desfavorable: "bg-red-100 text-red-800",
+  favorable: "bg-green-100 text-green-800",
+};
 
 type SortField = "solicitud_id" | "fecha_itv" | "resolucion_id";
 
@@ -35,9 +41,11 @@ export default function HistorialPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [search, setSearch] = useState("");
+  const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
 
-  const fetchHistoriales = async () => {
+  const fetchHistoriales = async (searchValue = search) => {
     try {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
@@ -45,6 +53,7 @@ export default function HistorialPage() {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
+      if (searchValue) params.append("search", searchValue);
       const res = await api.get(`/historiales?${params.toString()}`);
       setHistoriales(res.data.data);
       setTotalPages(res.data.last_page || res.data.meta?.last_page || 1);
@@ -54,6 +63,11 @@ export default function HistorialPage() {
       setLoading(false);
     }
   };
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setCurrentPage(1);
+    fetchHistoriales(value);
+  }, 300);
 
   useEffect(() => {
     fetchHistoriales();
@@ -88,11 +102,41 @@ export default function HistorialPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Button className="w-50" variant="outline">
-          <Search className="mr-2 h-4 w-4" />
-          Buscar
-        </Button>
+      <div className="flex justify-end mb-4 gap-2 items-center">
+        <div className="relative flex items-center">
+          {!search && (
+            <Search
+              size={14}
+              className="absolute left-2.5 text-muted-foreground pointer-events-none"
+            />
+          )}
+          <Input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              debouncedSearch(e.target.value);
+            }}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+              ${search ? "pl-3" : "pl-8"}
+              ${inputFocused || search ? "w-64" : "w-32"}
+              focus:ring-2 focus:ring-ring`}
+          />
+          {search && (
+            <button
+              className="absolute right-2 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setSearch("");
+                debouncedSearch("");
+              }}
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
       <Table>
         <TableHeader>
@@ -127,7 +171,13 @@ export default function HistorialPage() {
             >
               <TableCell>{h.solicitud_id}</TableCell>
               <TableCell>{h.fecha_itv ?? "-"}</TableCell>
-              <TableCell>{h.resolucion?.nombre ?? "-"}</TableCell>
+              <TableCell>
+                <span
+                  className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre] ?? "bg-gray-100 text-gray-800"}`}
+                >
+                  {h.resolucion?.nombre ?? "-"}
+                </span>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
