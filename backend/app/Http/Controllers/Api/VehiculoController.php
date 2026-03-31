@@ -40,6 +40,11 @@ class VehiculoController extends Controller
             $query->where('user_id', $request->query('user_id'));
         }
 
+        // Si es cliente → NO paginar
+        if ($request->user()->isCustomer()) {
+            return VehiculoResource::collection($query->get());
+        }
+
         $sort = $request->query('sort');
         $order = $request->query('order', 'asc');
         $allowedSorts = ['id', 'matricula', 'marca', 'modelo', 'año'];

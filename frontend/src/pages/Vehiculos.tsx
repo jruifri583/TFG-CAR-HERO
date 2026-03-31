@@ -3,7 +3,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardSinBorde } from "@/components/ui/card";
 import {
   Table,
   TableHeader,
@@ -41,6 +41,7 @@ export default function VehiculosPage() {
   const role = user?.rol?.slug ?? "";
   const [loading, setLoading] = useState(true);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [meta, setMeta] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>(null);
@@ -52,17 +53,27 @@ export default function VehiculosPage() {
   const fetchVehiculos = async (searchValue = search) => {
     try {
       const params = new URLSearchParams();
-      params.append("page", currentPage.toString());
 
-      if (sortField) {
-        params.append("sort", sortField);
-        params.append("order", sortOrder);
+      if (role === "administrador") {
+        params.append("page", currentPage.toString());
+
+        if (sortField) {
+          params.append("sort", sortField);
+          params.append("order", sortOrder);
+        }
+
+        if (searchValue) params.append("search", searchValue);
       }
 
-      if (searchValue) params.append("search", searchValue);
       const res = await api.get(`/vehiculos?${params.toString()}`);
-      setVehiculos(res.data.data);
-      setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
+
+      if (role === "administrador") {
+        setVehiculos(res.data.data);
+        setMeta(res.data.meta);
+        setTotalPages(res.data.meta?.last_page || 1);
+      } else {
+        setVehiculos(res.data.data ?? res.data);
+      }
     } catch (error) {
       console.error("Error cargando vehiculos:", error);
     } finally {
@@ -107,11 +118,17 @@ export default function VehiculosPage() {
   if (loading) return <p>Cargando...</p>;
   return (
     <div>
-      {role === "administrador" && <AdminList />}
-      {role === "cliente" && <ClienteList />}
+      {role === "administrador" && (
+        <AdminList vehiculos={vehiculos} meta={meta} />
+      )}
+      {role === "cliente" && <ClienteList vehiculos={vehiculos} />}
     </div>
   );
-  function AdminList() {
+  interface AdminListProps {
+    vehiculos: Vehiculo[];
+    meta: any;
+  }
+  function AdminList({ vehiculos, meta }: AdminListProps) {
     return (
       <>
         <div className="flex justify-end mb-4 gap-2 items-center">
@@ -251,71 +268,44 @@ export default function VehiculosPage() {
     );
   }
 
-  function ClienteList() {
+  interface ClienteListProps {
+    vehiculos: Vehiculo[];
+  }
+
+  function ClienteList({ vehiculos }: ClienteListProps) {
     return (
       <>
-        <div className="flex justify-end mb-4 gap-2 items-center">
-          <div className="relative flex items-center">
-            {!search && (
-              <Search
-                size={14}
-                className="absolute left-2.5 text-muted-foreground pointer-events-none"
-              />
-            )}
-            <Input
-              type="text"
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                debouncedSearch(e.target.value);
-              }}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
-              ${search ? "pl-3" : "pl-8"}
-              ${inputFocused || search ? "w-64" : "w-32"}
-              focus:ring-2 focus:ring-ring`}
-            />
-            {search && (
-              <button
-                className="absolute right-2 text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setSearch("");
-                  debouncedSearch("");
-                }}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+        <div className="flex flex-wrap gap-6 justify-center md:justify-start">
+          {vehiculos.map((vehiculo) => (
+            <CardSinBorde
+              key={vehiculo.id}
+              className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full p-0 rounded-lg w-60 h-80"
+              onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
+            >
+              {/* Imagen a pantalla completa */}
+              <div className="w-full aspect-square overflow-hidden">
+                <img
+                  src={vehiculo.imagen ?? "/avatars/default_car.png"}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "/avatars/default_car.png";
+                  }}
+                />
+              </div>
+
+              <CardContent className="p-4 space-y-1 p-0">
+                <h2 className="text-lg font-semibold">
+                  {vehiculo.marca} {vehiculo.modelo}
+                </h2>
+
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium">{vehiculo.matricula}</span>
+                </p>
+              </CardContent>
+            </CardSinBorde>
+          ))}
         </div>
-        {vehiculos.data?.map((vehiculo) => (
-          <Card className="overflow-hidden shadow-md hover:shadow-lg transition">
-            {/* Imagen */}
-            <div className="h-48 w-full overflow-hidden">
-              <img
-                src={vehiculo.imagen ?? "/avatars/default_car.png"}
-                className="w-10 h-10 rounded-full object-cover mx-auto"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "/avatars/default_car.png";
-                }}
-              />
-            </div>
-
-            {/* Contenido */}
-            <CardContent className="p-4 space-y-1">
-              <h2 className="text-lg font-semibold">
-                {vehiculo.marca} {vehiculo.modelo}
-              </h2>
-
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">{vehiculo.matricula}</span>
-              </p>
-            </CardContent>
-          </Card>
-        ))}
       </>
     );
   }
