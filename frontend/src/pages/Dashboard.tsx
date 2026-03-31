@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 import api from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Car, FileText, CreditCard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/useAuth";
 import {
   BarChart,
   Bar,
@@ -18,6 +21,7 @@ import {
 } from "recharts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 
 interface Contadores {
   usuarios: number;
@@ -180,6 +184,8 @@ function ActualizadaRow({ s }: { s: SolicitudReciente }) {
 }
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const role = user?.rol?.slug ?? "";
   const [contadores, setContadores] = useState<Contadores | null>(null);
   const [porEstado, setPorEstado] = useState<SolicitudEstado[]>([]);
   const [porMes, setPorMes] = useState<SolicitudMes[]>([]);
@@ -212,180 +218,319 @@ export default function DashboardPage() {
   }));
 
   return (
-    <div className="space-y-6">
-      {/* Tarjetas */}
-      <div className="grid grid-cols-4 gap-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Usuarios
-            </CardTitle>
-            <Users size={18} className="text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">
-              {contadores?.usuarios ?? "-"}
-            </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-secondary">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm text-muted-foreground">
-              Vehículos
-            </CardTitle>
-            <Car size={18} className="text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">
-              {contadores?.vehiculos ?? "-"}
-            </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-ring">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm text-white">Solicitudes</CardTitle>
-            <FileText size={18} className="text-white" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold">
-              {contadores?.solicitudes ?? "-"}
-            </span>
-          </CardContent>
-        </Card>
-        <Card className="bg-primary">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm text-white">Pagos</CardTitle>
-            <CreditCard size={18} className="text-white" />
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold text-white">
-              {contadores?.pagos ?? "-"}
-            </span>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Actividad reciente */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actividad reciente de solicitudes</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Nuevas */}
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground mb-2">
-              Nuevas solicitudes
-            </p>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-muted-foreground border-b">
-                  <th className="text-left py-2">Vehículo</th>
-                  <th className="text-left py-2">Cliente</th>
-                  <th className="text-left py-2">Dirección</th>
-                </tr>
-              </thead>
-              <tbody>
-                {solicitudesRecientes.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="py-4 text-center text-muted-foreground"
-                    >
-                      No hay nuevas solicitudes
-                    </td>
-                  </tr>
-                ) : (
-                  solicitudesRecientes.map((s) => <NuevaRow key={s.id} s={s} />)
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Actualizadas */}
-          <div className="border-t pt-4">
-            <p className="text-sm font-semibold text-muted-foreground mb-2">
-              Actualizadas recientemente
-            </p>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-muted-foreground border-b">
-                  <th className="text-left py-2">Vehículo</th>
-                  <th className="text-left py-2">Cliente</th>
-                  <th className="text-left py-2">Estado</th>
-                  <th className="text-left py-2">Última actualización</th>
-                  <th className="text-left py-2">Dirección</th>
-                </tr>
-              </thead>
-              <tbody>
-                {solicitudesActualizadas.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="py-4 text-center text-muted-foreground"
-                    >
-                      Sin actualizaciones recientes
-                    </td>
-                  </tr>
-                ) : (
-                  solicitudesActualizadas.map((s) => (
-                    <ActualizadaRow key={s.id} s={s} />
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Gráficas */}
-      <div className="grid grid-cols-2 gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Solicitudes por mes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={mesData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mes" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Solicitudes por estado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={porEstado}
-                  dataKey="total"
-                  nameKey="estado"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  isAnimationActive={false}
-                  label={({ name, percent = 0 }) =>
-                    `${name} ${(percent * 100).toFixed(0)}%`
-                  }
-                >
-                  {porEstado.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend />
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
+    <div>
+      {role === "administrador" && <AdminDashboard />}
+      {role === "empleado" && <EmpleadoDashboard />}
+      {role === "cliente" && <ClienteDashboard />}
     </div>
   );
+
+  function AdminDashboard() {
+    return (
+      <div className="space-y-6">
+        {/* Tarjetas */}
+        <div className="grid grid-cols-4 gap-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                Usuarios
+              </CardTitle>
+              <Users size={18} className="text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <span className="text-3xl font-bold">
+                {contadores?.usuarios ?? "-"}
+              </span>
+            </CardContent>
+          </Card>
+          <Card className="bg-secondary">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                Vehículos
+              </CardTitle>
+              <Car size={18} className="text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <span className="text-3xl font-bold">
+                {contadores?.vehiculos ?? "-"}
+              </span>
+            </CardContent>
+          </Card>
+          <Card className="bg-ring">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-white">Solicitudes</CardTitle>
+              <FileText size={18} className="text-white" />
+            </CardHeader>
+            <CardContent>
+              <span className="text-3xl font-bold">
+                {contadores?.solicitudes ?? "-"}
+              </span>
+            </CardContent>
+          </Card>
+          <Card className="bg-primary">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-white">Pagos</CardTitle>
+              <CreditCard size={18} className="text-white" />
+            </CardHeader>
+            <CardContent>
+              <span className="text-3xl font-bold text-white">
+                {contadores?.pagos ?? "-"}
+              </span>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Actividad reciente */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Actividad reciente de solicitudes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Nuevas */}
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground mb-2">
+                Nuevas solicitudes
+              </p>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-muted-foreground border-b">
+                    <th className="text-left py-2">Vehículo</th>
+                    <th className="text-left py-2">Cliente</th>
+                    <th className="text-left py-2">Dirección</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudesRecientes.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-4 text-center text-muted-foreground"
+                      >
+                        No hay nuevas solicitudes
+                      </td>
+                    </tr>
+                  ) : (
+                    solicitudesRecientes.map((s) => (
+                      <NuevaRow key={s.id} s={s} />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Actualizadas */}
+            <div className="border-t pt-4">
+              <p className="text-sm font-semibold text-muted-foreground mb-2">
+                Actualizadas recientemente
+              </p>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-muted-foreground border-b">
+                    <th className="text-left py-2">Vehículo</th>
+                    <th className="text-left py-2">Cliente</th>
+                    <th className="text-left py-2">Estado</th>
+                    <th className="text-left py-2">Última actualización</th>
+                    <th className="text-left py-2">Dirección</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudesActualizadas.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="py-4 text-center text-muted-foreground"
+                      >
+                        Sin actualizaciones recientes
+                      </td>
+                    </tr>
+                  ) : (
+                    solicitudesActualizadas.map((s) => (
+                      <ActualizadaRow key={s.id} s={s} />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gráficas */}
+        <div className="grid grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Solicitudes por mes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={mesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Solicitudes por estado</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={porEstado}
+                    dataKey="total"
+                    nameKey="estado"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    isAnimationActive={false}
+                    label={({ name, percent = 0 }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {porEstado.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  function EmpleadoDashboard() {
+    return (
+      <div className="space-y-6">
+        {/* Actividad reciente */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Nuevas solicitudes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Nuevas */}
+            <div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-muted-foreground border-b">
+                    <th className="text-left py-2">Vehículo</th>
+                    <th className="text-left py-2">Cliente</th>
+                    <th className="text-left py-2">Dirección</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudesRecientes.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-4 text-center text-muted-foreground"
+                      >
+                        No hay nuevas solicitudes
+                      </td>
+                    </tr>
+                  ) : (
+                    solicitudesRecientes.map((s) => (
+                      <NuevaRow key={s.id} s={s} />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gráficas */}
+        <div className="grid grid-cols-2 gap-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Solicitudes por mes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={mesData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="mes" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Solicitudes por estado</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={porEstado}
+                    dataKey="total"
+                    nameKey="estado"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    isAnimationActive={false}
+                    label={({ name, percent = 0 }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {porEstado.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  function ClienteDashboard() {
+    return (
+      <div className="grid gap-6 p-6">
+        <h1 className="text-2xl font-bold">Bienvenido</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mis Vehículos</CardTitle>
+            </CardHeader>
+            <CardContent className="text-3xl font-bold">2</CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Solicitudes activas</CardTitle>
+            </CardHeader>
+            <CardContent className="text-3xl font-bold">1</CardContent>
+          </Card>
+        </div>
+
+        <Alert variant="default" className="mt-6">
+          <Info className="h-4 w-4" />
+          <AlertTitle>ITV próxima a caducar</AlertTitle>
+          <AlertDescription>
+            Tu vehículo <strong>Seat Ibiza</strong> tiene la ITV próxima a
+            caducar en 15 días.
+          </AlertDescription>
+        </Alert>
+
+        <Button className="mt-4 w-fit">Crear nueva solicitud</Button>
+      </div>
+    );
+  }
 }

@@ -2,6 +2,8 @@ import { Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/useAuth";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableHeader,
@@ -29,11 +31,14 @@ interface Vehiculo {
   marca: string;
   modelo: string;
   año: number | null;
+  kilometros: number | null;
 }
 
 type SortField = "matricula" | "marca" | "modelo" | "año";
 
 export default function VehiculosPage() {
+  const { user } = useAuth();
+  const role = user?.rol?.slug ?? "";
   const [loading, setLoading] = useState(true);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,142 +105,218 @@ export default function VehiculosPage() {
   };
 
   if (loading) return <p>Cargando...</p>;
-
   return (
-    <>
-      <div className="flex justify-end mb-4 gap-2 items-center">
-        <div className="relative flex items-center">
-          {!search && (
-            <Search
-              size={14}
-              className="absolute left-2.5 text-muted-foreground pointer-events-none"
-            />
-          )}
-          <Input
-            type="text"
-            placeholder="Buscar..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              debouncedSearch(e.target.value);
-            }}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+    <div>
+      {role === "administrador" && <AdminList />}
+      {role === "cliente" && <ClienteList />}
+    </div>
+  );
+  function AdminList() {
+    return (
+      <>
+        <div className="flex justify-end mb-4 gap-2 items-center">
+          <div className="relative flex items-center">
+            {!search && (
+              <Search
+                size={14}
+                className="absolute left-2.5 text-muted-foreground pointer-events-none"
+              />
+            )}
+            <Input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
               ${search ? "pl-3" : "pl-8"}
               ${inputFocused || search ? "w-64" : "w-32"}
               focus:ring-2 focus:ring-ring`}
-          />
-          {search && (
-            <button
-              className="absolute right-2 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                setSearch("");
-                debouncedSearch("");
-              }}
-            >
-              <X size={14} />
-            </button>
-          )}
+            />
+            {search && (
+              <button
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setSearch("");
+                  debouncedSearch("");
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Imagen</TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("matricula")}
-            >
-              Matrícula{renderSortArrow("matricula")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("marca")}
-            >
-              Marca{renderSortArrow("marca")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("modelo")}
-            >
-              Modelo{renderSortArrow("modelo")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("año")}
-            >
-              Año{renderSortArrow("año")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Imagen</TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("matricula")}
+              >
+                Matrícula{renderSortArrow("matricula")}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("marca")}
+              >
+                Marca{renderSortArrow("marca")}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("modelo")}
+              >
+                Modelo{renderSortArrow("modelo")}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer"
+                onClick={() => handleSort("año")}
+              >
+                Año{renderSortArrow("año")}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
 
-        <TableBody>
-          {vehiculos.map((vehiculo) => (
-            <TableRow
-              key={vehiculo.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
-            >
-              <TableCell>
-                <img
-                  src={vehiculo.imagen ?? "/avatars/default_car.png"}
-                  className="w-10 h-10 rounded-full object-cover mx-auto"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "/avatars/default_car.png";
+          <TableBody>
+            {vehiculos.map((vehiculo) => (
+              <TableRow
+                key={vehiculo.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
+              >
+                <TableCell>
+                  <img
+                    src={vehiculo.imagen ?? "/avatars/default_car.png"}
+                    className="w-10 h-10 rounded-full object-cover mx-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "/avatars/default_car.png";
+                    }}
+                  />
+                </TableCell>
+                <TableCell>{vehiculo.matricula}</TableCell>
+                <TableCell>{vehiculo.marca}</TableCell>
+                <TableCell>{vehiculo.modelo}</TableCell>
+                <TableCell>{vehiculo.año ?? "-"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {totalPages > 1 && (
+          <Pagination className="mt-6">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goToPage(currentPage - 1);
                   }}
                 />
-              </TableCell>
-              <TableCell>{vehiculo.matricula}</TableCell>
-              <TableCell>{vehiculo.marca}</TableCell>
-              <TableCell>{vehiculo.modelo}</TableCell>
-              <TableCell>{vehiculo.año ?? "-"}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      {totalPages > 1 && (
-        <Pagination className="mt-6">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  goToPage(currentPage - 1);
+              </PaginationItem>
+              {Array.from({ length: totalPages }).map((_, index) => {
+                const page = index + 1;
+                return (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href="#"
+                      isActive={currentPage === page}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        goToPage(page);
+                      }}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goToPage(currentPage + 1);
+                  }}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </>
+    );
+  }
+
+  function ClienteList() {
+    return (
+      <>
+        <div className="flex justify-end mb-4 gap-2 items-center">
+          <div className="relative flex items-center">
+            {!search && (
+              <Search
+                size={14}
+                className="absolute left-2.5 text-muted-foreground pointer-events-none"
+              />
+            )}
+            <Input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
+              ${search ? "pl-3" : "pl-8"}
+              ${inputFocused || search ? "w-64" : "w-32"}
+              focus:ring-2 focus:ring-ring`}
+            />
+            {search && (
+              <button
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setSearch("");
+                  debouncedSearch("");
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+        {vehiculos.data?.map((vehiculo) => (
+          <Card className="overflow-hidden shadow-md hover:shadow-lg transition">
+            {/* Imagen */}
+            <div className="h-48 w-full overflow-hidden">
+              <img
+                src={vehiculo.imagen ?? "/avatars/default_car.png"}
+                className="w-10 h-10 rounded-full object-cover mx-auto"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    "/avatars/default_car.png";
                 }}
               />
-            </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
-              return (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === page}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(page);
-                    }}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  goToPage(currentPage + 1);
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
-    </>
-  );
+            </div>
+
+            {/* Contenido */}
+            <CardContent className="p-4 space-y-1">
+              <h2 className="text-lg font-semibold">
+                {vehiculo.marca} {vehiculo.modelo}
+              </h2>
+
+              <p className="text-sm text-muted-foreground">
+                <span className="font-medium">{vehiculo.matricula}</span>
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </>
+    );
+  }
 }

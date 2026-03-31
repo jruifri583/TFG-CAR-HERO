@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
 import { HeaderProvider } from "@/context/HeaderContext";
 import MainLayout from "@/components/ui/MainLayout";
+import ProtectedRoute from "@/components/ui/ProtectedRoute";
+
 import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
 import DashboardPage from "@/pages/Dashboard";
@@ -25,9 +27,12 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Rutas públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/contacto" element={<ContactoPage />} />
+
+          {/* Rutas protegidas */}
           <Route
             path="/"
             element={
@@ -36,26 +41,142 @@ function App() {
               </HeaderProvider>
             }
           >
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/users/nuevo" element={<NuevoUserPage />} />
-            <Route path="/vehiculos" element={<VehiculosPage />} />
-            <Route path="/vehiculos/:id" element={<VehiculoDetailPage />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute
+                  roles={["administrador", "empleado", "cliente"]}
+                >
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Solo ADMIN */}
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <UsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users/nuevo"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <NuevoUserPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ADMIN + CLIENTE */}
+            <Route
+              path="/vehiculos"
+              element={
+                <ProtectedRoute roles={["administrador", "cliente"]}>
+                  <VehiculosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vehiculos/:id"
+              element={
+                <ProtectedRoute roles={["administrador", "cliente"]}>
+                  <VehiculoDetailPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/perfil/:userId/nuevo-vehiculo"
-              element={<NuevoVehiculoPage />}
+              element={
+                <ProtectedRoute roles={["cliente"]}>
+                  <NuevoVehiculoPage />
+                </ProtectedRoute>
+              }
             />
-            <Route path="/solicitudes" element={<SolicitudesPage />} />
-            <Route path="/solicitudes/:id" element={<SolicitudDetailPage />} />
+
+            {/* ADMIN + EMPLEADO + CLIENTE */}
+            <Route
+              path="/solicitudes"
+              element={
+                <ProtectedRoute
+                  roles={["administrador", "empleado", "cliente"]}
+                >
+                  <SolicitudesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/solicitudes/:id"
+              element={
+                <ProtectedRoute
+                  roles={["administrador", "empleado", "cliente"]}
+                >
+                  <SolicitudDetailPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/perfil/:userId/nueva-solicitud"
-              element={<NuevaSolicitudPage />}
+              element={
+                <ProtectedRoute roles={["cliente"]}>
+                  <NuevaSolicitudPage />
+                </ProtectedRoute>
+              }
             />
-            <Route path="/historial" element={<HistorialPage />} />
-            <Route path="/pagos" element={<PagosPage />} />
-            <Route path="/pagos/nuevo" element={<NuevoPagoPage />} />
-            <Route path="/perfil" element={<PerfilPage />} />
-            <Route path="/perfil/:id" element={<PerfilPage />} />
+
+            {/* ADMIN + EMPLEADO + CLIENTE */}
+            <Route
+              path="/historial"
+              element={
+                <ProtectedRoute
+                  roles={["administrador", "empleado", "cliente"]}
+                >
+                  <HistorialPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Solo ADMIN */}
+            <Route
+              path="/pagos"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <PagosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pagos/nuevo"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <NuevoPagoPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Perfil accesible a todos */}
+            <Route
+              path="/perfil"
+              element={
+                <ProtectedRoute
+                  roles={["administrador", "empleado", "cliente"]}
+                >
+                  <PerfilPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/perfil/:id"
+              element={
+                <ProtectedRoute
+                  roles={["administrador", "empleado", "cliente"]}
+                >
+                  <PerfilPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
