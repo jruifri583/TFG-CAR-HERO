@@ -52,10 +52,16 @@ export default function SolicitudCircularTracker({ estado }: Props) {
   return (
     <div className="relative w-[320px] h-[320px]">
       <svg width="320" height="320" className="absolute inset-0">
-        {/* Círculo base gris */}
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth="6" />
+        {/* Arco base gris — del primer nodo (pendiente) al último (finalizado) */}
+        <path
+          d={describeArc(cx, cy, r, angleForIndex(0), angleForIndex(TOTAL - 1))}
+          fill="none"
+          stroke="#e5e7eb"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
 
-        {/* Arco de progreso */}
+        {/* Arco de progreso azul */}
         {!cancelado && indexActual > 0 && (
           <path
             d={describeArc(cx, cy, r, startAngle, endAngle)}

@@ -439,36 +439,38 @@ export default function SolicitudDetailPage() {
         )}
 
         {/* Botones */}
-        <div className="flex justify-end gap-2">
-          <Button
-            className="w-50"
-            variant="outline"
-            onClick={() => navigate(-1)}
-          >
-            Atrás
-          </Button>
-
-          {/* Avanzar estado — empleado y admin */}
-          {puedeAvanzar && (
+        {!(solicitud.estado?.slug === "finalizado" && solicitud.pago) && (
+          <div className="flex justify-end gap-2">
             <Button
               className="w-50"
-              variant="secondary"
-              onClick={handleAvanzarEstado}
-              disabled={avanzando}
+              variant="outline"
+              onClick={() => navigate(-1)}
             >
-              {avanzando
-                ? "Avanzando..."
-                : `Avanzar a "${siguiente?.nombre}"`}
+              Atrás
             </Button>
-          )}
 
-          {/* Editar — solo admin y empleado */}
-          {role !== "cliente" && (
-            <Button className="w-50" onClick={() => setEditando(true)}>
-              Editar
-            </Button>
-          )}
-        </div>
+            {/* Avanzar estado — empleado y admin */}
+            {puedeAvanzar && (
+              <Button
+                className="w-50"
+                variant="secondary"
+                onClick={handleAvanzarEstado}
+                disabled={avanzando}
+              >
+                {avanzando
+                  ? "Avanzando..."
+                  : `Avanzar a "${siguiente?.nombre}"`}
+              </Button>
+            )}
+
+            {/* Editar — solo admin y empleado */}
+            {role !== "cliente" && (
+              <Button className="w-50" onClick={() => setEditando(true)}>
+                Editar
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     );
   }
