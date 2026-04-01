@@ -86,7 +86,7 @@ class AuthController extends Controller
 
     $user->update($validated);
 
-    return response()->json(['user' => $user->fresh()]);
+    return response()->json(['user' => $user->fresh()->load('rol')]);
 }
 
     // ======================

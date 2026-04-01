@@ -1,10 +1,9 @@
 // App.tsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
 import { HeaderProvider } from "@/context/HeaderContext";
 import MainLayout from "@/components/ui/MainLayout";
 import ProtectedRoute from "@/components/ui/ProtectedRoute";
-
 import LoginPage from "@/pages/Login";
 import RegisterPage from "@/pages/Register";
 import DashboardPage from "@/pages/Dashboard";
@@ -27,6 +26,9 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Primera página → LOGIN */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+
           {/* Rutas públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -88,7 +90,7 @@ function App() {
               }
             />
             <Route
-              path="/perfil/:userId/nuevo-vehiculo"
+              path="/perfil/:id/nuevo-vehiculo"
               element={
                 <ProtectedRoute roles={["cliente"]}>
                   <NuevoVehiculoPage />
@@ -118,7 +120,7 @@ function App() {
               }
             />
             <Route
-              path="/perfil/:userId/nueva-solicitud"
+              path="/perfil/:id/nueva-solicitud"
               element={
                 <ProtectedRoute roles={["cliente"]}>
                   <NuevaSolicitudPage />

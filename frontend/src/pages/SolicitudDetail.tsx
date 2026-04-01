@@ -7,6 +7,7 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import SolicitudCircularTracker from "@/components/ui/SolicitudCircularTracker";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useAuth } from "@/context/useAuth";
 
 interface Solicitud {
   id: number;
@@ -75,6 +76,8 @@ export default function SolicitudDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
+  const { user } = useAuth();
+  const role = user?.rol?.slug;
 
   useEffect(() => {
     api.get(`/solicitudes/${id}`).then((res) => setSolicitud(res.data.data));
@@ -105,30 +108,31 @@ export default function SolicitudDetailPage() {
         </CardContent>
       </CardSinBorde>
 
-      {/* Cliente */}
-      <CardSinBorde className="w-full">
-        <CardContent className="space-y-4">
-          <p className="font-semibold text-lg">Cliente</p>
-          <div className="flex items-center gap-4">
-            <img
-              src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"}
-              className="w-14 h-14 rounded-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  "/avatars/default_user.png";
-              }}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-              <Field
-                label="Nombre"
-                value={`${solicitud.cliente?.nombre ?? ""} ${solicitud.cliente?.apellidos ?? ""}`}
+      {/* Cliente — solo visible para ADMIN o EMPLEADO */}
+      {role !== "cliente" && (
+        <CardSinBorde className="w-full">
+          <CardContent className="space-y-4">
+            <p className="font-semibold text-lg">Cliente</p>
+            <div className="flex items-center gap-4">
+              <img
+                src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"}
+                className="w-14 h-14 rounded-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    "/avatars/default_user.png";
+                }}
               />
-              <Field label="Email" value={solicitud.cliente?.email ?? "-"} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
+                <Field
+                  label="Nombre"
+                  value={`${solicitud.cliente?.nombre ?? ""} ${solicitud.cliente?.apellidos ?? ""}`}
+                />
+                <Field label="Email" value={solicitud.cliente?.email ?? "-"} />
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </CardSinBorde>
-
+          </CardContent>
+        </CardSinBorde>
+      )}
       {/* Vehículo */}
       <CardSinBorde className="w-full">
         <CardContent className="space-y-4">
@@ -221,17 +225,23 @@ export default function SolicitudDetailPage() {
       </div>
 
       {/* Botones */}
-      <div className="flex justify-end gap-2">
-        <Button className="w-50" variant="outline" onClick={() => navigate(-1)}>
-          Atrás
-        </Button>
-        <Button
-          className="w-50"
-          onClick={() => navigate(`/solicitudes/${id}/editar`)}
-        >
-          Editar
-        </Button>
-      </div>
+      {role !== "cliente" && (
+        <div className="flex justify-end gap-2">
+          <Button
+            className="w-50"
+            variant="outline"
+            onClick={() => navigate(-1)}
+          >
+            Atrás
+          </Button>
+          <Button
+            className="w-50"
+            onClick={() => navigate(`/solicitudes/${id}/editar`)}
+          >
+            Editar
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

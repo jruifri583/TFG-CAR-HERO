@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+
 import api from "@/lib/axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Car, FileText, CreditCard } from "lucide-react";
@@ -28,6 +27,7 @@ interface Contadores {
   vehiculos: number;
   solicitudes: number;
   pagos: number;
+  historial: number;
 }
 
 interface SolicitudEstado {
@@ -90,6 +90,11 @@ const PIE_COLORS = [
   "#0891b2",
   "#be185d",
 ];
+
+function fmt(iso: string | null) {
+  if (!iso) return "-";
+  return format(new Date(iso), "dd MMM yyyy", { locale: es });
+}
 
 function NuevaRow({ s }: { s: SolicitudReciente }) {
   const navigate = useNavigate();
@@ -408,128 +413,243 @@ export default function DashboardPage() {
   }
 
   function EmpleadoDashboard() {
+    const nombreCompleto = [user?.nombre, user?.apellidos]
+      .filter(Boolean)
+      .join(" ");
+
     return (
       <div className="space-y-6">
-        {/* Actividad reciente */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Nuevas solicitudes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Nuevas */}
-            <div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-muted-foreground border-b">
-                    <th className="text-left py-2">Vehículo</th>
-                    <th className="text-left py-2">Cliente</th>
-                    <th className="text-left py-2">Dirección</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solicitudesRecientes.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="py-4 text-center text-muted-foreground"
-                      >
-                        No hay nuevas solicitudes
-                      </td>
-                    </tr>
-                  ) : (
-                    solicitudesRecientes.map((s) => (
-                      <NuevaRow key={s.id} s={s} />
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Saludo */}
+        <div>
+          <h1 className="text-2xl font-bold">
+            Bienvenido/a{nombreCompleto ? `, ${nombreCompleto}` : ""}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Aquí tienes un resumen de las solicitudes que tienes asignadas.
+          </p>
+        </div>
 
-        {/* Gráficas */}
-        <div className="grid grid-cols-2 gap-8">
+        {/* Tarjetas */}
+        <div className="grid grid-cols-2 gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes por mes</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                Solicitudes asignadas
+              </CardTitle>
+              <FileText size={18} className="text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={mesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <span className="text-3xl font-bold">
+                {contadores?.solicitudes ?? "-"}
+              </span>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes por estado</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                Historial de cambios
+              </CardTitle>
+              <FileText size={18} className="text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie
-                    data={porEstado}
-                    dataKey="total"
-                    nameKey="estado"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    isAnimationActive={false}
-                    label={({ name, percent = 0 }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {porEstado.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              <span className="text-3xl font-bold">
+                {contadores?.historial ?? "-"}
+              </span>
             </CardContent>
           </Card>
         </div>
+
+        {/* Mis solicitudes asignadas */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Mis solicitudes asignadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-muted-foreground border-b">
+                  <th className="text-left py-2">Vehículo</th>
+                  <th className="text-left py-2">Cliente</th>
+                  <th className="text-left py-2">Estado</th>
+                  <th className="text-left py-2">Última actualización</th>
+                  <th className="text-left py-2">Dirección</th>
+                </tr>
+              </thead>
+              <tbody>
+                {solicitudesActualizadas.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-4 text-center text-muted-foreground"
+                    >
+                      No tienes solicitudes asignadas aún
+                    </td>
+                  </tr>
+                ) : (
+                  solicitudesActualizadas.map((s) => (
+                    <ActualizadaRow key={s.id} s={s} />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
+
+        {/* Gráfica de carga de trabajo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Solicitudes por mes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={mesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   function ClienteDashboard() {
-    return (
-      <div className="grid gap-6 p-6">
-        <h1 className="text-2xl font-bold">Bienvenido</h1>
+    const navigate = useNavigate();
+    const nombreCompleto = [user?.nombre, user?.apellidos]
+      .filter(Boolean)
+      .join(" ");
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    return (
+      <div className="space-y-6">
+        {/* Saludo */}
+        <div>
+          <h1 className="text-2xl font-bold">
+            Bienvenido/a{nombreCompleto ? `, ${nombreCompleto}` : ""}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">
+            Aquí tienes un resumen de tu actividad.
+          </p>
+        </div>
+
+        {/* Tarjetas */}
+        <div className="grid grid-cols-2 gap-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Mis Vehículos</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                Mis vehículos
+              </CardTitle>
+              <Car size={18} className="text-muted-foreground" />
             </CardHeader>
-            <CardContent className="text-3xl font-bold">2</CardContent>
+            <CardContent>
+              <span className="text-3xl font-bold">
+                {contadores?.vehiculos ?? "-"}
+              </span>
+            </CardContent>
           </Card>
+
           <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes activas</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm text-muted-foreground">
+                Mis solicitudes
+              </CardTitle>
+              <FileText size={18} className="text-muted-foreground" />
             </CardHeader>
-            <CardContent className="text-3xl font-bold">1</CardContent>
+            <CardContent>
+              <span className="text-3xl font-bold">
+                {contadores?.solicitudes ?? "-"}
+              </span>
+            </CardContent>
           </Card>
         </div>
 
-        <Alert variant="default" className="mt-6">
-          <Info className="h-4 w-4" />
-          <AlertTitle>ITV próxima a caducar</AlertTitle>
-          <AlertDescription>
-            Tu vehículo <strong>Seat Ibiza</strong> tiene la ITV próxima a
-            caducar en 15 días.
-          </AlertDescription>
-        </Alert>
+        {/* Acciones rápidas */}
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => navigate("/vehiculos")}>
+            <Car size={16} className="mr-2" />
+            Mis vehículos
+          </Button>
+          <Button
+            onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud`)}
+          >
+            <FileText size={16} className="mr-2" />
+            Nueva solicitud
+          </Button>
+        </div>
 
-        <Button className="mt-4 w-fit">Crear nueva solicitud</Button>
+        {/* Solicitudes recientes */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Mis solicitudes recientes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-muted-foreground border-b">
+                  <th className="text-left py-2">Vehículo</th>
+                  <th className="text-left py-2">Estado</th>
+                  <th className="text-left py-2">Fecha programada</th>
+                  <th className="text-left py-2">Dirección</th>
+                </tr>
+              </thead>
+              <tbody>
+                {solicitudesActualizadas.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="py-4 text-center text-muted-foreground"
+                    >
+                      No tienes solicitudes aún
+                    </td>
+                  </tr>
+                ) : (
+                  solicitudesActualizadas.map((s) => (
+                    <tr
+                      key={s.id}
+                      className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/solicitudes/${s.id}`)}
+                    >
+                      <td className="py-2">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={
+                              s.vehiculo?.imagen ?? "/avatars/default_car.png"
+                            }
+                            className="w-8 h-8 rounded object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src =
+                                "/avatars/default_car.png";
+                            }}
+                          />
+                          <span>
+                            {s.vehiculo?.marca} {s.vehiculo?.modelo}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${
+                            ESTADO_COLORS[s.estado?.slug ?? ""] ??
+                            "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {s.estado?.nombre ?? "-"}
+                        </span>
+                      </td>
+                      <td className="py-2">{fmt(s.fecha_programada)}</td>
+                      <td className="py-2 max-w-[200px] truncate">
+                        {s.direccion}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </CardContent>
+        </Card>
       </div>
     );
   }

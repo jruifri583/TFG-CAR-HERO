@@ -6,7 +6,7 @@ import type { User } from "@/types/auth";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(true); // 👈 AHORA SÍ ES REAL
   const [isEditing, setIsEditing] = useState(false);
 
   const login = async ({
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { user, token } = res.data;
 
     localStorage.setItem("token", token);
-    localStorage.setItem("last_login", new Date().toISOString()); // 👈
+    localStorage.setItem("last_login", new Date().toISOString());
 
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setUser(user);
@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user_data");
     setUser(null);
     delete api.defaults.headers.common["Authorization"];
   };
@@ -47,19 +48,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    if (token) {
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      api
-        .get("/me")
-        .then((res) => {
-          setUser(res.data.user);
-          localStorage.setItem("user_data", JSON.stringify(res.data.user));
-        })
-        .catch(() => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("user_data");
-        });
+    if (!token) {
+      setLoading(false); // 👈 IMPORTANTE
+      return;
     }
+
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    api
+      .get("/me")
+      .then((res) => {
+        setUser(res.data.user);
+        localStorage.setItem("user_data", JSON.stringify(res.data.user));
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user_data");
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false); // 👈 AHORA SÍ TERMINA LA CARGA
+      });
   }, []);
 
   return (

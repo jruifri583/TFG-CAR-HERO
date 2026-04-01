@@ -3,12 +3,16 @@ import { useAuth } from "@/context/useAuth";
 
 interface Props {
   children: JSX.Element;
-  roles?: string[]; // ["administrador", "empleado", "cliente"]
+  roles?: string[];
 }
 
 export default function ProtectedRoute({ children, roles }: Props) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const userRole = user?.rol?.slug ?? "";
+
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;

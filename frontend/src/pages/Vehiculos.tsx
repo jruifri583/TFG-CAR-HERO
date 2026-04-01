@@ -3,7 +3,7 @@ import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
-import { Card, CardContent, CardSinBorde } from "@/components/ui/card";
+import { CardContent, CardSinBorde } from "@/components/ui/card";
 import {
   Table,
   TableHeader,
@@ -128,7 +128,7 @@ export default function VehiculosPage() {
     vehiculos: Vehiculo[];
     meta: any;
   }
-  function AdminList({ vehiculos, meta }: AdminListProps) {
+  function AdminList({ vehiculos }: AdminListProps) {
     return (
       <>
         <div className="flex justify-end mb-4 gap-2 items-center">
@@ -294,7 +294,7 @@ export default function VehiculosPage() {
                 />
               </div>
 
-              <CardContent className="p-4 space-y-1 p-0">
+              <CardContent className="p-4 space-y-1">
                 <h2 className="text-lg font-semibold">
                   {vehiculo.marca} {vehiculo.modelo}
                 </h2>

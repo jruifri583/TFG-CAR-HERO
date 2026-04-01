@@ -186,9 +186,22 @@ export default function PerfilPage() {
       ? await api.put("/me", payload)
       : await api.put(`/users/${id}`, payload);
 
-    const updated = isOwnProfile ? res.data.user : res.data;
+    const updated = isOwnProfile ? res.data.user : res.data.user;
     setUser(updated);
     if (isOwnProfile) setContextUser(updated);
+
+    // Sincronizar react-hook-form con los datos actualizados
+    reset({
+      email: updated.email ?? "",
+      nombre: updated.nombre ?? "",
+      apellidos: updated.apellidos ?? "",
+      nif: updated.nif ?? "",
+      telefono: updated.telefono ?? "",
+      direccion: updated.direccion ?? "",
+      password: "",
+      rol_id: updated.rol?.id,
+    });
+
     setIsEditing(false);
   };
 
