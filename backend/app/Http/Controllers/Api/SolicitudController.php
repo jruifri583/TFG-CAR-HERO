@@ -32,6 +32,7 @@ class SolicitudController extends Controller
     $solicitudes = Solicitud::visibleFor($user)
         ->withBaseRelations()
         ->with(['empleado'])
+        ->whereHas('estado', fn($q) => $q->whereNotIn('slug', ['finalizado', 'cancelado']))
         ->when($request->get('sin_pago'), fn($q) => $q->whereNull('pago_id'))
         ->when($request->get('search'), function ($q, $v) {
             $q->where(function ($q2) use ($v) {
@@ -55,12 +56,14 @@ class SolicitudController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $empleados = $user->isAdmin() ? User::empleados()->get() : collect();
+        $empleados = ($user->isAdmin() || $user->isEmployee())
+            ? User::empleados()->get(['id', 'nombre', 'apellidos'])
+            : collect();
 
         return response()->json([
-            'user' => $user,
+            'user'      => $user,
             'empleados' => $empleados,
-            'baseData' => Solicitud::formDataFor($user),
+            'baseData'  => Solicitud::formDataFor($user),
         ]);
     }
 

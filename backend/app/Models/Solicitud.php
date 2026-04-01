@@ -178,6 +178,14 @@ class Solicitud extends Model
         return $query->whereRaw('0 = 1');
     }
 
+    public static function formDataFor(User $user): array
+    {
+        return [
+            'estados'     => \App\Models\Estado::orderBy('id')->get(['id', 'nombre', 'slug']),
+            'resoluciones' => \App\Models\Resolucion::orderBy('id')->get(['id', 'nombre']),
+        ];
+    }
+
     public function scopeNoFinalizadas(Builder $query): Builder
     {
         $id = Estado::where('slug', EstadoSlug::FINALIZADO->value)->value('id');

@@ -21,6 +21,7 @@ import NuevaSolicitudPage from "@/pages/NuevaSolicitud";
 import NuevoUserPage from "@/pages/NuevoUser";
 import NuevoPagoPage from "./pages/NuevoPago";
 
+
 function App() {
   return (
     <AuthProvider>

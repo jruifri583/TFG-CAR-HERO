@@ -1,68 +1,64 @@
-import { X, Car, Building2, RotateCcw, CheckCircle } from "lucide-react";
+import { Clock, UserCheck, Car, Building2, RotateCcw, CheckCircle, X } from "lucide-react";
 
+// Orden completo del flujo (excluye cancelado, que es terminal lateral)
 const ESTADOS = [
-  { slug: "en_recogida", label: "En recogida", angle: 270, Icon: Car },
-  { slug: "en_itv", label: "En ITV", angle: 0, Icon: Building2 },
-  { slug: "retornando", label: "Retornando", angle: 90, Icon: RotateCcw },
-  { slug: "finalizado", label: "Finalizado", angle: 180, Icon: CheckCircle },
+  { slug: "pendiente",   label: "Pendiente",   Icon: Clock        },
+  { slug: "asignado",    label: "Asignado",    Icon: UserCheck    },
+  { slug: "en_recogida", label: "En recogida", Icon: Car          },
+  { slug: "en_itv",      label: "En ITV",      Icon: Building2    },
+  { slug: "retornando",  label: "Retornando",  Icon: RotateCcw    },
+  { slug: "finalizado",  label: "Finalizado",  Icon: CheckCircle  },
 ];
+
+const TOTAL = ESTADOS.length; // 6
+// Cada paso ocupa 360/6 = 60°. Empezamos en la parte superior (−90° = 270° en SVG coords)
+const angleForIndex = (i: number) => (360 / TOTAL) * i - 90;
 
 interface Props {
   estado: { slug: string; nombre: string } | null;
 }
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  const rad = (angleDeg * Math.PI) / 180;
   return {
     x: cx + r * Math.cos(rad),
     y: cy + r * Math.sin(rad),
   };
 }
 
-function describeArc(
-  cx: number,
-  cy: number,
-  r: number,
-  startAngle: number,
-  endAngle: number,
-) {
-  const start = polarToCartesian(cx, cy, r, endAngle);
-  const end = polarToCartesian(cx, cy, r, startAngle);
-  const largeArc = endAngle - startAngle <= 180 ? "0" : "1";
-  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 0 ${end.x} ${end.y}`;
+/** Describe un arco SVG desde startAngle hasta endAngle (en grados, sentido horario) */
+function describeArc(cx: number, cy: number, r: number, startAngle: number, endAngle: number) {
+  // Normaliza para que endAngle >= startAngle
+  if (endAngle < startAngle) endAngle += 360;
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  const start = polarToCartesian(cx, cy, r, startAngle);
+  const end   = polarToCartesian(cx, cy, r, endAngle);
+  return `M ${start.x} ${start.y} A ${r} ${r} 0 ${largeArc} 1 ${end.x} ${end.y}`;
 }
 
 export default function SolicitudCircularTracker({ estado }: Props) {
   const estadoActual = estado?.slug ?? "";
-  const cancelado = estadoActual === "cancelado";
-  const indexActual = ESTADOS.findIndex((e) => e.slug === estadoActual);
+  const cancelado    = estadoActual === "cancelado";
+  const indexActual  = ESTADOS.findIndex((e) => e.slug === estadoActual);
 
   const cx = 160;
   const cy = 160;
-  const r = 100;
+  const r  = 100;
 
-  const startAngle = ESTADOS[0].angle;
-  const endAngle = indexActual >= 0 ? ESTADOS[indexActual].angle : startAngle;
-  const progressAngle =
-    endAngle <= startAngle && indexActual > 0 ? endAngle + 360 : endAngle;
+  // El arco va desde el primer nodo hasta el nodo activo
+  const startAngle = angleForIndex(0);
+  const endAngle   = indexActual > 0 ? angleForIndex(indexActual) : startAngle;
 
   return (
     <div className="relative w-[320px] h-[320px]">
       <svg width="320" height="320" className="absolute inset-0">
         {/* Círculo base gris */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={r}
-          fill="none"
-          stroke="#e5e7eb"
-          strokeWidth="6"
-        />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e5e7eb" strokeWidth="6" />
 
-        {/* Arco de progreso azul */}
+        {/* Arco de progreso */}
         {!cancelado && indexActual > 0 && (
           <path
-            d={describeArc(cx, cy, r, startAngle, progressAngle)}
+            d={describeArc(cx, cy, r, startAngle, endAngle)}
             fill="none"
             stroke="#2563eb"
             strokeWidth="6"
@@ -72,52 +68,54 @@ export default function SolicitudCircularTracker({ estado }: Props) {
 
         {/* Nodos */}
         {ESTADOS.map((e, index) => {
-          const pos = polarToCartesian(cx, cy, r, e.angle);
+          const angle     = angleForIndex(index);
+          const pos       = polarToCartesian(cx, cy, r, angle);
           const completado = index < indexActual;
-          const activo = index === indexActual;
+          const activo     = index === indexActual;
+          const fill       = completado ? "#2563eb" : activo ? "#2563eb" : "white";
+          const stroke     = completado || activo ? "#2563eb" : "#d1d5db";
 
           return (
-            <g key={e.slug}>
-              <circle
-                cx={pos.x}
-                cy={pos.y}
-                r={18}
-                fill={completado || activo ? "#2563eb" : "white"}
-                stroke={completado || activo ? "#2563eb" : "#d1d5db"}
-                strokeWidth="2"
-              />
-            </g>
+            <circle
+              key={e.slug}
+              cx={pos.x}
+              cy={pos.y}
+              r={18}
+              fill={fill}
+              stroke={stroke}
+              strokeWidth="2"
+            />
           );
         })}
       </svg>
 
-      {/* Iconos sobre los nodos (foreignObject no funciona bien en SVG, usamos divs absolutos) */}
+      {/* Iconos sobre los nodos */}
       {ESTADOS.map((e, index) => {
-        const pos = polarToCartesian(cx, cy, r, e.angle);
+        const angle      = angleForIndex(index);
+        const pos        = polarToCartesian(cx, cy, r, angle);
         const completado = index < indexActual;
-        const activo = index === indexActual;
-        const { Icon } = e;
+        const activo     = index === indexActual;
+        const { Icon }   = e;
 
         return (
           <div
             key={e.slug}
-            className="absolute flex items-center justify-center"
-            style={{
-              left: pos.x - 10,
-              top: pos.y - 10,
-              width: 20,
-              height: 20,
-            }}
+            className="absolute flex flex-col items-center"
+            style={{ left: pos.x - 18, top: pos.y - 18, width: 36, height: 36 }}
           >
             <Icon
-              size={14}
-              className={completado || activo ? "text-white" : "text-gray-400"}
+              size={15}
+              className={
+                completado || activo ? "text-white mt-[10px]" : "text-gray-400 mt-[10px]"
+              }
             />
           </div>
         );
       })}
 
-      {/* Icono central */}
+
+
+      {/* Icono / texto central */}
       <div className="absolute inset-0 flex items-center justify-center">
         {cancelado ? (
           <div className="flex flex-col items-center text-red-500">
@@ -126,8 +124,8 @@ export default function SolicitudCircularTracker({ estado }: Props) {
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <Car size={32} className="text-primary" />
-            <span className="text-xs mt-1 font-medium capitalize text-muted-foreground">
+            <Car size={28} className="text-primary" />
+            <span className="text-xs mt-1 font-semibold text-primary capitalize">
               {estado?.nombre ?? "Pendiente"}
             </span>
           </div>
