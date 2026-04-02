@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import api from "@/lib/axios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Car, FileText, CreditCard } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card";
+import { Users, Car, FileText, CreditCard, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
 import {
@@ -28,6 +28,13 @@ interface Contadores {
   solicitudes: number;
   pagos: number;
   historial: number;
+  itv_alertas?: Array<{
+    id: number;
+    marca: string;
+    modelo: string;
+    matricula: string;
+    fecha_ultima_itv: string;
+  }>;
 }
 
 interface SolicitudEstado {
@@ -535,50 +542,62 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Tarjetas */}
-        <div className="grid grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-muted-foreground">
-                Mis vehículos
-              </CardTitle>
-              <Car size={18} className="text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <span className="text-3xl font-bold">
-                {contadores?.vehiculos ?? "-"}
-              </span>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-muted-foreground">
-                Mis solicitudes
-              </CardTitle>
-              <FileText size={18} className="text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <span className="text-3xl font-bold">
-                {contadores?.solicitudes ?? "-"}
-              </span>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Acciones rápidas */}
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => navigate("/vehiculos")}>
-            <Car size={16} className="mr-2" />
-            Mis vehículos
-          </Button>
-          <Button
-            onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud`)}
-          >
-            <FileText size={16} className="mr-2" />
-            Nueva solicitud
-          </Button>
-        </div>
+        {/* Sección ITV */}
+        <CardSinBorde className="border-none shadow-none bg-accent/5 overflow-hidden">
+          <CardContent className="p-0">
+            {contadores?.itv_alertas && contadores.itv_alertas.length > 0 ? (
+              <div className="flex flex-col gap-3">
+                {contadores.itv_alertas.map((alert) => (
+                  <div key={alert.id} className="flex flex-col sm:flex-row items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-yellow-100 dark:bg-yellow-900/40 p-2 rounded-full">
+                        <AlertTriangle className="text-yellow-600 dark:text-yellow-500" size={24} />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 italic">
+                          ¡Atención ITV!
+                        </h4>
+                        <p className="text-sm text-yellow-800/80 dark:text-yellow-200/60">
+                          La ITV de tu <strong>{alert.marca} {alert.modelo} ({alert.matricula})</strong> caduca pronto. (Última: {fmt(alert.fecha_ultima_itv)})
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud?vehiculo_id=${alert.id}&v_marca=${alert.marca}&v_modelo=${alert.modelo}&v_matricula=${alert.matricula}`)}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white border-none shadow-md whitespace-nowrap"
+                    >
+                      <FileText size={16} className="mr-2" />
+                      Solicitar recogida
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl gap-4">
+                <div className="flex items-center gap-4 text-center sm:text-left">
+                  <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full hidden sm:block">
+                    <Car className="text-blue-600 dark:text-blue-400" size={28} />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold text-blue-900 dark:text-blue-100">
+                      Llevamos tu coche a la ITV por ti
+                    </h4>
+                    <p className="text-sm text-blue-800/80 dark:text-blue-200/60 max-w-lg">
+                      Nos encargamos de todo el proceso para que no pierdas tiempo. Rápido, seguro y sin complicaciones.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud`)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all hover:scale-105 active:scale-95"
+                >
+                  <FileText size={18} className="mr-2" />
+                  Solicitar ahora
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </CardSinBorde>
 
         {/* Solicitudes recientes */}
         <Card>

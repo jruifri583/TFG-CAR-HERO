@@ -37,7 +37,7 @@ class UserController extends Controller
     // Ordenación
     $sort = request()->query('sort');
     $order = request()->query('order', 'asc');
-    $allowedSorts = ['id','email','nombre','apellidos','telefono','activo','rol_id'];
+    $allowedSorts = ['id','email','nombre','apellidos','telefono','activo','rol_id','created_at'];
     if ($sort && in_array($sort, $allowedSorts)) {
         if ($sort === 'rol_id') {
             $query->join('roles', 'users.rol_id', '=', 'roles.id')

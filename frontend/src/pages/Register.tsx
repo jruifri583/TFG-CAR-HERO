@@ -1,5 +1,3 @@
-// pages/Register.tsx
-
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/context/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 const schema = z
   .object({
@@ -147,7 +146,7 @@ export default function Register() {
                 <div className="w-full">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
-                    onError={() => alert("Error al iniciar sesión con Google")}
+                    onError={() => toast.error("Error al iniciar sesión con Google")}
                     size="medium"
                     useOneTap={false}
                   />

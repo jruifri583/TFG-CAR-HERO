@@ -17,7 +17,7 @@ class DashboardController extends Controller
 
     return response()->json([
         'solicitudes' => \App\Models\Solicitud::visibleFor($user)
-            ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->whereHas('estado', fn($q) => $q->whereNotIn('slug', ['finalizado', 'cancelado']))
             ->count(),
         'usuarios' => \App\Models\User::when($desde, fn($q) => $q->where('created_at', '>', $desde))
             ->count(),
@@ -27,7 +27,23 @@ class DashboardController extends Controller
         'pagos' => \App\Models\Pago::visibleFor($user)
             ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
             ->count(),
-        'historial' => \App\Models\Historial::visibleFor($user)->when($desde, fn($q) => $q->where('created_at', '>', $desde))->count(), 
+        'historial' => \App\Models\Historial::visibleFor($user)->when($desde, fn($q) => $q->where('created_at', '>', $desde))->count(),
+        'mensajes' => $user->rol->slug === \App\Enums\RolSlug::ADMINISTRADOR->value 
+            ? \App\Models\MensajeContacto::whereNull('leido_at')->count()
+            : 0,
+        'itv_alertas' => $user->rol->slug === \App\Enums\RolSlug::CLIENTE->value 
+            ? \App\Models\Vehiculo::where('user_id', $user->id)
+                ->whereNotNull('fecha_ultima_itv')
+                ->where('fecha_ultima_itv', '>', '1990-01-01')
+                ->where('fecha_ultima_itv', '<=', now()->subMonths(11))
+                // Solo mostrar si NO tienen una solicitud activa
+                ->whereDoesntHave('solicitudes', function($q) {
+                    $q->whereHas('estado', function($q2) {
+                        $q2->whereNotIn('slug', ['finalizado', 'cancelado']);
+                    });
+                })
+                ->get(['id', 'marca', 'modelo', 'matricula', 'fecha_ultima_itv'])
+            : [],
     ]);
 }
 

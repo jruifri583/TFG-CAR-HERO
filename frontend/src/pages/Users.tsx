@@ -38,15 +38,15 @@ interface User {
   telefono: string | null;
   rol?: { nombre: string; slug: string };
   activo: boolean;
+  created_at?: string;
 }
 
 type SortField =
   | "email"
   | "nombre"
-  | "apellidos"
-  | "telefono"
   | "rol_id"
-  | "activo";
+  | "activo"
+  | "created_at";
 
 export default function UsersPage() {
   const [loading, setLoading] = useState(true);
@@ -171,20 +171,9 @@ export default function UsersPage() {
               className="cursor-pointer"
               onClick={() => handleSort("nombre")}
             >
-              Nombre{renderSortArrow("nombre")}
+              Nombre y Apellidos{renderSortArrow("nombre")}
             </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("apellidos")}
-            >
-              Apellidos{renderSortArrow("apellidos")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer"
-              onClick={() => handleSort("telefono")}
-            >
-              Teléfono{renderSortArrow("telefono")}
-            </TableHead>
+            <TableHead className="hidden sm:table-cell">Teléfono</TableHead>
             <TableHead
               className="cursor-pointer"
               onClick={() => handleSort("rol_id")}
@@ -196,6 +185,12 @@ export default function UsersPage() {
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
+            </TableHead>
+            <TableHead
+              className="hidden sm:table-cell cursor-pointer"
+              onClick={() => handleSort("created_at")}
+            >
+              Creado{renderSortArrow("created_at")}
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -219,11 +214,17 @@ export default function UsersPage() {
                 />
               </TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.nombre}</TableCell>
-              <TableCell>{user.apellidos || "-"}</TableCell>
-              <TableCell>{user.telefono || "-"}</TableCell>
+              <TableCell>
+                {[user.nombre, user.apellidos].filter(Boolean).join(" ")}
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">{user.telefono || "-"}</TableCell>
               <TableCell>{user.rol?.nombre || "-"}</TableCell>
               <TableCell>{user.activo ? "Sí" : "No"}</TableCell>
+              <TableCell className="hidden sm:table-cell">
+                {user.created_at
+                  ? new Date(user.created_at).toLocaleDateString("es-ES")
+                  : "-"}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

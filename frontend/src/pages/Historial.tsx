@@ -170,7 +170,11 @@ export default function HistorialPage() {
               onClick={() => navigate(`/solicitudes/${h.solicitud_id}`)}
             >
               <TableCell>{h.solicitud_id}</TableCell>
-              <TableCell>{h.fecha_itv ?? "-"}</TableCell>
+              <TableCell>
+                {h.fecha_itv
+                  ? new Date(h.fecha_itv).toLocaleDateString("es-ES")
+                  : "-"}
+              </TableCell>
               <TableCell>
                 <span
                   className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre] ?? "bg-gray-100 text-gray-800"}`}

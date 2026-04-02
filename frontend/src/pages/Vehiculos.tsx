@@ -34,7 +34,7 @@ interface Vehiculo {
   kilometros: number | null;
 }
 
-type SortField = "matricula" | "marca" | "modelo" | "año";
+type SortField = "matricula" | "marca" | "año";
 
 export default function VehiculosPage() {
   const { user } = useAuth();
@@ -181,20 +181,15 @@ export default function VehiculosPage() {
                 className="cursor-pointer"
                 onClick={() => handleSort("marca")}
               >
-                Marca{renderSortArrow("marca")}
+                Marca y Modelo{renderSortArrow("marca")}
               </TableHead>
               <TableHead
-                className="cursor-pointer"
-                onClick={() => handleSort("modelo")}
-              >
-                Modelo{renderSortArrow("modelo")}
-              </TableHead>
-              <TableHead
-                className="cursor-pointer"
+                className="hidden sm:table-cell cursor-pointer"
                 onClick={() => handleSort("año")}
               >
                 Año{renderSortArrow("año")}
               </TableHead>
+              <TableHead className="hidden sm:table-cell">Kilómetros</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -216,9 +211,15 @@ export default function VehiculosPage() {
                   />
                 </TableCell>
                 <TableCell>{vehiculo.matricula}</TableCell>
-                <TableCell>{vehiculo.marca}</TableCell>
-                <TableCell>{vehiculo.modelo}</TableCell>
-                <TableCell>{vehiculo.año ?? "-"}</TableCell>
+                <TableCell>
+                  {[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" ")}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">{vehiculo.año ?? "-"}</TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  {vehiculo.kilometros != null
+                    ? vehiculo.kilometros.toLocaleString("es-ES") + " km"
+                    : "-"}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

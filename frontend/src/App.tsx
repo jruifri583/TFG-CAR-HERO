@@ -1,6 +1,7 @@
 // App.tsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
+import { Toaster } from "sonner";
 import { HeaderProvider } from "@/context/HeaderContext";
 import MainLayout from "@/components/ui/MainLayout";
 import ProtectedRoute from "@/components/ui/ProtectedRoute";
@@ -12,6 +13,7 @@ import VehiculosPage from "@/pages/Vehiculos";
 import SolicitudesPage from "@/pages/Solicitudes";
 import HistorialPage from "@/pages/Historial";
 import PagosPage from "@/pages/Pagos";
+import MensajesPage from "@/pages/Mensajes";
 import PerfilPage from "@/pages/Perfil";
 import SolicitudDetailPage from "@/pages/SolicitudDetail";
 import VehiculoDetailPage from "@/pages/VehiculoDetail";
@@ -26,6 +28,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <Toaster position="bottom-right" richColors />
         <Routes>
           {/* Primera página → LOGIN */}
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -155,6 +158,16 @@ function App() {
               element={
                 <ProtectedRoute roles={["administrador"]}>
                   <NuevoPagoPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Solo ADMIN */}
+            <Route
+              path="/mensajes"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <MensajesPage />
                 </ProtectedRoute>
               }
             />

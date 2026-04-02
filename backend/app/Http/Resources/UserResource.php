@@ -26,6 +26,7 @@ class UserResource extends JsonResource
             'nif' => $this->nif,
             'imagen' => $this->imagen,
             'activo' => (bool) $this->activo,
+            'created_at' => $this->created_at?->toDateTimeString(),
             'rol' => [
                 'nombre' => $this->rol?->nombre,
             ],

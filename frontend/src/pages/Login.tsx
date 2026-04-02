@@ -1,4 +1,3 @@
-// pages/Login.tsx
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
@@ -16,6 +15,7 @@ import api from "@/lib/axios";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 const schema = z.object({
   email: z.string().email("Email inválido"),
@@ -136,7 +136,7 @@ export default function LoginPage() {
                 </Button>
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
-                  onError={() => alert("Error al iniciar sesión con Google")}
+                  onError={() => toast.error("Error al iniciar sesión con Google")}
                   useOneTap
                   size="medium"
                   text="continue_with"

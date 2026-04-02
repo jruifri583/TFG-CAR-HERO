@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SolicitudController;
 use App\Http\Controllers\Api\DashboardController;
 use Illuminate\Http\Request;
 use App\Enums\RolSlug;
+use App\Http\Controllers\Api\MensajeContactoController;
 
 
 
@@ -18,6 +19,7 @@ use App\Enums\RolSlug;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [GoogleController::class, 'loginWithGoogle']);
+Route::post('/contacto', [\App\Http\Controllers\Api\ContactController::class, 'store']);
 
 
 // --- Rutas Protegidas ---
@@ -32,6 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // Recursos
     Route::middleware('rol:' . RolSlug::ADMINISTRADOR->value)->group(function () {
         Route::resource('users', UserController::class);
+        
+        // Mensajes de contacto (sólo lectura, marcado de leído y borrado)
+        Route::apiResource('mensajes', MensajeContactoController::class)->only(['index', 'destroy']);
+        Route::patch('/mensajes/{mensaje}/leido', [MensajeContactoController::class, 'markAsRead']);
+        Route::post('/mensajes/{mensaje}/responder', [MensajeContactoController::class, 'responder']);
     });
 
     Route::apiResource('vehiculos', VehiculoController::class);

@@ -34,7 +34,11 @@ class VehiculoFactory extends Factory
             'modelo'     => fake()->word(),
             'año' => fake()->year(),
             'kilometros' => fake()->numberBetween(1000, 200000),
-            'fecha_ultima_itv' => fake()->dateTimeBetween('-4 years', 'now')->format('Y-m-d'),
+            'fecha_ultima_itv' => fake()->randomElement([
+                fake()->dateTimeBetween('-10 months', 'now'),       // ITV reciente (sin alerta)
+                fake()->dateTimeBetween('-13 months', '-11 months'), // ITV próxima (alerta)
+                fake()->dateTimeBetween('-36 months', '-13 months'), // ITV caducada (alerta)
+            ])->format('Y-m-d'),
         ];
     }
 }

@@ -13,6 +13,9 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { useState } from "react";
+import api from "@/lib/axios";
+
 const schema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio"),
   email: z.string().email("Email inválido"),
@@ -24,14 +27,30 @@ type FormData = z.infer<typeof schema>;
 export default function ContactoPage() {
   const navigate = useNavigate();
 
+  const [errorEnvio, setErrorEnvio] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
+  } = useForm<FormData>({ 
+    resolver: zodResolver(schema),
+    defaultValues: {
+      nombre: "",
+      email: "",
+      mensaje: "",
+    }
+  });
 
   const onSubmit = async (data: FormData) => {
-    console.log("Contacto:", data);
+    setErrorEnvio(null);
+    try {
+      await api.post("/contacto", data);
+    } catch (err: any) {
+      console.error("Error enviando contacto:", err);
+      setErrorEnvio("Hubo un problema al enviar tu mensaje. Inténtalo más tarde.");
+      throw err; // para que isSubmitSuccessful no se marque a true por defecto
+    }
   };
 
   return (
@@ -48,13 +67,13 @@ export default function ContactoPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isSubmitSuccessful ? (
+            {isSubmitSuccessful && !errorEnvio ? (
               <div className="flex flex-col gap-4 text-center">
                 <p className="text-green-600 font-medium">
-                  ¡Mensaje enviado! Nos pondremos en contacto contigo pronto.
+                  ¡Mensaje enviado! Nos pondremos en contacto contigo pronto a través de tu email.
                 </p>
                 <Button onClick={() => navigate("/login")}>
-                  Volver al login
+                  Volver al inicio
                 </Button>
               </div>
             ) : (
@@ -62,6 +81,11 @@ export default function ContactoPage() {
                 onSubmit={handleSubmit(onSubmit)}
                 className="flex flex-col gap-4"
               >
+                {errorEnvio && (
+                  <div className="bg-red-100 text-red-700 p-3 rounded text-sm text-center">
+                    {errorEnvio}
+                  </div>
+                )}
                 <div className="flex flex-col gap-2">
                   <Label>Nombre</Label>
                   <Input

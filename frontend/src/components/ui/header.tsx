@@ -12,6 +12,7 @@ const ROUTE_CONFIG: Record<string, { imagen: string; titulo: string }> = {
   "/pagos": { imagen: "/avatars/pagos.png", titulo: "Pagos" },
   "/solicitudes": { imagen: "/avatars/solicitudes.png", titulo: "Solicitudes" },
   "/users": { imagen: "/avatars/default_user.png", titulo: "Usuarios" },
+  "/mensajes": { imagen: "/avatars/mensajes.png", titulo: "Mensajes" },
 };
 
 export default function Header() {
@@ -54,9 +55,9 @@ export default function Header() {
     return (
       <header className="h-45 flex flex-col relative">
         <div className="h-full w-full bg-gradiente">
-          <div className="flex gap-3 absolute top-1/2 right-0 -translate-y-1/2 -translate-x-1/8">
-            <div className="flex flex-col self-center gap-3">
-              <span className="text-4xl">
+          <div className="flex gap-6 absolute top-1/2 right-12 -translate-y-1/2">
+            <div className="flex flex-col self-center gap-1 text-right">
+              <span className="text-4xl text-foreground">
                 <strong>{headerData.nombre}</strong>
               </span>
               {headerData.subtitulo && (
@@ -102,9 +103,9 @@ export default function Header() {
     return (
       <header className="h-45 flex flex-col relative">
         <div className="h-full w-full bg-gradiente">
-          <div className="flex gap-3 absolute top-1/2 right-0 -translate-y-1/2 -translate-x-1/8">
-            <div className="flex flex-col self-center gap-3">
-              <span className="text-4xl">
+          <div className="flex gap-6 absolute top-1/2 right-12 -translate-y-1/2">
+            <div className="flex flex-col self-center gap-1 text-right">
+              <span className="text-4xl text-foreground">
                 <strong>{routeConfig.titulo}</strong>
               </span>
               <div className="h-9" />
@@ -124,9 +125,9 @@ export default function Header() {
   return (
     <header className="h-45 flex flex-col relative">
       <div className="h-full w-full bg-gradiente">
-        <div className="flex gap-3 absolute top-1/2 right-0 -translate-y-1/2 -translate-x-1/8">
-          <div className="flex flex-col self-center gap-3">
-            <span className="text-4xl">
+        <div className="flex gap-6 absolute top-1/2 right-12 -translate-y-1/2">
+          <div className="flex flex-col self-center gap-1 text-right">
+            <span className="text-4xl text-foreground">
               Hola{" "}
               <strong>
                 {user ? user.nombre || user.email.split("@")[0] : ""}

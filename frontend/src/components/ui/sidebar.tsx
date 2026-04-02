@@ -9,6 +9,7 @@ import {
   CreditCard,
   History,
   LogOut,
+  Mail,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -26,6 +27,7 @@ export default function Sidebar() {
     "/vehiculos": "vehiculos",
     "/pagos": "pagos",
     "/historial": "historial",
+    // "/mensajes": "mensajes", // Se decrementa manualmente desde la página
   };
 
   // 🔥 Menú base con iconos y rutas
@@ -35,7 +37,7 @@ export default function Sidebar() {
       label: "Solicitudes",
       icon: FileText,
       to: "/solicitudes",
-      badge: contadores.solicitudes,
+      badge: (user?.rol?.slug === 'administrador' || user?.rol?.slug === 'empleado') ? contadores.solicitudes : undefined,
     },
     {
       key: "Usuarios",
@@ -65,6 +67,13 @@ export default function Sidebar() {
       to: "/historial",
       badge: contadores.historial,
     },
+    {
+      key: "Mensajes",
+      label: "Mensajes",
+      icon: Mail,
+      to: "/mensajes",
+      badge: contadores.mensajes,
+    },
   ];
 
   // 🔥 Qué ve cada rol
@@ -75,6 +84,7 @@ export default function Sidebar() {
       "Vehículos",
       "Pagos",
       "Historial",
+      "Mensajes",
     ],
     empleado: ["Solicitudes", "Historial"],
     cliente: ["Solicitudes", "Vehículos", "Historial"],
@@ -101,6 +111,18 @@ export default function Sidebar() {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Escuchar evento personalizado para decrementar mensajes individualmente
+  useEffect(() => {
+    const handleDecrementMensaje = () => {
+      setContadores((prev) => ({
+        ...prev,
+        mensajes: Math.max(0, (prev.mensajes || 0) - 1),
+      }));
+    };
+    window.addEventListener("decrement-mensaje", handleDecrementMensaje);
+    return () => window.removeEventListener("decrement-mensaje", handleDecrementMensaje);
   }, []);
 
   useEffect(() => {

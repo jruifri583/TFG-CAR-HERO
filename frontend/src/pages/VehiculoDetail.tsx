@@ -88,7 +88,7 @@ export default function VehiculoDetailPage() {
         modelo: data.modelo ?? "",
         año: data.año ?? null,
         kilometros: data.kilometros ?? null,
-        fecha_ultima_itv: data.fecha_ultima_itv ?? "",
+        fecha_ultima_itv: data.fecha_ultima_itv ? data.fecha_ultima_itv.split("T")[0] : "",
       });
     });
   }, [id]);
@@ -139,7 +139,7 @@ export default function VehiculoDetailPage() {
       modelo: vehiculo?.modelo ?? "",
       año: vehiculo?.año ?? null,
       kilometros: vehiculo?.kilometros ?? null,
-      fecha_ultima_itv: vehiculo?.fecha_ultima_itv ?? "",
+      fecha_ultima_itv: vehiculo?.fecha_ultima_itv ? vehiculo.fecha_ultima_itv.split("T")[0] : "",
     });
     setIsEditing(false);
   };
@@ -159,7 +159,7 @@ export default function VehiculoDetailPage() {
         modelo: updated.modelo ?? "",
         año: updated.año ?? null,
         kilometros: updated.kilometros ?? null,
-        fecha_ultima_itv: updated.fecha_ultima_itv ?? "",
+        fecha_ultima_itv: updated.fecha_ultima_itv ? updated.fecha_ultima_itv.split("T")[0] : "",
       });
       setIsEditing(false);
     } catch (error) {

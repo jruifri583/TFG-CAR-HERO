@@ -165,13 +165,13 @@ export default function PagosPage() {
               Importe{renderSortArrow("importe")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="hidden sm:table-cell cursor-pointer"
               onClick={() => handleSort("metodo_pago_id")}
             >
               Método de Pago{renderSortArrow("metodo_pago_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="hidden sm:table-cell cursor-pointer"
               onClick={() => handleSort("created_at")}
             >
               Fecha de pago{renderSortArrow("created_at")}
@@ -187,9 +187,16 @@ export default function PagosPage() {
               onClick={() => navigate(`/solicitudes/${pago.solicitud}`)}
             >
               <TableCell>{pago.solicitud ?? "-"}</TableCell>
-              <TableCell>{pago.importe ?? "-"}</TableCell>
-              <TableCell>{pago.metodo_pago?.nombre ?? "-"}</TableCell>
               <TableCell>
+                {pago.importe != null
+                  ? Number(pago.importe).toLocaleString("es-ES", {
+                      style: "currency",
+                      currency: "EUR",
+                    })
+                  : "-"}
+              </TableCell>
+              <TableCell className="hidden sm:table-cell">{pago.metodo_pago?.nombre ?? "-"}</TableCell>
+              <TableCell className="hidden sm:table-cell">
                 {pago.created_at
                   ? new Date(pago.created_at).toLocaleDateString("es-ES")
                   : "-"}
