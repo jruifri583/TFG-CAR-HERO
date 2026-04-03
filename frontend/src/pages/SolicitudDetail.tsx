@@ -9,7 +9,7 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import SolicitudCircularTracker from "@/components/ui/SolicitudCircularTracker";
 import { 
   FileText,
-  Clock, MapPin, ShieldCheck, CreditCard
+  Clock, MapPin, ShieldCheck, ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -323,9 +323,19 @@ export default function SolicitudDetailPage() {
     const encoded = encodeURIComponent(direccion);
     return (
       <CardSinBorde className="h-[450px] lg:h-full min-h-[450px] overflow-hidden relative group p-0 gap-0 shadow-sm rounded-xl">
-        <div className="absolute top-4 left-4 z-10 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-border flex items-center gap-2">
-           <MapPin size={16} className="text-primary" />
-           <span className="text-xs font-bold text-foreground truncate max-w-[200px]">{direccion}</span>
+        <div className="absolute top-4 left-4 z-10 flex flex-col sm:flex-row gap-2">
+           <div className="bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-border flex items-center gap-2">
+              <MapPin size={16} className="text-primary" />
+              <span className="text-xs font-bold text-foreground truncate max-w-[150px] sm:max-w-[200px]">{direccion}</span>
+           </div>
+           <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encoded}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-primary text-white px-3 py-1.5 rounded-lg shadow-md flex items-center gap-2 text-xs font-bold hover:bg-primary/90 transition-all active:scale-95"
+           >
+              <ExternalLink size={14} /> Abrir en Maps
+           </a>
         </div>
         <iframe
           width="100%"
