@@ -15,12 +15,13 @@ const METODOS_PAGO = [
 ];
 
 const schema = z.object({
-  solicitud_id: z.number().min(1, "Selecciona una solicitud"),
-  importe: z.number().min(0, "No puede ser negativo"),
+  solicitud_id: z.number().min(1, "Debes seleccionar una solicitud"),
+  importe: z.coerce
+    .number()
+    .min(0, "El importe no puede ser negativo")
+    .or(z.literal("").transform(() => undefined)),
   metodo_pago_id: z.number().optional().nullable(),
 });
-
-type FormData = z.infer<typeof schema>;
 
 export default function NuevoPagoPage() {
   const navigate = useNavigate();
@@ -31,11 +32,11 @@ export default function NuevoPagoPage() {
     setValue,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({
+  } = useForm({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: any) => {
     try {
       await api.post("/pagos", { ...data, estado_pago_id: 2 });
       navigate("/pagos");
@@ -79,7 +80,7 @@ export default function NuevoPagoPage() {
                 <Input
                   type="number"
                   step="0.01"
-                  {...register("importe", { valueAsNumber: true })}
+                  {...register("importe")}
                   placeholder="0.00"
                 />
                 {errors.importe && (

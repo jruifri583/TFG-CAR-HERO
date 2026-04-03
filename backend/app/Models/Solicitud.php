@@ -146,6 +146,25 @@ class Solicitud extends Model
             $ahora = now();
 
             if ($slug === EstadoSlug::EN_RECOGIDA->value && !$solicitud->hora_recogida) {
+                // Validación de concurrencia: El empleado no puede tener otra solicitud activa sin entregar
+                $conflictivo = self::where('user_empleado_id', $solicitud->user_empleado_id)
+                    ->where('id', '!=', $solicitud->id)
+                    ->whereHas('estado', function($q) {
+                        $q->whereIn('slug', [
+                            EstadoSlug::EN_RECOGIDA->value,
+                            EstadoSlug::EN_ITV->value,
+                            EstadoSlug::RETORNANDO->value,
+                        ]);
+                    })
+                    ->whereNull('hora_entrega')
+                    ->exists();
+
+                if ($conflictivo) {
+                    throw ValidationException::withMessages([
+                        'estado_id' => 'No puedes iniciar un nuevo servicio hasta que entregues el vehículo de tu solicitud actual.',
+                    ]);
+                }
+
                 $solicitud->hora_recogida = $ahora;
             }
 
@@ -201,7 +220,7 @@ class Solicitud extends Model
     public function scopeWithBaseRelations(Builder $query): Builder
     {
         // Incluye pago.metodoPago y pago.estadoPago para evitar N+1 en SolicitudResource
-        return $query->with(['cliente', 'vehiculo', 'estado', 'pago.metodoPago', 'pago.estadoPago']);
+        return $query->with(['cliente', 'vehiculo', 'estado', 'empleado', 'resolucion', 'pago.metodoPago', 'pago.estadoPago']);
     }
 
     public function loadFull()

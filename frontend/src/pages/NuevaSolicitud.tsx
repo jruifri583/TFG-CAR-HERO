@@ -13,10 +13,17 @@ import { useHeader } from "@/context/HeaderContext";
 import { toast } from "sonner";
 
 const schema = z.object({
-  vehiculo_id: z.number().min(1, "Selecciona un vehículo"),
-  direccion: z.string().min(1, "La dirección es obligatoria").max(255),
+  vehiculo_id: z.number().min(1, "Debes seleccionar un vehículo"),
+  direccion: z
+    .string()
+    .min(1, "La dirección es obligatoria")
+    .max(255, "La dirección no puede exceder los 255 caracteres"),
   fecha_programada: z.string().optional().or(z.literal("")),
-  notas: z.string().optional().or(z.literal("")),
+  notas: z
+    .string()
+    .max(500, "Las notas no pueden exceder los 500 caracteres")
+    .optional()
+    .or(z.literal("")),
 });
 
 type FormData = z.infer<typeof schema>;

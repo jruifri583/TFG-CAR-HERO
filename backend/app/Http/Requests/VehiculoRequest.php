@@ -15,6 +15,7 @@ abstract class VehiculoRequest extends FormRequest
             'año' => ['nullable', 'integer'],
             'kilometros' => ['nullable', 'integer'],
             'fecha_ultima_itv' => ['nullable', 'date'],
+            'imagen' => ['nullable', 'image', 'max:2048'],
         ];
     }
 

@@ -15,13 +15,36 @@ const ROLES = [
 ];
 
 const schema = z.object({
-  email: z.string().email("Email inválido").max(150),
-  password: z.string().min(6, "Mínimo 6 caracteres"),
-  nombre: z.string().max(255).optional().or(z.literal("")),
-  apellidos: z.string().max(255).optional().or(z.literal("")),
-  nif: z.string().max(20).optional().or(z.literal("")),
-  telefono: z.string().max(50).optional().or(z.literal("")),
-  direccion: z.string().max(255).optional().or(z.literal("")),
+  email: z
+    .string()
+    .email("Dirección de email inválida")
+    .max(150, "El email no puede exceder los 150 caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  nombre: z
+    .string()
+    .max(255, "El nombre no puede exceder los 255 caracteres")
+    .optional()
+    .or(z.literal("")),
+  apellidos: z
+    .string()
+    .max(255, "Los apellidos no pueden exceder los 255 caracteres")
+    .optional()
+    .or(z.literal("")),
+  nif: z
+    .string()
+    .max(20, "El NIF no puede exceder los 20 caracteres")
+    .optional()
+    .or(z.literal("")),
+  telefono: z
+    .string()
+    .max(50, "El teléfono no puede exceder los 50 caracteres")
+    .optional()
+    .or(z.literal("")),
+  direccion: z
+    .string()
+    .max(255, "La dirección no puede exceder los 255 caracteres")
+    .optional()
+    .or(z.literal("")),
   rol_id: z.number().optional(),
 });
 

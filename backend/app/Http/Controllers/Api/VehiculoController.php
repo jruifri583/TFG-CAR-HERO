@@ -63,7 +63,15 @@ class VehiculoController extends Controller
     
     public function store(StoreVehiculoRequest $request)
     {
-        $vehiculo = Vehiculo::create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('imagen')) {
+            $filename = $request->file('imagen')->store('avatars', 'public');
+            $data['imagen'] = basename($filename);
+        }
+
+        $vehiculo = Vehiculo::create($data);
+
         return response()->json([
             'message' => 'Vehículo registrado correctamente.',
             'vehiculo' => $vehiculo

@@ -11,59 +11,107 @@ import { toast } from "sonner";
 import { useHeader } from "@/context/HeaderContext";
 
 const schema = z.object({
-  matricula: z.string().min(1, "La matrícula es obligatoria").max(20),
-  vin: z.string().min(1, "El VIN es obligatorio").max(20),
-  marca: z.string().max(100).optional().or(z.literal("")),
-  modelo: z.string().max(100).optional().or(z.literal("")),
-  año: z.preprocess(
-    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
-    z.number().min(1900).max(new Date().getFullYear() + 1).optional()
-  ),
-  kilometros: z.preprocess(
-    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
-    z.number().min(0).optional()
-  ),
+  matricula: z
+    .string()
+    .min(1, "La matrícula es obligatoria")
+    .max(20, "La matrícula no puede exceder los 20 caracteres"),
+  vin: z
+    .string()
+    .min(1, "El VIN es obligatorio")
+    .max(20, "El VIN no puede exceder los 20 caracteres"),
+  marca: z
+    .string()
+    .max(100, "La marca no puede exceder los 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+  modelo: z
+    .string()
+    .max(100, "El modelo no puede exceder los 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+  año: z.coerce
+    .number()
+    .min(1900, "El año debe ser posterior a 1900")
+    .max(new Date().getFullYear() + 1, "Año no válido")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  kilometros: z.coerce
+    .number()
+    .min(0, "Los kilómetros no pueden ser negativos")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
   fecha_ultima_itv: z.string().optional().or(z.literal("")),
 });
-
-type FormData = z.infer<typeof schema>;
 
 export default function NuevoVehiculoPage() {
   const { id: userId } = useParams();
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) });
-  const { setHeaderData } = useHeader();
+  } = useForm({ resolver: zodResolver(schema) });
+  const { setHeaderData, setOnImageChange } = useHeader();
 
   useEffect(() => {
     setHeaderData({
       nombre: "Nuevo vehículo",
-      imagen: "/avatars/default_car.png",
+      imagen: imagePreview || "/avatars/default_car.png",
+      isEditing: true,
     });
     return () => setHeaderData(null);
-  }, [setHeaderData]);
+  }, [setHeaderData, imagePreview]);
 
   useEffect(() => {
-    api.get(`/users/${userId}`).then((res) => {
-      const u = res.data;
-      setUserName(`${u.nombre} ${u.apellidos ?? ""}`);
-    });
+    if (userId) {
+      api.get(`/users/${userId}`).then((res) => {
+        const u = res.data.data ?? res.data;
+        setUserName(`${u.nombre} ${u.apellidos ?? ""}`);
+      });
+    }
   }, [userId]);
 
-  const onSubmit = async (data: FormData) => {
+  // Registra el handler de imagen
+  useEffect(() => {
+    setOnImageChange(() => (file: File) => {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+    return () => setOnImageChange(null);
+  }, [setOnImageChange]);
+
+  const onSubmit = async (data: any) => {
     try {
-      const payload = { ...data, user_id: Number(userId) };
-      await api.post("/vehiculos", payload);
+      const formData = new FormData();
+      Object.keys(data).forEach((key) => {
+        if (data[key] !== undefined && data[key] !== null && data[key] !== "") {
+          formData.append(key, data[key]);
+        }
+      });
+      formData.append("user_id", String(userId));
+      if (imageFile) {
+        formData.append("imagen", imageFile);
+      }
+
+      await api.post("/vehiculos", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
       toast.success("¡Vehículo creado con éxito!");
-      navigate(`/perfil/${userId}`);
+      navigate("/vehiculos");
     } catch (error: any) {
       console.error("Error creando vehículo:", error);
-      toast.error("No se pudo crear el vehículo. Revisa que no exista ya con la misma matrícula o VIN.");
+      toast.error(
+        "No se pudo crear el vehículo. Revisa que no exista ya con la misma matrícula o VIN."
+      );
     }
   };
 

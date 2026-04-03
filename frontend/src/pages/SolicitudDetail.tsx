@@ -3,8 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { CardContent, CardSinBorde } from "@/components/ui/card";
 import SolicitudCircularTracker from "@/components/ui/SolicitudCircularTracker";
+import { 
+  FileText,
+  Clock, MapPin, ShieldCheck, CreditCard
+} from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/context/useAuth";
@@ -70,28 +76,35 @@ interface Estado {
   slug: string;
 }
 
-// Orden de estados avanzables (excluye cancelado/finalizado que son terminales)
+// Orden de estados avanzables
 const ORDEN_ESTADOS = [
   "pendiente",
   "asignado",
   "en_recogida",
   "en_itv",
   "retornando",
+  "finalizado",
 ];
 
 // ─── Schema de edición ─────────────────────────────────────────────────────────
 
 const editSchema = z
   .object({
-    direccion: z.string().min(1, "La dirección es obligatoria").max(255),
+    direccion: z
+      .string()
+      .min(1, "La dirección es obligatoria")
+      .max(255, "La dirección no puede exceder los 255 caracteres"),
     fecha_programada: z.string().optional().or(z.literal("")),
     resolucion_id: z.number().nullable().optional(),
     user_empleado_id: z.number().nullable().optional(),
-    notas: z.string().max(500).optional().or(z.literal("")),
+    notas: z
+      .string()
+      .max(500, "Las notas no pueden exceder los 500 caracteres")
+      .optional()
+      .or(z.literal("")),
   })
   .refine(
     (data) => {
-      // Si hay empleado, debe haber fecha
       if (data.user_empleado_id && !data.fecha_programada) {
         return false;
       }
@@ -111,8 +124,6 @@ function fmt(iso: string | null) {
   if (!iso) return "-";
   return format(new Date(iso), "dd MMM yyyy HH:mm", { locale: es });
 }
-
-// ─── Sub-componentes ───────────────────────────────────────────────────────────
 
 function Field({
   label,
@@ -151,7 +162,7 @@ function SelectField({
     <div className="space-y-1">
       <label className="text-sm text-muted-foreground">{label}</label>
       <select
-        className="w-full border rounded-md px-3 py-2 text-sm bg-background"
+        className="w-full border rounded-md px-3 py-2 text-sm bg-background border-input"
         value={value ?? ""}
         onChange={(e) =>
           onChange(e.target.value ? Number(e.target.value) : null)
@@ -168,7 +179,7 @@ function SelectField({
   );
 }
 
-// ─── Página principal ──────────────────────────────────────────────────────────
+// ─── Componente Principal ──────────────────────────────────────────────────────
 
 export default function SolicitudDetailPage() {
   const { id } = useParams();
@@ -184,6 +195,7 @@ export default function SolicitudDetailPage() {
   const [estados, setEstados] = useState<Estado[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [avanzando, setAvanzando] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   const {
     register,
@@ -195,7 +207,6 @@ export default function SolicitudDetailPage() {
   } = useForm<EditFormData>({ resolver: zodResolver(editSchema) });
   const { setHeaderData } = useHeader();
 
-  // Carga solicitud
   const cargarSolicitud = () =>
     api.get(`/solicitudes/${id}`).then((res) => setSolicitud(res.data.data));
 
@@ -203,7 +214,6 @@ export default function SolicitudDetailPage() {
     cargarSolicitud();
   }, [id]);
 
-  // Carga meta una sola vez
   useEffect(() => {
     if (role !== "cliente") {
       api.get("/solicitudes/meta").then((res) => {
@@ -212,9 +222,14 @@ export default function SolicitudDetailPage() {
         setEmpleados(res.data.empleados ?? []);
       });
     }
+
+    if (role === "empleado") {
+      api.get("/contadores").then((res) => {
+        setIsBusy(res.data.has_active_request || false);
+      });
+    }
   }, [role]);
 
-  // Rellena el formulario al activar edición
   useEffect(() => {
     if (editando && solicitud) {
       reset({
@@ -229,7 +244,6 @@ export default function SolicitudDetailPage() {
     }
   }, [editando, solicitud]);
 
-  // 🔥 Sincroniza el header
   useEffect(() => {
     if (solicitud) {
       setHeaderData({
@@ -241,7 +255,6 @@ export default function SolicitudDetailPage() {
     return () => setHeaderData(null);
   }, [setHeaderData, solicitud, editando]);
 
-  // Calcula el siguiente estado posible
   const siguienteEstado = (): Estado | null => {
     if (!solicitud?.estado) return null;
     const slugActual = solicitud.estado.slug;
@@ -294,7 +307,7 @@ export default function SolicitudDetailPage() {
     }
   };
 
-  if (!solicitud) return <p>Cargando...</p>;
+  if (!solicitud) return <p className="p-8 text-center animate-pulse">Cargando...</p>;
 
   const siguiente = siguienteEstado();
   const puedeAvanzar =
@@ -304,297 +317,248 @@ export default function SolicitudDetailPage() {
     solicitud.estado?.slug !== "cancelado" &&
     solicitud.estado?.slug !== "finalizado";
 
-  // ─── MODO VISTA ──────────────────────────────────────────────────────────────
+  // ─── Vistas Secundarias ──────────────────────────────────────────────────────
 
-  if (!editando) {
+  function MapCard({ direccion }: { direccion: string }) {
+    const encoded = encodeURIComponent(direccion);
     return (
-      <div className="w-full space-y-6">
+      <CardSinBorde className="h-[450px] lg:h-full min-h-[450px] overflow-hidden relative group p-0 gap-0 shadow-sm rounded-xl">
+        <div className="absolute top-4 left-4 z-10 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-border flex items-center gap-2">
+           <MapPin size={16} className="text-primary" />
+           <span className="text-xs font-bold text-foreground truncate max-w-[200px]">{direccion}</span>
+        </div>
+        <iframe
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          style={{ border: 0 }}
+          src={`https://maps.google.com/maps?q=${encoded}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+          allowFullScreen
+          className="contrast-[1.1] brightness-[0.95]"
+        ></iframe>
+      </CardSinBorde>
+    );
+  }
 
-        {/* Datos principales */}
-        <CardSinBorde className="w-full">
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Dirección" value={solicitud.direccion} />
-            <Field
-              label="Fecha programada"
-              value={fmt(solicitud.fecha_programada)}
-            />
-            <Field label="Estado" value={solicitud.estado?.nombre ?? "-"} />
-            <Field
-              label="Resolución"
-              value={solicitud.resolucion?.nombre ?? "-"}
-            />
-            <Field label="Notas" value={solicitud.notas ?? "-"} />
-          </CardContent>
-        </CardSinBorde>
-
-        {/* Cliente — solo ADMIN / EMPLEADO */}
-        {role !== "cliente" && (
-          <CardSinBorde className="w-full">
-            <CardContent className="space-y-4">
-              <p className="font-semibold text-lg">Cliente</p>
-              <div className="flex items-center gap-4">
-                <img
-                  src={
-                    solicitud.cliente?.imagen ?? "/avatars/default_user.png"
-                  }
-                  className="w-14 h-14 rounded-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "/avatars/default_user.png";
+  function EmpleadoDetailView() {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="lg:col-span-7">
+           <MapCard direccion={solicitud!.direccion} />
+        </div>
+        <div className="lg:col-span-5 space-y-6">
+          <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
+            <CardContent className="p-6 flex flex-col h-full space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Estado de Servicio</Label>
+                  <h3 className="text-xl font-semibold leading-none">
+                    {solicitud!.estado?.nombre}
+                  </h3>
+                </div>
+                <div className="bg-muted p-3 rounded-xl">
+                   <Clock size={24} className="text-primary" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-primary flex items-center gap-2">
+                   <ShieldCheck size={14} /> Resultado ITV
+                </Label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={solicitud!.resolucion?.id ?? ""}
+                  onChange={async (e) => {
+                    const rid = e.target.value ? Number(e.target.value) : null;
+                    try {
+                      setAvanzando(true);
+                      await api.put(`/solicitudes/${id}`, { direccion: solicitud!.direccion, resolucion_id: rid });
+                      await cargarSolicitud();
+                    } catch(e) {
+                      console.error(e);
+                    } finally {
+                      setAvanzando(false);
+                    }
+                  }}
+                >
+                  <option value="">-- Determinar resolución --</option>
+                  {resoluciones.map(r => (
+                    <option key={r.id} value={r.id}>{r.nombre}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2 flex-1">
+                <Label className="text-primary flex items-center gap-2">
+                   <FileText size={14} /> Notas Operativas
+                </Label>
+                <Textarea 
+                  className="min-h-[80px] resize-none"
+                  placeholder="Observaciones..."
+                  defaultValue={solicitud!.notas ?? ""}
+                  onBlur={async (e) => {
+                    const val = e.target.value;
+                    if (val === solicitud!.notas) return;
+                    try {
+                      setAvanzando(true);
+                      await api.put(`/solicitudes/${id}`, { direccion: solicitud!.direccion, notas: val });
+                      await cargarSolicitud();
+                    } catch(e) {
+                      console.error(e);
+                    } finally {
+                      setAvanzando(false);
+                    }
                   }}
                 />
+              </div>
+              <div className="pt-2">
+                 {puedeAvanzar ? (
+                   <div className="space-y-3">
+                     <Button 
+                       onClick={handleAvanzarEstado}
+                       disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
+                       className="w-full py-6 text-md font-bold uppercase tracking-wider"
+                       variant={(isBusy && siguiente?.slug === 'en_recogida') ? 'outline' : 'default'}
+                     >
+                       {avanzando ? "Actualizando..." : 
+                        (isBusy && siguiente?.slug === 'en_recogida') ? "Servicio activo" : 
+                        `Avanzar a ${siguiente?.nombre}`}
+                     </Button>
+                     {isBusy && siguiente?.slug === 'en_recogida' && (
+                        <p className="text-center text-destructive font-medium animate-pulse">
+                          * Tienes otro servicio activo pendiente de entrega.
+                        </p>
+                     )}
+                   </div>
+                 ) : (
+                    <CardSinBorde className="bg-muted/50 p-4 rounded-xl text-center border border-dashed">
+                      <p className="text-xs font-medium text-muted-foreground italic">Servicio finalizado o en espera de pago</p>
+                    </CardSinBorde>
+                 )}
+              </div>
+            </CardContent>
+          </CardSinBorde>
+        </div>
+      </div>
+    );
+  }
+
+  function StandardDetailView() {
+    if (editando) {
+      return (
+        <div className="w-full space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <CardSinBorde className="w-full">
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
+                <div className="space-y-1">
+                  <label className="text-sm text-muted-foreground">Dirección *</label>
+                  <Input type="text" {...register("direccion")} />
+                  {errors.direccion && <p className="text-red-500 text-xs">{errors.direccion.message}</p>}
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm text-muted-foreground">Fecha programada</label>
+                  <Input type="datetime-local" {...register("fecha_programada")} />
+                </div>
+                <SelectField label="Resolución" value={watch("resolucion_id")} onChange={(v) => setValue("resolucion_id", v)} options={resoluciones} placeholder="Sin resolución" />
+                {role === "administrador" && (
+                  <div className="space-y-1">
+                    <SelectField label="Empleado" value={watch("user_empleado_id")} onChange={(v) => setValue("user_empleado_id", v)} options={empleados.map((e) => ({ id: e.id, nombre: `${e.nombre} ${e.apellidos}` }))} placeholder="Sin asignar" />
+                    {errors.user_empleado_id && <p className="text-red-500 text-xs">{errors.user_empleado_id.message}</p>}
+                  </div>
+                )}
+                <div className="space-y-1 sm:col-span-2">
+                  <label className="text-sm text-muted-foreground">Notas</label>
+                  <Input type="text" {...register("notas")} placeholder="Observaciones opcionales" />
+                  {errors.notas && <p className="text-red-500 text-xs">{errors.notas.message}</p>}
+                </div>
+              </CardContent>
+            </CardSinBorde>
+            {serverError && <p className="text-red-500 text-sm text-right font-bold italic">{serverError}</p>}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => { setEditando(false); setServerError(null); }}>Cancelar</Button>
+              <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Guardando..." : "Guardar cambios"}</Button>
+            </div>
+          </form>
+        </div>
+      );
+    }
+    return (
+      <div className="w-full space-y-6">
+        <CardSinBorde className="w-full">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
+            <Field label="Dirección" value={solicitud!.direccion} />
+            <Field label="Fecha programada" value={fmt(solicitud!.fecha_programada)} />
+            <Field label="Estado" value={solicitud!.estado?.nombre ?? "-"} />
+            <Field label="Resolución" value={solicitud!.resolucion?.nombre ?? "-"} />
+            <Field label="Notas" value={solicitud!.notas ?? "-"} />
+          </CardContent>
+        </CardSinBorde>
+        {role !== "cliente" && (
+          <CardSinBorde className="w-full">
+            <CardContent className="space-y-4 pt-6">
+              <p className="font-semibold text-lg">Cliente</p>
+              <div className="flex items-center gap-4">
+                <img src={solicitud!.cliente?.imagen ?? "/avatars/default_user.png"} className="w-14 h-14 rounded-full object-cover" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                  <Field
-                    label="Nombre"
-                    value={`${solicitud.cliente?.nombre ?? ""} ${solicitud.cliente?.apellidos ?? ""}`}
-                  />
-                  <Field
-                    label="Email"
-                    value={solicitud.cliente?.email ?? "-"}
-                  />
+                  <Field label="Nombre" value={`${solicitud!.cliente?.nombre ?? ""} ${solicitud!.cliente?.apellidos ?? ""}`} />
+                  <Field label="Email" value={solicitud!.cliente?.email ?? "-"} />
                 </div>
               </div>
             </CardContent>
           </CardSinBorde>
         )}
-
-        {/* Vehículo */}
         <CardSinBorde className="w-full">
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <p className="font-semibold text-lg">Vehículo</p>
             <div className="flex items-center gap-4">
-              <img
-                src={
-                  solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"
-                }
-                className="w-14 h-14 rounded object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "/avatars/default_car.png";
-                }}
-              />
+              <img src={solicitud!.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-14 h-14 rounded object-cover" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                <Field
-                  label="Matrícula"
-                  value={solicitud.vehiculo?.matricula ?? "-"}
-                />
-                <Field
-                  label="Marca / Modelo"
-                  value={`${solicitud.vehiculo?.marca ?? ""} ${solicitud.vehiculo?.modelo ?? ""}`}
-                />
+                <Field label="Matrícula" value={solicitud!.vehiculo?.matricula ?? "-"} />
+                <Field label="Marca / Modelo" value={`${solicitud!.vehiculo?.marca ?? ""} ${solicitud!.vehiculo?.modelo ?? ""}`} />
               </div>
             </div>
           </CardContent>
         </CardSinBorde>
-
-        {/* Empleado */}
-        <CardSinBorde className="w-full">
-          <CardContent className="space-y-4">
-            <p className="font-semibold text-lg">Empleado</p>
-            {solicitud.empleado ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field
-                  label="Nombre"
-                  value={`${solicitud.empleado.nombre} ${solicitud.empleado.apellidos}`}
-                />
-                <Field label="Email" value={solicitud.empleado.email} />
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">Sin asignar</p>
-            )}
-          </CardContent>
-        </CardSinBorde>
-
-        {/* Pago */}
-        <CardSinBorde className="w-full">
-          <CardContent className="space-y-4">
-            <p className="font-semibold text-lg">Pago</p>
-            {solicitud.pago ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field
-                  label="Importe"
-                  value={`${solicitud.pago.importe} €`}
-                />
-                <Field
-                  label="Método de pago"
-                  value={solicitud.pago.metodo_pago?.nombre ?? "-"}
-                />
-                <Field
-                  label="Estado del pago"
-                  value={solicitud.pago.estado_pago?.nombre ?? "-"}
-                />
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                Sin pago asociado
-              </p>
-            )}
-          </CardContent>
-        </CardSinBorde>
-
-        {/* Horas + Tracker */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CardSinBorde className="w-full">
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pt-6">
               <p className="font-semibold text-lg">Seguimiento horario</p>
               <div className="grid grid-cols-1 gap-4">
-                <Field
-                  label="Hora recogida"
-                  value={fmt(solicitud.hora_recogida)}
-                />
-                <Field label="Hora ITV" value={fmt(solicitud.hora_itv)} />
-                <Field
-                  label="Hora entrega"
-                  value={fmt(solicitud.hora_entrega)}
-                />
+                <Field label="Hora recogida" value={fmt(solicitud!.hora_recogida)} />
+                <Field label="Hora ITV" value={fmt(solicitud!.hora_itv)} />
+                <Field label="Hora entrega" value={fmt(solicitud!.hora_entrega)} />
               </div>
             </CardContent>
           </CardSinBorde>
-
           <CardSinBorde className="w-full">
-            <CardContent className="flex justify-center items-center">
-              <SolicitudCircularTracker estado={solicitud.estado} />
+            <CardContent className="flex justify-center items-center pt-6">
+              <SolicitudCircularTracker estado={solicitud!.estado} />
             </CardContent>
           </CardSinBorde>
         </div>
-
-        {/* Error avance */}
-        {serverError && (
-          <p className="text-red-500 text-sm text-right">{serverError}</p>
-        )}
-
-        {/* Botones */}
-        {!(solicitud.estado?.slug === "finalizado" && solicitud.pago) && (
-          <div className="flex justify-end gap-2">
-            <Button
-              className="w-50"
-              variant="outline"
-              onClick={() => navigate(-1)}
-            >
-              Atrás
-            </Button>
-
-            {/* Avanzar estado — empleado y admin */}
-            {puedeAvanzar && (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => navigate(-1)}>Atrás</Button>
+          {puedeAvanzar && (
+            <div className="flex flex-col items-end gap-2">
               <Button
-                className="w-50"
-                variant="secondary"
+                className={`px-8 ${isBusy && siguiente?.slug === 'en_recogida' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'variant-secondary'}`}
+                variant={isBusy && siguiente?.slug === 'en_recogida' ? 'ghost' : 'secondary'}
                 onClick={handleAvanzarEstado}
-                disabled={avanzando}
+                disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
               >
-                {avanzando
-                  ? "Avanzando..."
-                  : `Avanzar a "${siguiente?.nombre}"`}
+                {avanzando ? "Avanzando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Servicio activo" : `Avanzar a "${siguiente?.nombre}"`}
               </Button>
-            )}
-
-            {/* Editar — solo admin y empleado */}
-            {role !== "cliente" && (
-              <Button className="w-50" onClick={() => setEditando(true)}>
-                Editar
-              </Button>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+          {role !== "cliente" && <Button onClick={() => setEditando(true)}>Editar</Button>}
+        </div>
       </div>
     );
   }
 
-  // ─── MODO EDICIÓN ────────────────────────────────────────────────────────────
+  // ─── Render Final ────────────────────────────────────────────────────────────
 
   return (
-    <div className="w-full space-y-6">
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Datos principales */}
-        <CardSinBorde className="w-full">
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">
-                Dirección *
-              </label>
-              <Input type="text" {...register("direccion")} />
-              {errors.direccion && (
-                <p className="text-red-500 text-xs">
-                  {errors.direccion.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">
-                Fecha programada
-              </label>
-              <Input
-                type="datetime-local"
-                {...register("fecha_programada")}
-              />
-            </div>
-
-            <SelectField
-              label="Resolución"
-              value={watch("resolucion_id")}
-              onChange={(v) => setValue("resolucion_id", v)}
-              options={resoluciones}
-              placeholder="Sin resolución"
-            />
-
-            {/* Empleado — solo admin */}
-            {role === "administrador" && (
-              <div className="space-y-1">
-                <SelectField
-                  label="Empleado"
-                  value={watch("user_empleado_id")}
-                  onChange={(v) => setValue("user_empleado_id", v)}
-                  options={empleados.map((e) => ({
-                    id: e.id,
-                    nombre: `${e.nombre} ${e.apellidos}`,
-                  }))}
-                  placeholder="Sin asignar"
-                />
-                {errors.user_empleado_id && (
-                  <p className="text-red-500 text-xs">
-                    {errors.user_empleado_id.message}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="space-y-1 sm:col-span-2">
-              <label className="text-sm text-muted-foreground">Notas</label>
-              <Input
-                type="text"
-                {...register("notas")}
-                placeholder="Observaciones opcionales"
-              />
-              {errors.notas && (
-                <p className="text-red-500 text-xs">{errors.notas.message}</p>
-              )}
-            </div>
-          </CardContent>
-        </CardSinBorde>
-
-        {serverError && (
-          <p className="text-red-500 text-sm text-right">{serverError}</p>
-        )}
-
-        <div className="flex justify-end gap-2">
-          <Button
-            className="w-50"
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setEditando(false);
-              setServerError(null);
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button className="w-50" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Guardando..." : "Guardar cambios"}
-          </Button>
-        </div>
-      </form>
+    <div className="w-full">
+      {role === "empleado" && !editando ? <EmpleadoDetailView /> : <StandardDetailView />}
     </div>
   );
 }

@@ -49,6 +49,18 @@ class DashboardController extends Controller
                 })
                 ->get(['id', 'marca', 'modelo', 'matricula', 'fecha_ultima_itv'])
             : [],
+        'has_active_request' => $user->rol->slug === \App\Enums\RolSlug::EMPLEADO->value 
+            ? \App\Models\Solicitud::where('user_empleado_id', $user->id)
+                ->whereHas('estado', function($q) {
+                    $q->whereIn('slug', [
+                        \App\Enums\EstadoSlug::EN_RECOGIDA->value,
+                        \App\Enums\EstadoSlug::EN_ITV->value,
+                        \App\Enums\EstadoSlug::RETORNANDO->value,
+                    ]);
+                })
+                ->whereNull('hora_entrega')
+                ->exists()
+            : false,
     ]);
 }
 

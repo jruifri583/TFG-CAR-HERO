@@ -14,32 +14,36 @@ const schema = z.object({
   matricula: z
     .string()
     .min(1, "La matrícula es obligatoria")
-    .max(20, "Máximo 20 caracteres"),
+    .max(20, "La matrícula no puede exceder los 20 caracteres"),
   vin: z
     .string()
     .min(1, "El VIN es obligatorio")
-    .max(20, "Máximo 20 caracteres"),
+    .max(20, "El VIN no puede exceder los 20 caracteres"),
   marca: z
     .string()
-    .max(100, "Máximo 100 caracteres")
+    .max(100, "La marca no puede exceder los 100 caracteres")
     .optional()
     .or(z.literal("")),
   modelo: z
     .string()
-    .max(100, "Máximo 100 caracteres")
+    .max(100, "El modelo no puede exceder los 100 caracteres")
     .optional()
     .or(z.literal("")),
-  año: z
+  año: z.coerce
     .number()
-    .min(1900, "Año inválido")
-    .max(new Date().getFullYear() + 1, "Año inválido")
+    .min(1900, "El año debe ser posterior a 1900")
+    .max(new Date().getFullYear() + 1, "Año no válido")
     .optional()
-    .nullable(),
-  kilometros: z.number().min(0, "No puede ser negativo").optional().nullable(),
+    .nullable()
+    .or(z.literal("").transform(() => undefined)),
+  kilometros: z.coerce
+    .number()
+    .min(0, "Los kilómetros no pueden ser negativos")
+    .optional()
+    .nullable()
+    .or(z.literal("").transform(() => undefined)),
   fecha_ultima_itv: z.string().optional().or(z.literal("")),
 });
-
-type FormData = z.infer<typeof schema>;
 
 interface Vehiculo {
   id: number;
@@ -73,7 +77,7 @@ export default function VehiculoDetailPage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm({
     resolver: zodResolver(schema),
   });
 
@@ -144,7 +148,7 @@ export default function VehiculoDetailPage() {
     setIsEditing(false);
   };
 
-  const onSubmit = async (data: FormData) => {
+  const onSubmit = async (data: any) => {
     try {
       const res = await api.put(`/vehiculos/${id}`, {
         ...data,
@@ -241,7 +245,7 @@ export default function VehiculoDetailPage() {
                 <label className="text-sm text-muted-foreground">Año</label>
                 <Input
                   type="number"
-                  {...register("año", { valueAsNumber: true })}
+                  {...register("año")}
                   readOnly={!isEditing}
                   className={readOnlyClass}
                 />
@@ -256,7 +260,7 @@ export default function VehiculoDetailPage() {
                 </label>
                 <Input
                   type="number"
-                  {...register("kilometros", { valueAsNumber: true })}
+                  {...register("kilometros")}
                   readOnly={!isEditing}
                   className={readOnlyClass}
                 />
