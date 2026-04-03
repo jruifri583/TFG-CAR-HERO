@@ -7,26 +7,29 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
+import { useHeader } from "@/context/HeaderContext";
 
 const schema = z.object({
   matricula: z.string().min(1, "La matrícula es obligatoria").max(20),
   vin: z.string().min(1, "El VIN es obligatorio").max(20),
   marca: z.string().max(100).optional().or(z.literal("")),
   modelo: z.string().max(100).optional().or(z.literal("")),
-  año: z
-    .number()
-    .min(1900)
-    .max(new Date().getFullYear() + 1)
-    .optional()
-    .nullable(),
-  kilometros: z.number().min(0).optional().nullable(),
+  año: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().min(1900).max(new Date().getFullYear() + 1).optional()
+  ),
+  kilometros: z.preprocess(
+    (v) => (v === "" || v === undefined || v === null ? undefined : Number(v)),
+    z.number().min(0).optional()
+  ),
   fecha_ultima_itv: z.string().optional().or(z.literal("")),
 });
 
 type FormData = z.infer<typeof schema>;
 
 export default function NuevoVehiculoPage() {
-  const { userId } = useParams();
+  const { id: userId } = useParams();
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
 
@@ -35,6 +38,15 @@ export default function NuevoVehiculoPage() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { setHeaderData } = useHeader();
+
+  useEffect(() => {
+    setHeaderData({
+      nombre: "Nuevo vehículo",
+      imagen: "/avatars/default_car.png",
+    });
+    return () => setHeaderData(null);
+  }, [setHeaderData]);
 
   useEffect(() => {
     api.get(`/users/${userId}`).then((res) => {
@@ -47,15 +59,16 @@ export default function NuevoVehiculoPage() {
     try {
       const payload = { ...data, user_id: Number(userId) };
       await api.post("/vehiculos", payload);
+      toast.success("¡Vehículo creado con éxito!");
       navigate(`/perfil/${userId}`);
     } catch (error: any) {
       console.error("Error creando vehículo:", error);
+      toast.error("No se pudo crear el vehículo. Revisa que no exista ya con la misma matrícula o VIN.");
     }
   };
 
   return (
     <div className="w-full space-y-6">
-      <span className="text-4xl font-bold inline-block">Nuevo vehículo</span>
       {userName && (
         <p className="text-muted-foreground">
           Para: <strong>{userName}</strong>
@@ -124,7 +137,7 @@ export default function NuevoVehiculoPage() {
                 <label className="text-sm text-muted-foreground">Año</label>
                 <Input
                   type="number"
-                  {...register("año", { valueAsNumber: true })}
+                  {...register("año")}
                   placeholder="2020"
                 />
                 {errors.año && (
@@ -138,7 +151,7 @@ export default function NuevoVehiculoPage() {
                 </label>
                 <Input
                   type="number"
-                  {...register("kilometros", { valueAsNumber: true })}
+                  {...register("kilometros")}
                   placeholder="50000"
                 />
                 {errors.kilometros && (

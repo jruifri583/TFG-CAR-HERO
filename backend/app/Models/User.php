@@ -54,13 +54,13 @@ class User extends Authenticatable
     // Solicitudes donde es cliente
     public function solicitudesComoCliente()
     {
-        return $this->hasMany(Solicitud::class, 'cliente_id');
+        return $this->hasMany(Solicitud::class, 'user_cliente_id');
     }
 
     // Solicitudes donde es empleado
     public function solicitudesComoEmpleado()
     {
-        return $this->hasMany(Solicitud::class, 'empleado_id');
+        return $this->hasMany(Solicitud::class, 'user_empleado_id');
     }
 
     // Rol del usuario

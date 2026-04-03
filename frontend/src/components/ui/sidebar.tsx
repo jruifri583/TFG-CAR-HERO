@@ -100,9 +100,25 @@ export default function Sidebar() {
   // ------------------------------
 
   useEffect(() => {
-    const desde = localStorage.getItem("last_login");
+    const lastLogin = localStorage.getItem("last_login");
+    const vistosStr = localStorage.getItem("vistos");
+    let vistos: Record<string, string> = {};
+    try {
+      vistos = vistosStr ? JSON.parse(vistosStr) : {};
+    } catch (e) {
+      vistos = {};
+    }
+
+    // Merge with last_login for items never seen
+    const params: Record<string, string> = {};
+    Object.values(RUTA_CONTADOR).forEach((key) => {
+      params[key] = vistos[key] || lastLogin || "";
+    });
+    // Add mensajes if not there (it has its own logic but we can pass it)
+    params["mensajes"] = vistos["mensajes"] || lastLogin || "";
+
     api
-      .get("/contadores", { params: { desde } })
+      .get("/contadores", { params: { vistos: params } })
       .then((res) => setContadores(res.data));
   }, []);
 
@@ -129,6 +145,17 @@ export default function Sidebar() {
     const key = RUTA_CONTADOR[location.pathname];
     if (key) {
       setContadores((prev) => ({ ...prev, [key]: 0 }));
+      
+      const vistosStr = localStorage.getItem("vistos");
+      let vistos: Record<string, string> = {};
+      try {
+        vistos = vistosStr ? JSON.parse(vistosStr) : {};
+      } catch (e) {
+        vistos = {};
+      }
+      
+      vistos[key] = new Date().toISOString();
+      localStorage.setItem("vistos", JSON.stringify(vistos));
     }
   }, [location.pathname]);
 

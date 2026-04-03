@@ -19,6 +19,7 @@ import {
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { CardSinBorde, CardContent } from "@/components/ui/card";
 
 interface Mensaje {
   id: number;
@@ -154,8 +155,6 @@ export default function MensajesPage() {
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6" />
-
       <Table>
         <TableHeader>
           <TableRow>
@@ -172,7 +171,6 @@ export default function MensajesPage() {
             >
               Email{renderSortArrow("email")}
             </TableHead>
-            <TableHead className="font-bold hidden md:table-cell">Mensaje</TableHead>
             <TableHead
               className="cursor-pointer font-bold"
               onClick={() => handleSort("created_at")}
@@ -185,7 +183,7 @@ export default function MensajesPage() {
         <TableBody>
           {mensajes.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+              <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
                 No hay mensajes en la bandeja
               </TableCell>
             </TableRow>
@@ -209,11 +207,6 @@ export default function MensajesPage() {
                   </TableCell>
                   <TableCell className="text-foreground">{mensaje.nombre}</TableCell>
                   <TableCell className="hidden sm:table-cell">{mensaje.email}</TableCell>
-                  <TableCell className="truncate max-w-[200px] hidden md:table-cell">
-                    {mensaje.mensaje.length > 50
-                      ? mensaje.mensaje.substring(0, 50) + "..."
-                      : mensaje.mensaje}
-                  </TableCell>
                   <TableCell>
                     {new Date(mensaje.created_at).toLocaleDateString("es-ES")}
                   </TableCell>
@@ -221,42 +214,48 @@ export default function MensajesPage() {
 
                 {expandedId === mensaje.id && (
                   <TableRow className="bg-muted/30">
-                    <TableCell colSpan={5} className="p-0 border-b-2 border-primary/20">
-                      <div className="p-6 flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-200">
-                        {/* Mensaje Original */}
-                        <div className="flex flex-col gap-2">
+                    <TableCell colSpan={4} className="p-0 border-b-2 border-primary/20">
+                      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                        {/* Mensaje Original (Izquierda) */}
+                        <div className="flex flex-col gap-3 min-w-0">
                           <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                            Mensaje original
+                            Mensaje
                           </span>
-                          <div className="bg-background p-4 rounded-md shadow-sm text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                            {mensaje.mensaje}
-                          </div>
+                          <CardSinBorde className="border border-input/50 shadow-sm flex-1">
+                            <CardContent className="p-5 text-sm text-foreground whitespace-pre-wrap leading-relaxed break-words">
+                              {mensaje.mensaje}
+                            </CardContent>
+                          </CardSinBorde>
                         </div>
 
-                        {/* Zona de Respuesta */}
-                        <div className="flex flex-col gap-2">
+                        {/* Zona de Respuesta (Derecha) */}
+                        <div className="flex flex-col gap-3 min-w-0">
                           <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                            Tu Respuesta
+                            {mensaje.respondido_at ? "Respuesta enviada" : "Tu Respuesta"}
                           </span>
                           
                           {mensaje.respondido_at ? (
-                            <div className="bg-green-50/50 dark:bg-green-900/10 p-4 rounded-md border border-green-200 dark:border-green-800 text-sm whitespace-pre-wrap">
-                              <p className="text-green-700 dark:text-green-400 font-semibold mb-2 flex items-center gap-2">
-                                ✓ Respondido el {new Date(mensaje.respondido_at).toLocaleString("es-ES")}
-                              </p>
-                              <span className="text-foreground">{mensaje.respuesta}</span>
-                            </div>
+                            <CardSinBorde className="bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 shadow-sm flex-1">
+                              <CardContent className="p-5 text-sm whitespace-pre-wrap break-words flex flex-col h-full">
+                                <p className="text-green-700 dark:text-green-400 font-semibold mb-4 flex items-center gap-2">
+                                  ✓ Respondido el {new Date(mensaje.respondido_at).toLocaleString("es-ES")}
+                                </p>
+                                <span className="text-foreground flex-1">{mensaje.respuesta}</span>
+                              </CardContent>
+                            </CardSinBorde>
                           ) : (
-                            <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3 h-full">
                               <textarea
-                                className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex-1 min-h-[150px] w-full rounded-md border border-input bg-background px-4 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 transition-all"
                                 placeholder={`Escribe de vuelta a ${mensaje.nombre}...`}
                                 value={replyText}
                                 onChange={(e) => setReplyText(e.target.value)}
                                 disabled={replying}
                               />
-                              <div className="flex justify-end">
+                              <div className="flex justify-end pt-1">
                                 <Button 
+                                  size="lg"
+                                  className="px-8"
                                   onClick={() => handleReplySubmit(mensaje.id)}
                                   disabled={replying || !replyText.trim()}
                                 >

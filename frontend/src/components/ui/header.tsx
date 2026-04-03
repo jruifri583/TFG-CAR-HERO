@@ -56,7 +56,7 @@ export default function Header() {
       <header className="h-45 flex flex-col relative">
         <div className="h-full w-full bg-gradiente">
           <div className="flex gap-6 absolute top-1/2 right-12 -translate-y-1/2">
-            <div className="flex flex-col self-center gap-1 text-right">
+            <div className="flex flex-col self-center gap-4 text-right items-end">
               <span className="text-4xl text-foreground">
                 <strong>{headerData.nombre}</strong>
               </span>
@@ -76,6 +76,7 @@ export default function Header() {
                   />
                   <Button
                     variant="outline"
+                    className="w-50"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Cambiar imagen
@@ -86,10 +87,10 @@ export default function Header() {
               )}
             </div>
             <Avatar className="size-40 border-4 border-white rounded-full">
-              <AvatarImage
-                src={headerData.imagen ?? "/avatars/default_user.png"}
-              />
-              <AvatarFallback>VH</AvatarFallback>
+              <AvatarImage src={headerData.imagen ?? undefined} />
+              <AvatarFallback className="bg-slate-100 text-blue-900 text-8xl font-black border-none ring-0">
+                {headerData.avatar || headerData.nombre.charAt(0)}
+              </AvatarFallback>
             </Avatar>
           </div>
         </div>
@@ -104,7 +105,7 @@ export default function Header() {
       <header className="h-45 flex flex-col relative">
         <div className="h-full w-full bg-gradiente">
           <div className="flex gap-6 absolute top-1/2 right-12 -translate-y-1/2">
-            <div className="flex flex-col self-center gap-1 text-right">
+            <div className="flex flex-col self-center gap-4 text-right items-end">
               <span className="text-4xl text-foreground">
                 <strong>{routeConfig.titulo}</strong>
               </span>
@@ -126,7 +127,7 @@ export default function Header() {
     <header className="h-45 flex flex-col relative">
       <div className="h-full w-full bg-gradiente">
         <div className="flex gap-6 absolute top-1/2 right-12 -translate-y-1/2">
-          <div className="flex flex-col self-center gap-1 text-right">
+          <div className="flex flex-col self-center gap-4 text-right items-end">
             <span className="text-4xl text-foreground">
               Hola{" "}
               <strong>
@@ -134,7 +135,7 @@ export default function Header() {
               </strong>
             </span>
             {!isPerfilPage ? (
-              <Button asChild>
+              <Button asChild className="w-50">
                 <NavLink to="/perfil">Ver perfil</NavLink>
               </Button>
             ) : isEditing ? (
@@ -146,12 +147,13 @@ export default function Header() {
                   className="hidden"
                   onChange={handleImageChange}
                 />
-                <Button
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Cambiar imagen
-                </Button>
+                    <Button
+                      variant="outline"
+                      className="w-50"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      Cambiar imagen
+                    </Button>
               </>
             ) : (
               <div className="h-9" />

@@ -101,11 +101,12 @@ export default function LoginPage() {
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="flex flex-col mt-8 gap-6"
+              noValidate
             >
               <div className="flex flex-col gap-2">
                 <Label>Email</Label>
                 <Input
-                  type="email"
+                  type="text"
                   {...register("email")}
                   placeholder="Introduce tu email"
                 />

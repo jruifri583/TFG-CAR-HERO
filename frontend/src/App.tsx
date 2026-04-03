@@ -96,7 +96,7 @@ function App() {
             <Route
               path="/perfil/:id/nuevo-vehiculo"
               element={
-                <ProtectedRoute roles={["cliente"]}>
+                <ProtectedRoute roles={["administrador", "cliente"]}>
                   <NuevoVehiculoPage />
                 </ProtectedRoute>
               }
@@ -126,7 +126,7 @@ function App() {
             <Route
               path="/perfil/:id/nueva-solicitud"
               element={
-                <ProtectedRoute roles={["cliente"]}>
+                <ProtectedRoute roles={["administrador", "cliente"]}>
                   <NuevaSolicitudPage />
                 </ProtectedRoute>
               }

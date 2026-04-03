@@ -543,7 +543,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Sección ITV */}
-        <CardSinBorde className="border-none shadow-none bg-accent/5 overflow-hidden">
+        <CardSinBorde className="border-none shadow-none bg-white overflow-hidden">
           <CardContent className="p-0">
             {contadores?.itv_alertas && contadores.itv_alertas.length > 0 ? (
               <div className="flex flex-col gap-3">

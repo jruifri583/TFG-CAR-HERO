@@ -215,6 +215,28 @@ export default function PerfilPage() {
     <div className="w-full">
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-4">
+          {isAdmin && !isOwnProfile && !isEditing && (
+            <div className="flex justify-end">
+              <ButtonGroup>
+                <Button
+                  className="w-50"
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(`/perfil/${id}/nuevo-vehiculo`)}
+                >
+                  Añadir vehículo
+                </Button>
+                <Button
+                  className="w-50"
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(`/perfil/${id}/nueva-solicitud`)}
+                >
+                  Crear solicitud
+                </Button>
+              </ButtonGroup>
+            </div>
+          )}
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -356,28 +378,6 @@ export default function PerfilPage() {
               )}
             </div>
 
-            {isAdmin && !isOwnProfile && !isEditing && (
-              <div className="flex gap-2 mt-4">
-                <ButtonGroup>
-                  <Button
-                    className="w-50"
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate(`/perfil/${id}/nuevo-vehiculo`)}
-                  >
-                    Añadir vehículo
-                  </Button>
-                  <Button
-                    className="w-50"
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate(`/perfil/${id}/nueva-solicitud`)}
-                  >
-                    Crear solicitud
-                  </Button>
-                </ButtonGroup>
-              </div>
-            )}
 
             <div className="flex flex-wrap gap-2 justify-end mt-4">
               {!isEditing ? (

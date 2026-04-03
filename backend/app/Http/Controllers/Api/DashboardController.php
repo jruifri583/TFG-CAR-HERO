@@ -13,21 +13,26 @@ class DashboardController extends Controller
 {
     /** @var \App\Models\User $user */
     $user = $request->user();
-    $desde = $request->get('desde');
+    $vistos = $request->get('vistos', []);
+
+    $getDesde = function($category) use ($vistos) {
+        return $vistos[$category] ?? null;
+    };
 
     return response()->json([
         'solicitudes' => \App\Models\Solicitud::visibleFor($user)
             ->whereHas('estado', fn($q) => $q->whereNotIn('slug', ['finalizado', 'cancelado']))
+            ->when($getDesde('solicitudes'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
-        'usuarios' => \App\Models\User::when($desde, fn($q) => $q->where('created_at', '>', $desde))
+        'usuarios' => \App\Models\User::when($getDesde('usuarios'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
         'vehiculos' => \App\Models\Vehiculo::visibleFor($user)
-            ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->when($getDesde('vehiculos'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
         'pagos' => \App\Models\Pago::visibleFor($user)
-            ->when($desde, fn($q) => $q->where('created_at', '>', $desde))
+            ->when($getDesde('pagos'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
-        'historial' => \App\Models\Historial::visibleFor($user)->when($desde, fn($q) => $q->where('created_at', '>', $desde))->count(),
+        'historial' => \App\Models\Historial::visibleFor($user)->when($getDesde('historial'), fn($q, $d) => $q->where('created_at', '>', $d))->count(),
         'mensajes' => $user->rol->slug === \App\Enums\RolSlug::ADMINISTRADOR->value 
             ? \App\Models\MensajeContacto::whereNull('leido_at')->count()
             : 0,

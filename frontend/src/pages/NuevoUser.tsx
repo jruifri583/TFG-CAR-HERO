@@ -6,6 +6,7 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 const ROLES = [
   { id: 1, nombre: "Administrador", slug: "administrador" },
@@ -43,9 +44,11 @@ export default function NuevoUsuarioPage() {
   const onSubmit = async (data: FormData) => {
     try {
       await api.post("/users", data);
+      toast.success("¡Usuario creado con éxito!");
       navigate("/users");
     } catch (error: any) {
       console.error("Error creando usuario:", error);
+      toast.error("No se pudo crear el usuario. Por favor, revisa los datos.");
     }
   };
 
@@ -56,12 +59,12 @@ export default function NuevoUsuarioPage() {
       </span>
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-4">
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm text-muted-foreground">Email *</label>
                 <Input
-                  type="email"
+                  type="text"
                   {...register("email")}
                   placeholder="email@ejemplo.com"
                 />

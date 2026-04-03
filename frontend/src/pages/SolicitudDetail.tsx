@@ -11,6 +11,7 @@ import { useAuth } from "@/context/useAuth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useHeader } from "@/context/HeaderContext";
 
 // ─── Interfaces ────────────────────────────────────────────────────────────────
 
@@ -80,13 +81,27 @@ const ORDEN_ESTADOS = [
 
 // ─── Schema de edición ─────────────────────────────────────────────────────────
 
-const editSchema = z.object({
-  direccion: z.string().min(1, "La dirección es obligatoria").max(255),
-  fecha_programada: z.string().optional().or(z.literal("")),
-  resolucion_id: z.number().nullable().optional(),
-  user_empleado_id: z.number().nullable().optional(),
-  notas: z.string().max(500).optional().or(z.literal("")),
-});
+const editSchema = z
+  .object({
+    direccion: z.string().min(1, "La dirección es obligatoria").max(255),
+    fecha_programada: z.string().optional().or(z.literal("")),
+    resolucion_id: z.number().nullable().optional(),
+    user_empleado_id: z.number().nullable().optional(),
+    notas: z.string().max(500).optional().or(z.literal("")),
+  })
+  .refine(
+    (data) => {
+      // Si hay empleado, debe haber fecha
+      if (data.user_empleado_id && !data.fecha_programada) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Se requiere fecha programada para asignar un empleado.",
+      path: ["user_empleado_id"],
+    }
+  );
 
 type EditFormData = z.infer<typeof editSchema>;
 
@@ -178,6 +193,7 @@ export default function SolicitudDetailPage() {
     formState: { errors, isSubmitting },
     reset,
   } = useForm<EditFormData>({ resolver: zodResolver(editSchema) });
+  const { setHeaderData } = useHeader();
 
   // Carga solicitud
   const cargarSolicitud = () =>
@@ -212,6 +228,18 @@ export default function SolicitudDetailPage() {
       });
     }
   }, [editando, solicitud]);
+
+  // 🔥 Sincroniza el header
+  useEffect(() => {
+    if (solicitud) {
+      setHeaderData({
+        nombre: editando ? "Editar solicitud" : `Solicitud`,
+        imagen: null,
+        avatar: String(solicitud.id), 
+      });
+    }
+    return () => setHeaderData(null);
+  }, [setHeaderData, solicitud, editando]);
 
   // Calcula el siguiente estado posible
   const siguienteEstado = (): Estado | null => {
@@ -281,9 +309,6 @@ export default function SolicitudDetailPage() {
   if (!editando) {
     return (
       <div className="w-full space-y-6">
-        <span className="text-4xl font-bold inline-block">
-          Solicitud {solicitud.id}
-        </span>
 
         {/* Datos principales */}
         <CardSinBorde className="w-full">
@@ -479,9 +504,6 @@ export default function SolicitudDetailPage() {
 
   return (
     <div className="w-full space-y-6">
-      <span className="text-4xl font-bold inline-block">
-        Editar solicitud {solicitud.id}
-      </span>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Datos principales */}
@@ -519,16 +541,23 @@ export default function SolicitudDetailPage() {
 
             {/* Empleado — solo admin */}
             {role === "administrador" && (
-              <SelectField
-                label="Empleado"
-                value={watch("user_empleado_id")}
-                onChange={(v) => setValue("user_empleado_id", v)}
-                options={empleados.map((e) => ({
-                  id: e.id,
-                  nombre: `${e.nombre} ${e.apellidos}`,
-                }))}
-                placeholder="Sin asignar"
-              />
+              <div className="space-y-1">
+                <SelectField
+                  label="Empleado"
+                  value={watch("user_empleado_id")}
+                  onChange={(v) => setValue("user_empleado_id", v)}
+                  options={empleados.map((e) => ({
+                    id: e.id,
+                    nombre: `${e.nombre} ${e.apellidos}`,
+                  }))}
+                  placeholder="Sin asignar"
+                />
+                {errors.user_empleado_id && (
+                  <p className="text-red-500 text-xs">
+                    {errors.user_empleado_id.message}
+                  </p>
+                )}
+              </div>
             )}
 
             <div className="space-y-1 sm:col-span-2">

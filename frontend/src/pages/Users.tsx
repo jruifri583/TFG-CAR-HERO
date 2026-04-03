@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
+import { ButtonGroup } from "@/components/ui/button-group";
 
 interface User {
   id: number;
@@ -116,45 +117,47 @@ export default function UsersPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4 gap-2 items-center">
-        <div className="relative flex items-center">
-          {!search && (
-            <Search
-              size={14}
-              className="absolute left-2.5 text-muted-foreground pointer-events-none"
-            />
-          )}
-          <Input
-            type="text"
-            placeholder="Buscar..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              debouncedSearch(e.target.value);
-            }}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background
-              ${search ? "pl-3" : "pl-8"}
-              ${inputFocused || search ? "w-64" : "w-32"}
-              focus:ring-2 focus:ring-ring`}
-          />
-          {search && (
-            <button
-              className="absolute right-2 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                setSearch("");
-                debouncedSearch("");
+      <div className="flex justify-end mb-4 items-center">
+        <ButtonGroup>
+          <div className="relative flex items-center">
+            {!search && (
+              <Search
+                size={14}
+                className="absolute left-2.5 text-muted-foreground pointer-events-none"
+              />
+            )}
+            <Input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                debouncedSearch(e.target.value);
               }}
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-        <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
-          <PlusIcon className="mr-2 h-4 w-4" />
-          Añadir
-        </Button>
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+                ${search ? "pl-3" : "pl-8"}
+                ${inputFocused || search ? "w-50" : "w-32"}
+                focus-visible:ring-0`}
+            />
+            {search && (
+              <button
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setSearch("");
+                  debouncedSearch("");
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Añadir
+          </Button>
+        </ButtonGroup>
       </div>
 
       <Table>

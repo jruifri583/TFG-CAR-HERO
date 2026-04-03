@@ -7,8 +7,9 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Car } from "lucide-react";
+import { Car, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/useAuth";
+import { useHeader } from "@/context/HeaderContext";
 import { toast } from "sonner";
 
 const schema = z.object({
@@ -33,6 +34,7 @@ export default function NuevaSolicitudPage() {
   const [searchParams] = useSearchParams();
   const [userName, setUserName] = useState("");
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
+  const [direcciones, setDirecciones] = useState<string[]>([]);
   const { user: authUser } = useAuth();
   const {
     register,
@@ -42,6 +44,15 @@ export default function NuevaSolicitudPage() {
     watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const { setHeaderData } = useHeader();
+
+  useEffect(() => {
+    setHeaderData({
+      nombre: "Nueva solicitud",
+      imagen: "/avatars/solicitudes.png",
+    });
+    return () => setHeaderData(null);
+  }, [setHeaderData]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,12 +67,22 @@ export default function NuevaSolicitudPage() {
       if (authUser && String(authUser.id) === userId) {
         setUserName(`${authUser.nombre} ${authUser.apellidos ?? ""}`);
         initialValues.direccion = authUser.direccion || "";
+        
+        // Direcciones sugeridas
+        const previous = (authUser as any).direcciones_anteriores || [];
+        const unique = Array.from(new Set([authUser.direccion, ...previous])).filter(Boolean) as string[];
+        setDirecciones(unique);
       } else if (userId) {
         try {
           const res = await api.get(`/users/${userId}`);
           const u = res.data.data ?? res.data;
           setUserName(`${u.nombre} ${u.apellidos ?? ""}`);
           initialValues.direccion = u.direccion || "";
+
+          // Direcciones sugeridas del cliente seleccionado
+          const previous = u.direcciones_anteriores || [];
+          const unique = Array.from(new Set([u.direccion, ...previous])).filter(Boolean) as string[];
+          setDirecciones(unique);
         } catch (error) {
           console.error("Error cargando usuario:", error);
         }
@@ -102,7 +123,6 @@ export default function NuevaSolicitudPage() {
 
   return (
     <div className="w-full space-y-6">
-      <span className="text-4xl font-bold inline-block">Nueva solicitud</span>
 
       <CardSinBorde className="w-full">
         <CardContent>
@@ -138,20 +158,26 @@ export default function NuevaSolicitudPage() {
                   </div>
                 ) : (
                   <>
-                    <select
-                      className="w-full border rounded-md px-3 py-2 text-sm bg-background"
-                      value={watch("vehiculo_id") ?? ""}
-                      onChange={(e) =>
-                        setValue("vehiculo_id", Number(e.target.value))
-                      }
-                    >
-                      <option value="">Selecciona un vehículo</option>
-                      {vehiculos.map((v) => (
-                        <option key={v.id} value={v.id}>
-                          {v.marca} {v.modelo} — {v.matricula}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        className="w-full border rounded-md px-3 py-2 text-sm bg-background pr-10 appearance-none"
+                        value={watch("vehiculo_id") ?? ""}
+                        onChange={(e) =>
+                          setValue("vehiculo_id", Number(e.target.value))
+                        }
+                      >
+                        <option value="">Selecciona un vehículo</option>
+                        {vehiculos.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.marca} {v.modelo} — {v.matricula}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        size={16}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                      />
+                    </div>
                     {errors.vehiculo_id && (
                       <p className="text-red-500 text-xs">
                         {errors.vehiculo_id.message}
@@ -165,17 +191,46 @@ export default function NuevaSolicitudPage() {
                 <label className="text-sm text-muted-foreground">
                   Dirección *
                 </label>
-                <Input
-                  type="text"
-                  {...register("direccion")}
-                  placeholder="Dirección de recogida"
-                />
+                <div className="relative">
+                  <Input
+                    type="text"
+                    {...register("direccion")}
+                    placeholder="Dirección de recogida"
+                    list={direcciones.length > 1 ? "direcciones-sugeridas" : undefined}
+                    className={direcciones.length > 1 ? "pr-10" : ""}
+                  />
+                  {direcciones.length > 1 && (
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                    />
+                  )}
+                </div>
+                {direcciones.length > 1 && (
+                  <datalist id="direcciones-sugeridas">
+                    {direcciones.map((d) => (
+                      <option key={d} value={d} />
+                    ))}
+                  </datalist>
+                )}
                 {errors.direccion && (
                   <p className="text-red-500 text-xs">
                     {errors.direccion.message}
                   </p>
                 )}
               </div>
+
+              {authUser?.rol?.slug !== "cliente" && (
+                <div className="space-y-1">
+                  <label className="text-sm text-muted-foreground">
+                    Fecha programada
+                  </label>
+                  <Input
+                    type="datetime-local"
+                    {...register("fecha_programada")}
+                  />
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-sm text-muted-foreground">Notas</label>

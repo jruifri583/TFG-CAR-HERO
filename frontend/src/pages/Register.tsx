@@ -57,6 +57,7 @@ export default function Register() {
     try {
       await api.post("/register", data);
       await login({ email: data.email, password: data.password });
+      toast.success("¡Bienvenido! Tu cuenta ha sido creada correctamente.");
       navigate("/dashboard");
     } catch (error: any) {
       if (error.response?.status === 422) {
@@ -97,14 +98,18 @@ export default function Register() {
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="flex flex-col gap-5"
+              noValidate
             >
               <div className="flex flex-col gap-2">
                 <Label>Email</Label>
                 <Input
-                  type="email"
+                  type="text"
                   {...register("email")}
                   placeholder="Introduce tu email"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs">{errors.email.message}</p>
+                )}
               </div>
 
               <div className="flex flex-col gap-2">

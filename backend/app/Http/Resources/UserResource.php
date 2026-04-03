@@ -27,6 +27,15 @@ class UserResource extends JsonResource
             'imagen' => $this->imagen,
             'activo' => (bool) $this->activo,
             'created_at' => $this->created_at?->toDateTimeString(),
+            'direcciones_anteriores' => $this->when(
+                $request->is('api/users/*') || $request->is('api/me'),
+                fn() => $this->solicitudesComoCliente()
+                    ->distinct()
+                    ->pluck('direccion')
+                    ->filter()
+                    ->values()
+                    ->toArray()
+            ),
             'rol' => [
                 'nombre' => $this->rol?->nombre,
             ],
