@@ -116,123 +116,130 @@ export default function NuevoVehiculoPage() {
   };
 
   return (
-    <div className="w-full space-y-6">
-      {userName && (
-        <p className="text-muted-foreground">
-          Para: <strong>{userName}</strong>
-        </p>
-      )}
-
+    <div className="w-full">
       <CardSinBorde className="w-full">
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Matrícula *
-                </label>
-                <Input
-                  type="text"
-                  {...register("matricula")}
-                  placeholder="1234-ABC"
-                />
-                {errors.matricula && (
-                  <p className="text-red-500 text-xs">
-                    {errors.matricula.message}
-                  </p>
-                )}
+        <CardContent className="flex flex-col gap-6 pt-6">
+          {userName && (
+            <div className="flex items-center gap-2 bg-slate-50 border p-3 rounded-lg mb-2">
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-tight">Propietario:</span>
+              <span className="text-sm font-bold text-slate-900 underline underline-offset-4">{userName}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {/* Bloque 1: Info Básica */}
+              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:pr-8">
+                <h3 className="font-bold text-lg mb-4">Información del Vehículo</h3>
+                
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Matrícula *</label>
+                  <Input
+                    type="text"
+                    {...register("matricula")}
+                    placeholder="1234-ABC"
+                    className="border-slate-200"
+                  />
+                  {errors.matricula && (
+                    <p className="text-red-500 text-xs font-medium">{errors.matricula.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">VIN (Bastidor) *</label>
+                  <Input
+                    type="text"
+                    {...register("vin")}
+                    placeholder="VIN del vehículo"
+                    className="border-slate-200"
+                  />
+                  {errors.vin && (
+                    <p className="text-red-500 text-xs font-medium">{errors.vin.message}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Marca</label>
+                    <Input
+                      type="text"
+                      {...register("marca")}
+                      placeholder="Toyota"
+                      className="border-slate-200"
+                    />
+                    {errors.marca && (
+                      <p className="text-red-500 text-xs font-medium">{errors.marca.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Modelo</label>
+                    <Input
+                      type="text"
+                      {...register("modelo")}
+                      placeholder="Corolla"
+                      className="border-slate-200"
+                    />
+                    {errors.modelo && (
+                      <p className="text-red-500 text-xs font-medium">{errors.modelo.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">VIN *</label>
-                <Input
-                  type="text"
-                  {...register("vin")}
-                  placeholder="VIN del vehículo"
-                />
-                {errors.vin && (
-                  <p className="text-red-500 text-xs">{errors.vin.message}</p>
-                )}
-              </div>
+              {/* Bloque 2: Detalles Técnicos */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg mb-4">Detalles Técnicos</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Año</label>
+                    <Input
+                      type="number"
+                      {...register("año")}
+                      placeholder="2020"
+                      className="border-slate-200"
+                    />
+                    {errors.año && (
+                      <p className="text-red-500 text-xs font-medium">{errors.año.message}</p>
+                    )}
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Marca</label>
-                <Input
-                  type="text"
-                  {...register("marca")}
-                  placeholder="Toyota"
-                />
-                {errors.marca && (
-                  <p className="text-red-500 text-xs">{errors.marca.message}</p>
-                )}
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Kilómetros</label>
+                    <Input
+                      type="number"
+                      {...register("kilometros")}
+                      placeholder="50000"
+                      className="border-slate-200"
+                    />
+                    {errors.kilometros && (
+                      <p className="text-red-500 text-xs font-medium">{errors.kilometros.message}</p>
+                    )}
+                  </div>
+                </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Modelo</label>
-                <Input
-                  type="text"
-                  {...register("modelo")}
-                  placeholder="Corolla"
-                />
-                {errors.modelo && (
-                  <p className="text-red-500 text-xs">
-                    {errors.modelo.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Año</label>
-                <Input
-                  type="number"
-                  {...register("año")}
-                  placeholder="2020"
-                />
-                {errors.año && (
-                  <p className="text-red-500 text-xs">{errors.año.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Kilómetros
-                </label>
-                <Input
-                  type="number"
-                  {...register("kilometros")}
-                  placeholder="50000"
-                />
-                {errors.kilometros && (
-                  <p className="text-red-500 text-xs">
-                    {errors.kilometros.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Fecha última ITV
-                </label>
-                <Input type="date" {...register("fecha_ultima_itv")} />
-                {errors.fecha_ultima_itv && (
-                  <p className="text-red-500 text-xs">
-                    {errors.fecha_ultima_itv.message}
-                  </p>
-                )}
+                <div className="space-y-1 pt-2">
+                  <label className="text-sm font-medium">Fecha última ITV</label>
+                  <Input type="date" {...register("fecha_ultima_itv")} className="border-slate-200" />
+                  {errors.fecha_ultima_itv && (
+                    <p className="text-red-500 text-xs font-medium">{errors.fecha_ultima_itv.message}</p>
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-2 justify-end mt-6">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t font-bold">
               <Button
-                className="w-50"
+                className="w-40"
                 type="button"
                 variant="outline"
                 onClick={() => navigate(-1)}
               >
                 Cancelar
               </Button>
-              <Button className="w-50" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Crear vehículo"}
+              <Button className="w-40" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Guardando..." : "Crear Vehículo"}
               </Button>
             </div>
           </form>

@@ -101,14 +101,14 @@ export default function VehiculoDetailPage() {
   useEffect(() => {
     if (vehiculo) {
       setHeaderData({
-        nombre: `${vehiculo.marca} ${vehiculo.modelo}`,
+        nombre: `${vehiculo.marca ?? ""} ${vehiculo.modelo ?? ""}`.trim() || "Detalle vehículo",
         matricula: vehiculo.matricula,
-        imagen: vehiculo.imagen,
+        imagen: vehiculo.imagen || "/avatars/default_car.png",
         isEditing,
       });
     }
     return () => setHeaderData(null);
-  }, [vehiculo, isEditing]);
+  }, [vehiculo, isEditing, setHeaderData]);
 
   // Registra el handler de imagen
   useEffect(() => {
@@ -119,13 +119,12 @@ export default function VehiculoDetailPage() {
         const res = await api.post(`/vehiculos/${id}/imagen`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        setVehiculo((prev) =>
-          prev ? { ...prev, imagen: res.data.imagen } : prev,
-        );
+        const newImage = res.data.imagen;
+        setVehiculo((prev) => (prev ? { ...prev, imagen: newImage } : prev));
         setHeaderData({
-          nombre: `${vehiculo?.marca} ${vehiculo?.modelo}`,
+          nombre: `${vehiculo?.marca ?? ""} ${vehiculo?.modelo ?? ""}`.trim(),
           matricula: vehiculo?.matricula ?? "",
-          imagen: res.data.imagen,
+          imagen: newImage,
           isEditing,
         });
       } catch (error) {
@@ -133,7 +132,7 @@ export default function VehiculoDetailPage() {
       }
     });
     return () => setOnImageChange(null);
-  }, [id]);
+  }, [id, vehiculo, isEditing, setHeaderData, setOnImageChange]);
 
   const handleCancel = () => {
     reset({
@@ -173,192 +172,167 @@ export default function VehiculoDetailPage() {
 
   if (!vehiculo) return <p>Cargando...</p>;
 
-  const readOnlyClass = !isEditing
-    ? "pointer-events-none focus:ring-0 focus:outline-none"
-    : "";
+  const readOnlyClass = !isEditing ? "bg-transparent pointer-events-none" : "bg-white";
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full">
       <CardSinBorde className="w-full">
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Matrícula
-                </label>
-                <Input
-                  type="text"
-                  {...register("matricula")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.matricula && (
-                  <p className="text-red-500 text-xs">
-                    {errors.matricula.message}
-                  </p>
-                )}
+        <CardContent className="flex flex-col gap-6 pt-6">
+          
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {/* Bloque 1: Info Básica */}
+              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:pr-8">
+                <h3 className="font-bold text-lg mb-4">Información del Vehículo</h3>
+                
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Matrícula</label>
+                  <Input
+                    type="text"
+                    {...register("matricula")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} border-slate-200`}
+                  />
+                  {errors.matricula && (
+                    <p className="text-red-500 text-xs font-medium">{errors.matricula.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">VIN (Bastidor)</label>
+                  <Input
+                    type="text"
+                    {...register("vin")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} border-slate-200`}
+                  />
+                  {errors.vin && (
+                    <p className="text-red-500 text-xs font-medium">{errors.vin.message}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Marca</label>
+                    <Input
+                      type="text"
+                      {...register("marca")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} border-slate-200`}
+                    />
+                    {errors.marca && (
+                      <p className="text-red-500 text-xs font-medium">{errors.marca.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Modelo</label>
+                    <Input
+                      type="text"
+                      {...register("modelo")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} border-slate-200`}
+                    />
+                    {errors.modelo && (
+                      <p className="text-red-500 text-xs font-medium">{errors.modelo.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">VIN</label>
-                <Input
-                  type="text"
-                  {...register("vin")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.vin && (
-                  <p className="text-red-500 text-xs">{errors.vin.message}</p>
-                )}
-              </div>
+              {/* Bloque 2: Detalles Técnicos */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg mb-4">Detalles Técnicos</h3>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Año</label>
+                    <Input
+                      type="number"
+                      {...register("año")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} border-slate-200`}
+                    />
+                    {errors.año && (
+                      <p className="text-red-500 text-xs font-medium">{errors.año.message}</p>
+                    )}
+                  </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Marca</label>
-                <Input
-                  type="text"
-                  {...register("marca")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.marca && (
-                  <p className="text-red-500 text-xs">{errors.marca.message}</p>
-                )}
-              </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Kilómetros</label>
+                    <Input
+                      type="number"
+                      {...register("kilometros")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} border-slate-200`}
+                    />
+                    {errors.kilometros && (
+                      <p className="text-red-500 text-xs font-medium">{errors.kilometros.message}</p>
+                    )}
+                  </div>
+                </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Modelo</label>
-                <Input
-                  type="text"
-                  {...register("modelo")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.modelo && (
-                  <p className="text-red-500 text-xs">
-                    {errors.modelo.message}
-                  </p>
-                )}
-              </div>
+                <div className="space-y-1 pt-2">
+                  <label className="text-sm font-medium">Fecha última ITV</label>
+                  <Input
+                    type="date"
+                    {...register("fecha_ultima_itv")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} border-slate-200`}
+                  />
+                  {errors.fecha_ultima_itv && (
+                    <p className="text-red-500 text-xs font-medium">{errors.fecha_ultima_itv.message}</p>
+                  )}
+                </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Año</label>
-                <Input
-                  type="number"
-                  {...register("año")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.año && (
-                  <p className="text-red-500 text-xs">{errors.año.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Kilómetros
-                </label>
-                <Input
-                  type="number"
-                  {...register("kilometros")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.kilometros && (
-                  <p className="text-red-500 text-xs">
-                    {errors.kilometros.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Fecha última ITV
-                </label>
-                <Input
-                  type="date"
-                  {...register("fecha_ultima_itv")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.fecha_ultima_itv && (
-                  <p className="text-red-500 text-xs">
-                    {errors.fecha_ultima_itv.message}
-                  </p>
+                {/* Propietario (solo admin/empleado) */}
+                {role !== "cliente" && (
+                  <div className="pt-6 border-t mt-6">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Propietario</h4>
+                    {vehiculo.cliente ? (
+                      <div className="bg-slate-50 p-3 rounded-md border border-slate-100 flex flex-col gap-1">
+                        <p className="text-sm font-bold">{vehiculo.cliente.nombre} {vehiculo.cliente.apellidos}</p>
+                        <p className="text-xs text-muted-foreground">{vehiculo.cliente.email}</p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic">Sin propietario asignado</p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Propietario */}
-            {role !== "cliente" && (
-              <CardSinBorde className="w-full mt-6">
-                <CardContent className="space-y-4">
-                  <p className="font-semibold text-lg">Propietario</p>
-                  {vehiculo.cliente ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <label className="text-sm text-muted-foreground">
-                          Nombre
-                        </label>
-                        <Input
-                          type="text"
-                          value={`${vehiculo.cliente.nombre} ${vehiculo.cliente.apellidos}`}
-                          readOnly
-                          className="pointer-events-none"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-sm text-muted-foreground">
-                          Email
-                        </label>
-                        <Input
-                          type="text"
-                          value={vehiculo.cliente.email}
-                          readOnly
-                          className="pointer-events-none"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm">
-                      Sin propietario
-                    </p>
-                  )}
-                </CardContent>
-              </CardSinBorde>
-            )}
-
-            <div className="flex flex-wrap gap-2 justify-end mt-6">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t font-bold">
               {!isEditing ? (
                 <>
                   <Button
-                    className="w-50"
+                    className="w-40"
                     type="button"
                     onClick={() => setIsEditing(true)}
                   >
-                    Editar
+                    Editar Vehículo
                   </Button>
                   <Button
-                    className="w-50"
+                    className="w-40"
                     type="button"
                     variant="outline"
                     onClick={() => navigate(-1)}
                   >
-                    Atrás
+                    Volver
                   </Button>
                 </>
               ) : (
                 <>
                   <Button
-                    className="w-50"
+                    className="w-40"
                     type="button"
                     variant="outline"
                     onClick={handleCancel}
                   >
                     Cancelar
                   </Button>
-                  <Button className="w-50" type="submit">
-                    Guardar
+                  <Button className="w-40" type="submit">
+                    Guardar Cambios
                   </Button>
                 </>
               )}

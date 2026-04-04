@@ -125,22 +125,33 @@ function fmt(iso: string | null) {
   return format(new Date(iso), "dd MMM yyyy HH:mm", { locale: es });
 }
 
-function Field({
+function ReadOnlyField({
   label,
   value,
+  icon: Icon,
 }: {
   label: string;
   value: string | null | undefined;
+  icon?: any;
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-sm text-muted-foreground">{label}</label>
-      <Input
-        type="text"
-        value={value ?? ""}
-        readOnly
-        className="pointer-events-none focus:ring-0 focus:outline-none"
-      />
+      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">
+        {label}
+      </label>
+      <div className="relative group">
+        <Input
+          type="text"
+          value={value ?? "—"}
+          readOnly
+          className="bg-slate-50 border-slate-200 pointer-events-none transition-colors group-hover:bg-slate-100/50"
+        />
+        {Icon && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300">
+            <Icon size={16} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -454,111 +465,256 @@ export default function SolicitudDetailPage() {
   function StandardDetailView() {
     if (editando) {
       return (
-        <div className="w-full space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <div className="w-full">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <CardSinBorde className="w-full">
-              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
-                <div className="space-y-1">
-                  <label className="text-sm text-muted-foreground">Dirección *</label>
-                  <Input type="text" {...register("direccion")} />
-                  {errors.direccion && <p className="text-red-500 text-xs">{errors.direccion.message}</p>}
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm text-muted-foreground">Fecha programada</label>
-                  <Input type="datetime-local" {...register("fecha_programada")} />
-                </div>
-                <SelectField label="Resolución" value={watch("resolucion_id")} onChange={(v) => setValue("resolucion_id", v)} options={resoluciones} placeholder="Sin resolución" />
-                {role === "administrador" && (
-                  <div className="space-y-1">
-                    <SelectField label="Empleado" value={watch("user_empleado_id")} onChange={(v) => setValue("user_empleado_id", v)} options={empleados.map((e) => ({ id: e.id, nombre: `${e.nombre} ${e.apellidos}` }))} placeholder="Sin asignar" />
-                    {errors.user_empleado_id && <p className="text-red-500 text-xs">{errors.user_empleado_id.message}</p>}
+              <CardContent className="flex flex-col gap-6 pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Bloque 1: Detalles del Servicio */}
+                  <div className="space-y-4 md:border-r md:border-black md:pr-8">
+                    <h3 className="font-bold text-lg mb-4 text-primary">Detalles del Servicio</h3>
+                    
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Dirección de recogida *</label>
+                      <Input 
+                        type="text" 
+                        {...register("direccion")} 
+                        className="border-slate-200"
+                      />
+                      {errors.direccion && (
+                        <p className="text-red-500 text-xs font-medium">{errors.direccion.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Fecha programada</label>
+                      <Input 
+                        type="datetime-local" 
+                        {...register("fecha_programada")} 
+                        className="border-slate-200"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                       <SelectField 
+                        label="Resolución ITV" 
+                        value={watch("resolucion_id")} 
+                        onChange={(v) => setValue("resolucion_id", v)} 
+                        options={resoluciones} 
+                        placeholder="Pendiente de determinar" 
+                      />
+                    </div>
                   </div>
+
+                  {/* Bloque 2: Gestión y Notas */}
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-lg mb-4 text-primary">Gestión y Notas</h3>
+
+                    {role === "administrador" && (
+                      <div className="space-y-1">
+                        <SelectField 
+                          label="Empleado Asignado" 
+                          value={watch("user_empleado_id")} 
+                          onChange={(v) => setValue("user_empleado_id", v)} 
+                          options={empleados.map((e) => ({ 
+                            id: e.id, 
+                            nombre: `${e.nombre} ${e.apellidos}` 
+                          }))} 
+                          placeholder="Sin asignar" 
+                        />
+                        {errors.user_empleado_id && (
+                          <p className="text-red-500 text-xs font-medium">{errors.user_empleado_id.message}</p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium">Observaciones</label>
+                      <Textarea 
+                        {...register("notas")} 
+                        placeholder="Notas internas o instrucciones adicionales..." 
+                        className="min-h-[120px] bg-slate-50/50 border-slate-200"
+                      />
+                      {errors.notas && (
+                        <p className="text-red-500 text-xs font-medium">{errors.notas.message}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {serverError && (
+                  <p className="text-red-500 text-sm font-bold italic text-center p-3 bg-red-50 rounded-lg">
+                    {serverError}
+                  </p>
                 )}
-                <div className="space-y-1 sm:col-span-2">
-                  <label className="text-sm text-muted-foreground">Notas</label>
-                  <Input type="text" {...register("notas")} placeholder="Observaciones opcionales" />
-                  {errors.notas && <p className="text-red-500 text-xs">{errors.notas.message}</p>}
+
+                <div className="flex justify-end gap-3 pt-6 border-t border-black font-bold">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-50"
+                    onClick={() => { setEditando(false); setServerError(null); }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="w-50"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Guardando..." : "Guardar cambios"}
+                  </Button>
                 </div>
               </CardContent>
             </CardSinBorde>
-            {serverError && <p className="text-red-500 text-sm text-right font-bold italic">{serverError}</p>}
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => { setEditando(false); setServerError(null); }}>Cancelar</Button>
-              <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Guardando..." : "Guardar cambios"}</Button>
-            </div>
           </form>
         </div>
       );
     }
     return (
-      <div className="w-full space-y-6">
-        <CardSinBorde className="w-full">
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6">
-            <Field label="Dirección" value={solicitud!.direccion} />
-            <Field label="Fecha programada" value={fmt(solicitud!.fecha_programada)} />
-            <Field label="Estado" value={solicitud!.estado?.nombre ?? "-"} />
-            <Field label="Resolución" value={solicitud!.resolucion?.nombre ?? "-"} />
-            <Field label="Notas" value={solicitud!.notas ?? "-"} />
-          </CardContent>
-        </CardSinBorde>
-        {role !== "cliente" && (
-          <CardSinBorde className="w-full">
-            <CardContent className="space-y-4 pt-6">
-              <p className="font-semibold text-lg">Cliente</p>
-              <div className="flex items-center gap-4">
-                <img src={solicitud!.cliente?.imagen ?? "/avatars/default_user.png"} className="w-14 h-14 rounded-full object-cover" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                  <Field label="Nombre" value={`${solicitud!.cliente?.nombre ?? ""} ${solicitud!.cliente?.apellidos ?? ""}`} />
-                  <Field label="Email" value={solicitud!.cliente?.email ?? "-"} />
+      <div className="w-full space-y-8 animate-in fade-in duration-500">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Columna Izquierda: Información de la Solicitud */}
+          <div className="space-y-8">
+            <CardSinBorde>
+              <CardContent className="space-y-6 pt-6">
+                <div className="flex items-center gap-3 border-b pb-4">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <FileText className="text-primary" size={20} />
+                  </div>
+                  <h3 className="font-bold text-lg">Detalles del Servicio</h3>
                 </div>
-              </div>
-            </CardContent>
-          </CardSinBorde>
-        )}
-        <CardSinBorde className="w-full">
-          <CardContent className="space-y-4 pt-6">
-            <p className="font-semibold text-lg">Vehículo</p>
-            <div className="flex items-center gap-4">
-              <img src={solicitud!.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-14 h-14 rounded object-cover" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1">
-                <Field label="Matrícula" value={solicitud!.vehiculo?.matricula ?? "-"} />
-                <Field label="Marca / Modelo" value={`${solicitud!.vehiculo?.marca ?? ""} ${solicitud!.vehiculo?.modelo ?? ""}`} />
-              </div>
-            </div>
-          </CardContent>
-        </CardSinBorde>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <CardSinBorde className="w-full">
-            <CardContent className="space-y-4 pt-6">
-              <p className="font-semibold text-lg">Seguimiento horario</p>
-              <div className="grid grid-cols-1 gap-4">
-                <Field label="Hora recogida" value={fmt(solicitud!.hora_recogida)} />
-                <Field label="Hora ITV" value={fmt(solicitud!.hora_itv)} />
-                <Field label="Hora entrega" value={fmt(solicitud!.hora_entrega)} />
-              </div>
-            </CardContent>
-          </CardSinBorde>
-          <CardSinBorde className="w-full">
-            <CardContent className="flex justify-center items-center pt-6">
-              <SolicitudCircularTracker estado={solicitud!.estado} />
-            </CardContent>
-          </CardSinBorde>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <ReadOnlyField label="Dirección de Recogida" value={solicitud!.direccion} icon={MapPin} />
+                  </div>
+                  <ReadOnlyField label="Fecha Programada" value={fmt(solicitud!.fecha_programada)} icon={Clock} />
+                  <ReadOnlyField label="Estado Actual" value={solicitud!.estado?.nombre} />
+                  <ReadOnlyField label="Agente Asignado" value={solicitud!.empleado ? `${solicitud!.empleado.nombre} ${solicitud!.empleado.apellidos}` : "Pendiente de asignar"} />
+                  <ReadOnlyField label="Resolución ITV" value={solicitud!.resolucion?.nombre} icon={ShieldCheck} />
+                  <div className="sm:col-span-2 font-medium">
+                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del Servicio</label>
+                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">
+                        {solicitud!.notas || "Sin observaciones adicionales."}
+                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </CardSinBorde>
+
+            <CardSinBorde>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between mb-8">
+                  <h3 className="font-bold text-lg">Progreso de la Solicitud</h3>
+                  <div className="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold text-slate-500 uppercase tracking-tighter">
+                    Timeline
+                  </div>
+                </div>
+                <div className="flex justify-center py-4">
+                  <SolicitudCircularTracker estado={solicitud!.estado} />
+                </div>
+              </CardContent>
+            </CardSinBorde>
+          </div>
+
+          {/* Columna Derecha: Cliente y Vehículo */}
+          <div className="space-y-8">
+            {role !== "cliente" && (
+              <CardSinBorde className="border-l-4 border-l-primary">
+                <CardContent className="pt-6 space-y-4">
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    Información del Cliente
+                  </h3>
+                  <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <img 
+                      src={solicitud!.cliente?.imagen ?? "/avatars/default_user.png"} 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm" 
+                    />
+                    <div className="flex-1">
+                      <p className="font-bold text-lg text-slate-800">
+                        {solicitud!.cliente?.nombre} {solicitud!.cliente?.apellidos}
+                      </p>
+                      <p className="text-sm text-slate-500">{solicitud!.cliente?.email}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </CardSinBorde>
+            )}
+
+            <CardSinBorde className="border-l-4 border-l-secondary">
+              <CardContent className="pt-6 space-y-4">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  Vehículo Vinculado
+                </h3>
+                <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
+                    <img 
+                      src={solicitud!.vehiculo?.imagen ?? "/avatars/default_car.png"} 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="inline-block px-2 py-0.5 bg-slate-800 text-white text-[10px] font-bold rounded mb-1">
+                      {solicitud!.vehiculo?.matricula}
+                    </div>
+                    <p className="font-bold text-lg text-slate-800">
+                      {solicitud!.vehiculo?.marca} {solicitud!.vehiculo?.modelo}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </CardSinBorde>
+
+            <CardSinBorde>
+              <CardContent className="pt-6 space-y-4">
+                <h3 className="font-bold text-lg">Seguimiento Horario Real</h3>
+                <div className="grid grid-cols-1 gap-3">
+                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
+                      <span className="text-sm font-medium text-slate-500">Recogida</span>
+                      <span className="font-bold text-slate-700">{fmt(solicitud!.hora_recogida)}</span>
+                   </div>
+                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
+                      <span className="text-sm font-medium text-slate-500">Llegada ITV</span>
+                      <span className="font-bold text-slate-700">{fmt(solicitud!.hora_itv)}</span>
+                   </div>
+                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
+                      <span className="text-sm font-medium text-slate-500">Entrega Final</span>
+                      <span className="font-bold text-slate-700">{fmt(solicitud!.hora_entrega)}</span>
+                   </div>
+                </div>
+              </CardContent>
+            </CardSinBorde>
+          </div>
         </div>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => navigate(-1)}>Atrás</Button>
-          {puedeAvanzar && (
-            <div className="flex flex-col items-end gap-2">
+
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-8 border-t border-black">
+          <Button variant="outline" onClick={() => navigate(-1)} className="font-bold w-50">
+            Volver
+          </Button>
+          
+          <div className="flex items-center gap-3">
+            {role !== "cliente" && (
+              <Button 
+                onClick={() => setEditando(true)}
+                variant="outline"
+                className="font-bold w-50"
+              >
+                Editar Datos
+              </Button>
+            )}
+
+            {puedeAvanzar && (
               <Button
-                className={`px-8 ${isBusy && siguiente?.slug === 'en_recogida' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'variant-secondary'}`}
-                variant={isBusy && siguiente?.slug === 'en_recogida' ? 'ghost' : 'secondary'}
+                className={`font-bold w-50 ${isBusy && siguiente?.slug === 'en_recogida' ? 'opacity-50' : ''}`}
+                variant={isBusy && siguiente?.slug === 'en_recogida' ? 'outline' : 'default'}
                 onClick={handleAvanzarEstado}
                 disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
               >
-                {avanzando ? "Avanzando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Servicio activo" : `Avanzar a "${siguiente?.nombre}"`}
+                {avanzando ? "Actualizando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Ocupado" : `A "${siguiente?.nombre}"`}
               </Button>
-            </div>
-          )}
-          {role !== "cliente" && <Button onClick={() => setEditando(true)}>Editar</Button>}
+             )}
+          </div>
         </div>
       </div>
     );

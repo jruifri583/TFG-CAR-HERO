@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { toast } from "sonner";
 
 const ROLES = [
   { id: 1, nombre: "Administrador", slug: "administrador" },
@@ -68,13 +69,23 @@ const schema = z.object({
     .max(255, "Máximo 255 caracteres")
     .optional()
     .or(z.literal("")),
-  password: z
-    .string()
-    .min(6, "Mínimo 6 caracteres")
-    .optional()
-    .or(z.literal("")),
-  rol_id: z.number().optional(),
-});
+    password: z
+      .string()
+      .min(6, "Mínimo 6 caracteres")
+      .max(20, "Máximo 20 caracteres")
+      .optional()
+      .or(z.literal("")),
+    password_confirmation: z
+      .string()
+      .optional()
+      .or(z.literal("")),
+    rol_id: z.number().optional(),
+    activo: z.boolean().optional(),
+  })
+  .refine((data) => data.password === data.password_confirmation, {
+    message: "Las contraseñas no coinciden",
+    path: ["password_confirmation"],
+  });
 
 type FormData = z.infer<typeof schema>;
 
@@ -105,7 +116,8 @@ export default function PerfilPage() {
   const { setHeaderData } = useHeader();
 
   const isOwnProfile = !id;
-  const isAdmin = authUser?.rol?.slug === "administrador";
+  const isAdmin = authUser?.rol?.slug === "administrador" || authUser?.rol_id === 1;
+  const isStaff = isAdmin || authUser?.rol?.slug === "empleado" || authUser?.rol_id === 2;
 
   const {
     register,
@@ -117,12 +129,16 @@ export default function PerfilPage() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
-
   useEffect(() => {
-    // Establece header vacío inmediatamente si es perfil ajeno
-    if (id) {
-      setHeaderData({ nombre: "", imagen: null, isEditing: false });
-    }
+    // Resetea estado de edición global
+    setIsEditing(false);
+
+    // Establece header inicial
+    setHeaderData({
+      nombre: isOwnProfile ? "Mi perfil" : "Cargando perfil...",
+      imagen: (authUser?.imagen as string | null) || null,
+      isEditing: false
+    });
 
     const fetchUser = async () => {
       try {
@@ -137,32 +153,35 @@ export default function PerfilPage() {
           telefono: userData.telefono ?? "",
           direccion: userData.direccion ?? "",
           password: "",
+          password_confirmation: "",
           rol_id: userData.rol?.id,
+          activo: userData.activo,
         });
 
-        if (id) {
-          setHeaderData({
-            nombre:
-              `${userData.nombre ?? ""} ${userData.apellidos ?? ""}`.trim(),
-            imagen: userData.imagen,
-            isEditing: false,
-          });
-        }
-      } catch (error) {}
+        // Actualizar header con datos reales
+        setHeaderData({
+          nombre: isOwnProfile 
+            ? "Mi perfil" 
+            : `Perfil de ${userData.nombre ?? "usuario"}`,
+          imagen: userData.imagen,
+          isEditing: false,
+        });
+      } catch (error) {
+        console.error("Error cargando perfil:", error);
+      }
     };
     fetchUser();
 
     return () => {
-      if (id) setHeaderData(null);
+      setHeaderData(null);
+      setIsEditing(false);
     };
-  }, [id]);
+  }, [id, reset, isOwnProfile, authUser?.imagen, setHeaderData, setIsEditing]);
 
-  // Actualiza isEditing en el header
+  // Actualiza isEditing en el header cuando cambia
   useEffect(() => {
-    if (id && user) {
-      setHeaderData((prev) => (prev ? { ...prev, isEditing } : prev));
-    }
-  }, [isEditing]);
+    setHeaderData((prev) => (prev ? { ...prev, isEditing } : prev));
+  }, [isEditing, setHeaderData]);
 
   const handleCancel = () => {
     reset({
@@ -173,36 +192,59 @@ export default function PerfilPage() {
       telefono: user?.telefono ?? "",
       direccion: user?.direccion ?? "",
       password: "",
+      password_confirmation: "",
       rol_id: user?.rol?.id,
+      activo: user?.activo,
     });
     setIsEditing(false);
   };
 
   const onSubmit = async (data: FormData) => {
-    const payload = { ...data };
-    if (!payload.password) delete payload.password;
+    try {
+      const payload = { 
+        ...data,
+        rol_id: data.rol_id,
+        activo: data.activo
+      };
+      if (!payload.password) {
+        delete payload.password;
+        delete payload.password_confirmation;
+      }
 
-    const res = isOwnProfile
-      ? await api.put("/me", payload)
-      : await api.put(`/users/${id}`, payload);
+      const res = isOwnProfile
+        ? await api.put("/me", payload)
+        : await api.put(`/users/${id}`, payload);
 
-    const updated = isOwnProfile ? res.data.user : res.data.user;
-    setUser(updated);
-    if (isOwnProfile) setContextUser(updated);
+      const updated = isOwnProfile ? res.data.user : res.data.user;
+      setUser(updated);
+      if (isOwnProfile) setContextUser(updated);
 
-    // Sincronizar react-hook-form con los datos actualizados
-    reset({
-      email: updated.email ?? "",
-      nombre: updated.nombre ?? "",
-      apellidos: updated.apellidos ?? "",
-      nif: updated.nif ?? "",
-      telefono: updated.telefono ?? "",
-      direccion: updated.direccion ?? "",
-      password: "",
-      rol_id: updated.rol?.id,
-    });
+      // Sincronizar react-hook-form con los datos actualizados
+      reset({
+        email: updated.email ?? "",
+        nombre: updated.nombre ?? "",
+        apellidos: updated.apellidos ?? "",
+        nif: updated.nif ?? "",
+        telefono: updated.telefono ?? "",
+        direccion: updated.direccion ?? "",
+        password: "",
+        password_confirmation: "",
+        rol_id: updated.rol?.id,
+        activo: updated.activo,
+      });
 
-    setIsEditing(false);
+      setIsEditing(false);
+      toast.success("¡Perfil actualizado con éxito!");
+    } catch (error: any) {
+      console.error("Error actualizando perfil:", error);
+      const msg = error.response?.data?.message || "Ocurrió un error al guardar los cambios";
+      toast.error(msg);
+    }
+  };
+
+  const onValidationError = (errors: any) => {
+    console.error("Errores de validación:", errors);
+    toast.error("Por favor, revisa los campos del formulario");
   };
 
   if (!user) return <p>Cargando...</p>;
@@ -214,12 +256,12 @@ export default function PerfilPage() {
   return (
     <div className="w-full">
       <CardSinBorde className="w-full">
-        <CardContent className="flex flex-col gap-4">
-          {isAdmin && !isOwnProfile && !isEditing && (
-            <div className="flex justify-end">
+        <CardContent className="flex flex-col gap-6 pt-6">
+          {isStaff && !isEditing && (
+            <div className="flex justify-end pb-2">
               <ButtonGroup>
                 <Button
-                  className="w-50"
+                  className="h-9 px-4"
                   type="button"
                   variant="outline"
                   onClick={() => navigate(`/perfil/${id}/nuevo-vehiculo`)}
@@ -227,7 +269,7 @@ export default function PerfilPage() {
                   Añadir vehículo
                 </Button>
                 <Button
-                  className="w-50"
+                  className="h-9 px-4"
                   type="button"
                   variant="outline"
                   onClick={() => navigate(`/perfil/${id}/nueva-solicitud`)}
@@ -237,149 +279,186 @@ export default function PerfilPage() {
               </ButtonGroup>
             </div>
           )}
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Email</label>
-                <Input
-                  type="email"
-                  {...register("email")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs">{errors.email.message}</p>
+
+          <form onSubmit={handleSubmit(onSubmit, onValidationError)} noValidate>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+              {/* Bloque 1: Credenciales */}
+              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:border-black sm:pr-8">
+                <h3 className="font-bold text-lg mb-4">Credenciales</h3>
+                
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Email</label>
+                  <Input
+                    type="email"
+                    {...register("email")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} bg-transparent border-slate-200`}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs font-medium">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Rol de usuario</label>
+                  {isEditing && isAdmin && !isOwnProfile ? (
+                    <select
+                      className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary outline-none transition-all"
+                      value={watch("rol_id") ?? ""}
+                      onChange={(e) => setValue("rol_id", Number(e.target.value))}
+                    >
+                      {ROLES.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      type="text"
+                      value={user.rol?.nombre ?? "Sin rol"}
+                      readOnly
+                      className="pointer-events-none bg-slate-50 border-slate-200"
+                    />
+                  )}
+                </div>
+
+                {isEditing && (
+                  <div className="space-y-4 pt-2 border-t mt-4">
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Nueva Contraseña</label>
+                      <Input
+                        type="password"
+                        {...register("password")}
+                        placeholder="Mínimo 6 caracteres"
+                        className="bg-white border-slate-200"
+                      />
+                      {errors.password && (
+                        <p className="text-red-500 text-xs font-medium">
+                          {errors.password.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Confirmar Contraseña</label>
+                      <Input
+                        type="password"
+                        {...register("password_confirmation")}
+                        placeholder="Repite la contraseña"
+                        className="bg-white border-slate-200"
+                      />
+                      {errors.password_confirmation && (
+                        <p className="text-red-500 text-xs font-medium">
+                          {errors.password_confirmation.message}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {isAdmin && !isOwnProfile && (
+                  <div className="flex items-center gap-3 pt-4 border-t">
+                    <input
+                      type="checkbox"
+                      id="activo"
+                      className={`w-5 h-5 rounded border-2 border-slate-300 accent-primary transition-all ${
+                        !isEditing ? "pointer-events-none opacity-100" : "cursor-pointer"
+                      }`}
+                      {...register("activo")}
+                    />
+                    <label htmlFor="activo" className="text-sm font-bold cursor-pointer select-none">
+                      Usuario activo
+                    </label>
+                  </div>
                 )}
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Nombre</label>
-                <Input
-                  type="text"
-                  {...register("nombre")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.nombre && (
-                  <p className="text-red-500 text-xs">
-                    {errors.nombre.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Apellidos
-                </label>
-                <Input
-                  type="text"
-                  {...register("apellidos")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.apellidos && (
-                  <p className="text-red-500 text-xs">
-                    {errors.apellidos.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">NIF</label>
-                <Input
-                  type="text"
-                  {...register("nif")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                  onChange={(e) => {
-                    e.target.value = e.target.value.toUpperCase();
-                  }}
-                />
-                {errors.nif && (
-                  <p className="text-red-500 text-xs">{errors.nif.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Teléfono
-                </label>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  {...register("telefono")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.telefono && (
-                  <p className="text-red-500 text-xs">
-                    {errors.telefono.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">
-                  Dirección
-                </label>
-                <Input
-                  type="text"
-                  {...register("direccion")}
-                  readOnly={!isEditing}
-                  className={readOnlyClass}
-                />
-                {errors.direccion && (
-                  <p className="text-red-500 text-xs">
-                    {errors.direccion.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm text-muted-foreground">Rol</label>
-                {isEditing && isAdmin && !isOwnProfile ? (
-                  <select
-                    className="w-full border rounded-md px-3 py-2 text-sm bg-background"
-                    value={watch("rol_id") ?? ""}
-                    onChange={(e) => setValue("rol_id", Number(e.target.value))}
-                  >
-                    {ROLES.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.nombre}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
+              {/* Bloque 2: Información Personal */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg mb-4">Información Personal</h3>
+                
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Nombre</label>
                   <Input
                     type="text"
-                    value={user.rol?.nombre ?? ""}
-                    readOnly
-                    className="pointer-events-none"
+                    {...register("nombre")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} bg-transparent border-slate-200`}
                   />
-                )}
-              </div>
-
-              {isEditing && (
-                <div className="space-y-1">
-                  <label className="text-sm text-muted-foreground">
-                    Contraseña
-                  </label>
-                  <Input
-                    type="password"
-                    {...register("password")}
-                    placeholder="Nueva contraseña (opcional)"
-                  />
-                  {errors.password && (
-                    <p className="text-red-500 text-xs">
-                      {errors.password.message}
+                  {errors.nombre && (
+                    <p className="text-red-500 text-xs font-medium">
+                      {errors.nombre.message}
                     </p>
                   )}
                 </div>
-              )}
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Apellidos</label>
+                  <Input
+                    type="text"
+                    {...register("apellidos")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} bg-transparent border-slate-200`}
+                  />
+                  {errors.apellidos && (
+                    <p className="text-red-500 text-xs font-medium">
+                      {errors.apellidos.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">NIF</label>
+                    <Input
+                      type="text"
+                      {...register("nif")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} bg-transparent border-slate-200`}
+                      onChange={(e) => {
+                        e.target.value = e.target.value.toUpperCase();
+                      }}
+                    />
+                    {errors.nif && (
+                      <p className="text-red-500 text-xs font-medium">{errors.nif.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Teléfono</label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      {...register("telefono")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} bg-transparent border-slate-200`}
+                    />
+                    {errors.telefono && (
+                      <p className="text-red-500 text-xs font-medium">
+                        {errors.telefono.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Dirección</label>
+                  <Input
+                    type="text"
+                    {...register("direccion")}
+                    readOnly={!isEditing}
+                    className={`${readOnlyClass} bg-transparent border-slate-200`}
+                  />
+                  {errors.direccion && (
+                    <p className="text-red-500 text-xs font-medium">
+                      {errors.direccion.message}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
-
-            <div className="flex flex-wrap gap-2 justify-end mt-4">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t border-black font-bold">
               {!isEditing ? (
                 <>
                   <Button
@@ -387,7 +466,7 @@ export default function PerfilPage() {
                     type="button"
                     onClick={() => setIsEditing(true)}
                   >
-                    Editar
+                    Editar Perfil
                   </Button>
                   <Button
                     className="w-50"
@@ -395,7 +474,7 @@ export default function PerfilPage() {
                     variant="outline"
                     onClick={() => navigate(-1)}
                   >
-                    Atrás
+                    Volver
                   </Button>
                 </>
               ) : (
@@ -409,7 +488,7 @@ export default function PerfilPage() {
                     Cancelar
                   </Button>
                   <Button className="w-50" type="submit">
-                    Guardar
+                    Guardar Cambios
                   </Button>
                 </>
               )}

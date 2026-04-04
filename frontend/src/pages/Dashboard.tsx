@@ -547,10 +547,56 @@ export default function DashboardPage() {
   }
 
   function EmpleadoDashboard() {
+    // Consideramos que no tiene trabajo si el contador es 0 o si no hay solicitudes recientes en absoluto
+    const hasAssignments = (contadores?.solicitudes && contadores.solicitudes > 0) || solicitudesActualizadas.length > 0;
+
     return (
       <div className="space-y-6">
+        {/* Sección de solicitudes activas */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Actualmente...</h2>
+          </div>
+          
+          {!hasAssignments ? (
+            <Card className="border-dashed border-2 bg-slate-50/50 dark:bg-slate-900/50">
+              <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-full shadow-sm mb-4">
+                  <CheckCircle className="text-slate-300" size={32} />
+                </div>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 italic">No tienes tareas asignadas</h3>
+                <p className="text-slate-500 dark:text-slate-400 max-w-[280px] mt-2 mb-6">
+                  Parece que no tienes ninguna solicitud asignada en este momento.
+                </p>
+                <Button variant="outline" asChild>
+                  <NavLink to="/solicitudes">
+                    Ver todas las solicitudes
+                  </NavLink>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+               {/* Solo mostramos las que no estén finalizadas/canceladas en este bloque principal */}
+               {solicitudesActualizadas
+                 .filter(s => s.estado?.slug !== 'finalizado' && s.estado?.slug !== 'cancelado')
+                 .map(s => (
+                   <SolicitudStatusCard key={s.id} s={s} />
+                 ))}
+               
+               {/* Si todas las actuales están finalizadas pero el contador dice que hay alguna activa, avisamos */}
+               {contadores?.solicitudes && contadores.solicitudes > 0 && 
+                solicitudesActualizadas.filter(s => s.estado?.slug !== 'finalizado' && s.estado?.slug !== 'cancelado').length === 0 && (
+                  <p className="text-sm text-muted-foreground italic text-center py-4">
+                    Tienes {contadores.solicitudes} {contadores.solicitudes === 1 ? 'tarea activa' : 'tareas activas'} fuera de la lista reciente.
+                    <NavLink to="/solicitudes" className="text-primary ml-2 underline">Ver todas</NavLink>
+                  </p>
+               )}
+            </div>
+          )}
+        </div>
 
-        {/* Alertas de nuevas asignaciones */}
+        {/* Alertas de nuevas asignaciones (cuando están en estado 'asignado') */}
         {solicitudesActualizadas.filter(s => s.estado?.slug === 'asignado').length > 0 && (
           <div className="space-y-3">
             {solicitudesActualizadas
