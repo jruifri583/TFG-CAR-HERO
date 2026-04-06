@@ -86,6 +86,14 @@ function App() {
               }
             />
             <Route
+              path="/vehiculos/nuevo"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <NuevoVehiculoPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/vehiculos/:id"
               element={
                 <ProtectedRoute roles={["administrador", "cliente"]}>
@@ -110,6 +118,15 @@ function App() {
                   roles={["administrador", "empleado", "cliente"]}
                 >
                   <SolicitudesPage />
+                </ProtectedRoute>
+              }
+            />
+            {/* ADMIN */}
+            <Route
+              path="/solicitudes/nuevo"
+              element={
+                <ProtectedRoute roles={["administrador"]}>
+                  <NuevaSolicitudPage />
                 </ProtectedRoute>
               }
             />

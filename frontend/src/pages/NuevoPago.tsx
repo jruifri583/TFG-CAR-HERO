@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,26 @@ export default function NuevoPagoPage() {
     resolver: zodResolver(schema),
   });
 
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        tableContainerRef.current &&
+        !tableContainerRef.current.contains(target)
+      ) {
+        // Prevent clearing if clicking on inputs/buttons so the user doesn't lose selection when filling the rest of the form
+        if (["INPUT", "SELECT", "BUTTON", "LABEL"].includes(target.tagName) || target.closest("button") || target.closest("input")) {
+          return;
+        }
+        setValue("solicitud_id", null as any);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [setValue]);
+
   const onSubmit = async (data: any) => {
     try {
       await api.post("/pagos", { ...data, estado_pago_id: 2 });
@@ -52,12 +73,7 @@ export default function NuevoPagoPage() {
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Solicitudes */}
             <div className="space-y-2 mb-4">
-              <label className="text-sm text-muted-foreground">
-                Solicitud *
-              </label>
-              <div
-                className={`rounded-lg overflow-hidden ${watch("solicitud_id") ? "border-primary" : ""}`}
-              >
+              <div ref={tableContainerRef}>
                 <SolicitudesPage
                   sinPago
                   onSelect={(id) => setValue("solicitud_id", id)}
@@ -72,6 +88,8 @@ export default function NuevoPagoPage() {
             </div>
 
             {/* Importe y método */}
+            {watch("solicitud_id") ? (
+              <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-sm text-muted-foreground">
@@ -114,7 +132,7 @@ export default function NuevoPagoPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 justify-end mt-6">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               <Button
                 type="button"
                 variant="outline"
@@ -126,6 +144,12 @@ export default function NuevoPagoPage() {
                 {isSubmitting ? "Guardando..." : "Registrar pago"}
               </Button>
             </div>
+            </>
+            ) : (
+              <div className="text-center py-10 mt-6 border-t-2 border-primary">
+                 <p className="text-muted-foreground font-medium">Selecciona una solicitud pendiente de la lista superior para registrar su pago correspondiente.</p>
+              </div>
+            )}
           </form>
         </CardContent>
       </CardSinBorde>

@@ -97,11 +97,11 @@ export default function PagosPage() {
 
   const renderSortArrow = (field: SortField) => {
     if (sortField !== field)
-      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
     return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="inline ml-1" />
+      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
     ) : (
-      <ArrowDown size={14} className="inline ml-1" />
+      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
     );
   };
 
@@ -156,25 +156,25 @@ export default function PagosPage() {
         <TableHeader>
           <TableRow>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[150px]"
               onClick={() => handleSort("solicitud_id")}
             >
               Solicitud{renderSortArrow("solicitud_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[200px]"
               onClick={() => handleSort("importe")}
             >
               Importe{renderSortArrow("importe")}
             </TableHead>
             <TableHead
-              className="hidden sm:table-cell cursor-pointer"
+              className="hidden sm:table-cell cursor-pointer text-center w-[250px]"
               onClick={() => handleSort("metodo_pago_id")}
             >
               Método de Pago{renderSortArrow("metodo_pago_id")}
             </TableHead>
             <TableHead
-              className="hidden sm:table-cell cursor-pointer"
+              className="hidden sm:table-cell cursor-pointer text-center w-[180px]"
               onClick={() => handleSort("created_at")}
             >
               Fecha de pago{renderSortArrow("created_at")}
@@ -189,20 +189,27 @@ export default function PagosPage() {
               className="cursor-pointer hover:bg-muted/50 h-14"
               onClick={() => navigate(`/solicitudes/${pago.solicitud}`)}
             >
-              <TableCell>{pago.solicitud ?? "-"}</TableCell>
-              <TableCell>
+              <TableCell className="text-center">
+                <span className="font-semibold text-slate-700">{pago.solicitud ?? "-"}</span>
+              </TableCell>
+              <TableCell className="text-center font-bold text-slate-800">
                 {pago.importe != null
-                  ? Number(pago.importe).toLocaleString("es-ES", {
-                      style: "currency",
-                      currency: "EUR",
-                    })
+                  ? Number(pago.importe) % 1 === 0
+                    ? Number(pago.importe).toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 0 })
+                    : Number(pago.importe).toLocaleString("es-ES", { style: "currency", currency: "EUR" })
                   : "-"}
               </TableCell>
-              <TableCell className="hidden sm:table-cell">{pago.metodo_pago?.nombre ?? "-"}</TableCell>
-              <TableCell className="hidden sm:table-cell">
-                {pago.created_at
-                  ? new Date(pago.created_at).toLocaleDateString("es-ES")
-                  : "-"}
+              <TableCell className="hidden sm:table-cell text-center">
+                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold ring-1 ring-primary/20">
+                  {pago.metodo_pago?.nombre || "-"}
+                </span>
+              </TableCell>
+              <TableCell className="hidden sm:table-cell text-center">
+                <span className="text-xs font-semibold text-slate-500">
+                  {pago.created_at
+                    ? new Date(pago.created_at).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
+                    : "-"}
+                </span>
               </TableCell>
             </TableRow>
           ))}

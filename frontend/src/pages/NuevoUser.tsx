@@ -101,7 +101,7 @@ export default function NuevoUsuarioPage() {
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Bloque 1: Credenciales */}
-              <div className="space-y-4 border-b pb-6 sm:border-b-0 sm:pb-0 sm:border-r sm:border-black sm:pr-6">
+              <div className="space-y-4 border-b-2 border-primary pb-6 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-6">
                 <h3 className="font-bold text-lg mb-4">Credenciales</h3>
                 
                 <div className="space-y-1">
@@ -248,7 +248,7 @@ export default function NuevoUsuarioPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2 justify-end mt-4 pt-4 border-t border-black">
+            <div className="flex flex-wrap gap-2 justify-end mt-4 pt-4 border-t-2 border-primary">
               <Button
                 className="w-50"
                 type="button"

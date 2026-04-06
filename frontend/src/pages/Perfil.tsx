@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Lock, User as UserIcon } from "lucide-react";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -283,8 +284,13 @@ export default function PerfilPage() {
           <form onSubmit={handleSubmit(onSubmit, onValidationError)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {/* Bloque 1: Credenciales */}
-              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:border-black sm:pr-8">
-                <h3 className="font-bold text-lg mb-4">Credenciales</h3>
+              <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
+                <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <Lock className="text-primary" size={20} />
+                  </div>
+                  <h3 className="font-bold text-lg">Credenciales</h3>
+                </div>
                 
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Email</label>
@@ -324,7 +330,7 @@ export default function PerfilPage() {
                 </div>
 
                 {isEditing && (
-                  <div className="space-y-4 pt-2 border-t mt-4">
+                  <div className="space-y-4 pt-2 border-t-2 border-primary mt-4">
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Nueva Contraseña</label>
                       <Input
@@ -357,7 +363,7 @@ export default function PerfilPage() {
                 )}
 
                 {isAdmin && !isOwnProfile && (
-                  <div className="flex items-center gap-3 pt-4 border-t">
+                  <div className="flex items-center gap-3 pt-4 border-t-2 border-primary">
                     <input
                       type="checkbox"
                       id="activo"
@@ -375,7 +381,12 @@ export default function PerfilPage() {
 
               {/* Bloque 2: Información Personal */}
               <div className="space-y-4">
-                <h3 className="font-bold text-lg mb-4">Información Personal</h3>
+                <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <UserIcon className="text-primary" size={20} />
+                  </div>
+                  <h3 className="font-bold text-lg">Información Personal</h3>
+                </div>
                 
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Nombre</label>
@@ -458,7 +469,7 @@ export default function PerfilPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t border-black font-bold">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               {!isEditing ? (
                 <>
                   <Button

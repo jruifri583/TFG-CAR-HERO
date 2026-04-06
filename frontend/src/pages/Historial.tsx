@@ -90,11 +90,11 @@ export default function HistorialPage() {
 
   const renderSortArrow = (field: SortField) => {
     if (sortField !== field)
-      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
     return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="inline ml-1" />
+      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
     ) : (
-      <ArrowDown size={14} className="inline ml-1" />
+      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
     );
   };
 
@@ -142,19 +142,19 @@ export default function HistorialPage() {
         <TableHeader>
           <TableRow>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[150px]"
               onClick={() => handleSort("solicitud_id")}
             >
               Solicitud{renderSortArrow("solicitud_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[200px]"
               onClick={() => handleSort("fecha_itv")}
             >
-              Fecha{renderSortArrow("fecha_itv")}
+              Fecha ITV{renderSortArrow("fecha_itv")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[200px]"
               onClick={() => handleSort("resolucion_id")}
             >
               Resolución{renderSortArrow("resolucion_id")}
@@ -169,13 +169,17 @@ export default function HistorialPage() {
               className="cursor-pointer hover:bg-muted/50 h-14"
               onClick={() => navigate(`/solicitudes/${h.solicitud_id}`)}
             >
-              <TableCell>{h.solicitud_id}</TableCell>
-              <TableCell>
-                {h.fecha_itv
-                  ? new Date(h.fecha_itv).toLocaleDateString("es-ES")
-                  : "-"}
+              <TableCell className="text-center">
+                <span className="font-semibold text-slate-700">{h.solicitud_id}</span>
               </TableCell>
-              <TableCell>
+              <TableCell className="text-center font-medium">
+                <span className="text-xs font-semibold text-slate-500">
+                  {h.fecha_itv
+                    ? new Date(h.fecha_itv).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
+                    : "-"}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
                 <span
                   className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre] ?? "bg-gray-100 text-gray-800"}`}
                 >

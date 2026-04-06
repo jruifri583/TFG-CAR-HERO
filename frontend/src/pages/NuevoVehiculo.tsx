@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import UsersPage from "@/pages/Users";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,9 +45,30 @@ const schema = z.object({
 });
 
 export default function NuevoVehiculoPage() {
-  const { id: userId } = useParams();
+  const { id: paramUserId } = useParams();
   const navigate = useNavigate();
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const actualUserId = paramUserId ? Number(paramUserId) : selectedUserId;
   const [userName, setUserName] = useState("");
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        !paramUserId &&
+        tableContainerRef.current &&
+        !tableContainerRef.current.contains(target)
+      ) {
+        if (["INPUT", "SELECT", "BUTTON", "LABEL"].includes(target.tagName) || target.closest("button") || target.closest("input")) {
+          return;
+        }
+        setSelectedUserId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [paramUserId]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -67,13 +89,15 @@ export default function NuevoVehiculoPage() {
   }, [setHeaderData, imagePreview]);
 
   useEffect(() => {
-    if (userId) {
-      api.get(`/users/${userId}`).then((res) => {
+    if (actualUserId) {
+      api.get(`/users/${actualUserId}`).then((res) => {
         const u = res.data.data ?? res.data;
         setUserName(`${u.nombre} ${u.apellidos ?? ""}`);
       });
+    } else {
+      setUserName("");
     }
-  }, [userId]);
+  }, [actualUserId]);
 
   // Registra el handler de imagen
   useEffect(() => {
@@ -96,7 +120,7 @@ export default function NuevoVehiculoPage() {
           formData.append(key, data[key]);
         }
       });
-      formData.append("user_id", String(userId));
+      formData.append("user_id", String(actualUserId));
       if (imageFile) {
         formData.append("imagen", imageFile);
       }
@@ -119,17 +143,25 @@ export default function NuevoVehiculoPage() {
     <div className="w-full">
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-6 pt-6">
-          {userName && (
-            <div className="flex items-center gap-2 bg-slate-50 border p-3 rounded-lg mb-2">
-              <span className="text-sm font-medium text-muted-foreground uppercase tracking-tight">Propietario:</span>
-              <span className="text-sm font-bold text-slate-900 underline underline-offset-4">{userName}</span>
+          {!paramUserId && (
+            <div ref={tableContainerRef}>
+              <UsersPage isSelector onSelect={setSelectedUserId} selectedId={selectedUserId} />
             </div>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          {actualUserId ? (
+            <>
+            {userName && (
+              <div className="flex items-center gap-2 bg-slate-50 border p-3 rounded-lg mb-2">
+                <span className="text-sm font-medium text-muted-foreground uppercase tracking-tight">Propietario:</span>
+                <span className="text-sm font-bold text-slate-900 underline underline-offset-4">{userName}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {/* Bloque 1: Info Básica */}
-              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:pr-8">
+              <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
                 <h3 className="font-bold text-lg mb-4">Información del Vehículo</h3>
                 
                 <div className="space-y-1">
@@ -189,7 +221,6 @@ export default function NuevoVehiculoPage() {
 
               {/* Bloque 2: Detalles Técnicos */}
               <div className="space-y-4">
-                <h3 className="font-bold text-lg mb-4">Detalles Técnicos</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
@@ -229,7 +260,7 @@ export default function NuevoVehiculoPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t font-bold">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               <Button
                 className="w-40"
                 type="button"
@@ -242,7 +273,13 @@ export default function NuevoVehiculoPage() {
                 {isSubmitting ? "Guardando..." : "Crear Vehículo"}
               </Button>
             </div>
-          </form>
+            </form>
+            </>
+          ) : (
+            <div className="text-center py-10 mt-6 border-t-2 border-primary">
+               <p className="text-muted-foreground font-medium">Selecciona un usuario de la lista superior para registrar su nuevo vehículo.</p>
+            </div>
+          )}
         </CardContent>
       </CardSinBorde>
     </div>

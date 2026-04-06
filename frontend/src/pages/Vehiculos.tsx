@@ -1,9 +1,11 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown, X, PlusIcon } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
 import { CardContent, CardSinBorde } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Table,
   TableHeader,
@@ -105,11 +107,11 @@ export default function VehiculosPage() {
 
   const renderSortArrow = (field: SortField) => {
     if (sortField !== field)
-      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
     return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="inline ml-1" />
+      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
     ) : (
-      <ArrowDown size={14} className="inline ml-1" />
+      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
     );
   };
 
@@ -180,6 +182,7 @@ function AdminList({
   return (
     <>
       <div className="flex justify-end mb-4 items-center">
+        <ButtonGroup>
           <div className="relative flex items-center">
             {!search && (
               <Search
@@ -197,7 +200,7 @@ function AdminList({
               }}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+              className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
               ${search ? "pl-3" : "pl-8"}
               ${inputFocused || search ? "w-50" : "w-32"}
               focus-visible:ring-0`}
@@ -214,30 +217,35 @@ function AdminList({
               </button>
             )}
           </div>
+          <Button className="w-50" onClick={() => navigate("/vehiculos/nuevo")}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Añadir
+          </Button>
+        </ButtonGroup>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Imagen</TableHead>
+            <TableHead className="text-center w-[80px]">Imagen</TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[160px]"
               onClick={() => handleSort("matricula")}
             >
               Matrícula{renderSortArrow("matricula")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[220px]"
               onClick={() => handleSort("marca")}
             >
               Marca y Modelo{renderSortArrow("marca")}
             </TableHead>
             <TableHead
-              className="hidden sm:table-cell cursor-pointer"
+              className="hidden sm:table-cell cursor-pointer text-center w-[120px]"
               onClick={() => handleSort("año")}
             >
               Año{renderSortArrow("año")}
             </TableHead>
-            <TableHead className="hidden sm:table-cell">Kilómetros</TableHead>
+            <TableHead className="hidden sm:table-cell text-center w-[140px]">Kilómetros</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -248,27 +256,42 @@ function AdminList({
               className="cursor-pointer hover:bg-muted/50"
               onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
             >
-              <TableCell>
+              <TableCell className="text-center">
                 <img
                   src={vehiculo.imagen ?? "/avatars/default_car.png"}
-                  className="w-10 h-10 rounded-full object-cover mx-auto"
+                  className="w-10 h-10 rounded shadow-sm object-cover mx-auto"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       "/avatars/default_car.png";
                   }}
                 />
               </TableCell>
-              <TableCell>{vehiculo.matricula}</TableCell>
-              <TableCell>
+              <TableCell className="text-center truncate">
+                <span className="inline-flex items-center border-2 border-black bg-white text-black rounded overflow-hidden text-[13px] font-black tracking-widest shadow-md h-8">
+                  <span className="w-5 h-full bg-blue-700 shrink-0 flex flex-col items-center justify-between py-[4px]">
+                    <div className="grid grid-cols-2 gap-[1.5px] opacity-80">
+                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
+                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
+                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
+                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
+                    </div>
+                    <span className="text-[8px] text-white font-black translate-y-[1px]">E</span>
+                  </span>
+                  <span className="px-3">{vehiculo.matricula}</span>
+                </span>
+              </TableCell>
+              <TableCell className="text-center truncate font-medium">
                 {[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" ")}
               </TableCell>
-              <TableCell className="hidden sm:table-cell">
+              <TableCell className="hidden sm:table-cell text-center text-slate-500 font-bold">
                 {vehiculo.año ?? "-"}
               </TableCell>
-              <TableCell className="hidden sm:table-cell">
-                {vehiculo.kilometros != null
-                  ? vehiculo.kilometros.toLocaleString("es-ES") + " km"
-                  : "-"}
+              <TableCell className="hidden sm:table-cell text-center">
+                <span className="text-sm font-bold text-slate-700">
+                  {vehiculo.kilometros != null
+                    ? vehiculo.kilometros.toLocaleString("es-ES") + " km"
+                    : "-"}
+                </span>
               </TableCell>
             </TableRow>
           ))}

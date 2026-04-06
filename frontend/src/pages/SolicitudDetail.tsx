@@ -9,7 +9,7 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import SolicitudCircularTracker from "@/components/ui/SolicitudCircularTracker";
 import { 
   FileText,
-  Clock, MapPin, ShieldCheck, ExternalLink
+  Clock, MapPin, ShieldCheck, ExternalLink, Activity
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -322,7 +322,7 @@ export default function SolicitudDetailPage() {
 
   const siguiente = siguienteEstado();
   const puedeAvanzar =
-    role !== "cliente" &&
+    role === "empleado" &&
     siguiente !== null &&
     solicitud.estado?.slug !== "pendiente" &&
     solicitud.estado?.slug !== "cancelado" &&
@@ -471,8 +471,13 @@ export default function SolicitudDetailPage() {
               <CardContent className="flex flex-col gap-6 pt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Bloque 1: Detalles del Servicio */}
-                  <div className="space-y-4 md:border-r md:border-black md:pr-8">
-                    <h3 className="font-bold text-lg mb-4 text-primary">Detalles del Servicio</h3>
+                  <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
+                    <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-lg">
+                        <FileText className="text-primary" size={20} />
+                      </div>
+                      <h3 className="font-bold text-lg">Detalles del Servicio</h3>
+                    </div>
                     
                     <div className="space-y-1">
                       <label className="text-sm font-medium">Dirección de recogida *</label>
@@ -508,7 +513,12 @@ export default function SolicitudDetailPage() {
 
                   {/* Bloque 2: Gestión y Notas */}
                   <div className="space-y-4">
-                    <h3 className="font-bold text-lg mb-4 text-primary">Gestión y Notas</h3>
+                    <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                      <div className="bg-primary/10 p-2 rounded-lg">
+                        <Activity className="text-primary" size={20} />
+                      </div>
+                      <h3 className="font-bold text-lg">Gestión y Notas</h3>
+                    </div>
 
                     {role === "administrador" && (
                       <div className="space-y-1">
@@ -548,7 +558,7 @@ export default function SolicitudDetailPage() {
                   </p>
                 )}
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-black font-bold">
+                <div className="flex justify-end gap-3 pt-6 border-t-2 border-primary font-bold">
                   <Button 
                     type="button" 
                     variant="outline" 
@@ -571,57 +581,41 @@ export default function SolicitudDetailPage() {
         </div>
       );
     }
+
     return (
-      <div className="w-full space-y-8 animate-in fade-in duration-500">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Columna Izquierda: Información de la Solicitud */}
-          <div className="space-y-8">
-            <CardSinBorde>
-              <CardContent className="space-y-6 pt-6">
-                <div className="flex items-center gap-3 border-b pb-4">
-                  <div className="bg-primary/10 p-2 rounded-lg">
-                    <FileText className="text-primary" size={20} />
-                  </div>
-                  <h3 className="font-bold text-lg">Detalles del Servicio</h3>
+      <div className="w-full animate-in fade-in duration-500">
+        {/* Fila 1: Detalles y Cliente/Vehículo */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <CardSinBorde>
+            <CardContent className="space-y-6 pt-6">
+              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <FileText className="text-primary" size={20} />
                 </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <ReadOnlyField label="Dirección de Recogida" value={solicitud!.direccion} icon={MapPin} />
-                  </div>
-                  <ReadOnlyField label="Fecha Programada" value={fmt(solicitud!.fecha_programada)} icon={Clock} />
-                  <ReadOnlyField label="Estado Actual" value={solicitud!.estado?.nombre} />
-                  <ReadOnlyField label="Agente Asignado" value={solicitud!.empleado ? `${solicitud!.empleado.nombre} ${solicitud!.empleado.apellidos}` : "Pendiente de asignar"} />
-                  <ReadOnlyField label="Resolución ITV" value={solicitud!.resolucion?.nombre} icon={ShieldCheck} />
-                  <div className="sm:col-span-2 font-medium">
-                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del Servicio</label>
-                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">
-                        {solicitud!.notas || "Sin observaciones adicionales."}
-                     </div>
-                  </div>
+                <h3 className="font-bold text-lg">Detalles del Servicio</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
+                  <ReadOnlyField label="Dirección de Recogida" value={solicitud!.direccion} icon={MapPin} />
                 </div>
-              </CardContent>
-            </CardSinBorde>
+                <ReadOnlyField label="Fecha Programada" value={fmt(solicitud!.fecha_programada)} icon={Clock} />
+                <ReadOnlyField label="Estado Actual" value={solicitud!.estado?.nombre} />
+                <ReadOnlyField label="Agente Asignado" value={solicitud!.empleado ? `${solicitud!.empleado.nombre} ${solicitud!.empleado.apellidos}` : "Pendiente de asignar"} />
+                <ReadOnlyField label="Resolución ITV" value={solicitud!.resolucion?.nombre} icon={ShieldCheck} />
+                <div className="sm:col-span-2 font-medium">
+                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del Servicio</label>
+                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">
+                      {solicitud!.notas || "Sin observaciones adicionales."}
+                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </CardSinBorde>
 
-            <CardSinBorde>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-8">
-                  <h3 className="font-bold text-lg">Progreso de la Solicitud</h3>
-                  <div className="bg-slate-100 px-3 py-1 rounded-full text-xs font-bold text-slate-500 uppercase tracking-tighter">
-                    Timeline
-                  </div>
-                </div>
-                <div className="flex justify-center py-4">
-                  <SolicitudCircularTracker estado={solicitud!.estado} />
-                </div>
-              </CardContent>
-            </CardSinBorde>
-          </div>
-
-          {/* Columna Derecha: Cliente y Vehículo */}
-          <div className="space-y-8">
+          <div className="flex flex-col gap-8 h-full">
             {role !== "cliente" && (
-              <CardSinBorde className="border-l-4 border-l-primary">
+              <CardSinBorde className="border-l-2 border-l-primary flex-1">
                 <CardContent className="pt-6 space-y-4">
                   <h3 className="font-bold text-lg flex items-center gap-2">
                     Información del Cliente
@@ -635,14 +629,16 @@ export default function SolicitudDetailPage() {
                       <p className="font-bold text-lg text-slate-800">
                         {solicitud!.cliente?.nombre} {solicitud!.cliente?.apellidos}
                       </p>
-                      <p className="text-sm text-slate-500">{solicitud!.cliente?.email}</p>
+                      <p className="text-sm text-slate-500 font-medium truncate">
+                        {solicitud!.cliente?.email}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
               </CardSinBorde>
             )}
 
-            <CardSinBorde className="border-l-4 border-l-secondary">
+            <CardSinBorde className="border-l-2 border-l-primary flex-1">
               <CardContent className="pt-6 space-y-4">
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   Vehículo Vinculado
@@ -665,11 +661,35 @@ export default function SolicitudDetailPage() {
                 </div>
               </CardContent>
             </CardSinBorde>
+          </div>
+        </div>
 
-            <CardSinBorde>
-              <CardContent className="pt-6 space-y-4">
+        {/* Fila 2: Progreso y Seguimiento */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <CardSinBorde className="h-full">
+            <CardContent className="pt-6 h-full flex flex-col">
+              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <Activity className="text-primary" size={20} />
+                </div>
+                <h3 className="font-bold text-lg">Progreso de la Solicitud</h3>
+              </div>
+              <div className="flex-1 flex items-center justify-center py-4">
+                <SolicitudCircularTracker estado={solicitud!.estado} />
+              </div>
+            </CardContent>
+          </CardSinBorde>
+
+          <CardSinBorde className="h-full">
+            <CardContent className="pt-6 h-full flex flex-col">
+              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <Clock className="text-primary" size={20} />
+                </div>
                 <h3 className="font-bold text-lg">Seguimiento Horario Real</h3>
-                <div className="grid grid-cols-1 gap-3">
+              </div>
+              <div className="flex-1 flex flex-col justify-center py-4">
+                <div className="grid grid-cols-1 gap-4">
                    <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
                       <span className="text-sm font-medium text-slate-500">Recogida</span>
                       <span className="font-bold text-slate-700">{fmt(solicitud!.hora_recogida)}</span>
@@ -683,38 +703,38 @@ export default function SolicitudDetailPage() {
                       <span className="font-bold text-slate-700">{fmt(solicitud!.hora_entrega)}</span>
                    </div>
                 </div>
-              </CardContent>
-            </CardSinBorde>
-          </div>
+              </div>
+            </CardContent>
+          </CardSinBorde>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-8 border-t border-black">
-          <Button variant="outline" onClick={() => navigate(-1)} className="font-bold w-50">
+        {/* Botones de acción */}
+        <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
+          <Button variant="outline" onClick={() => navigate(-1)} className="w-50">
             Volver
           </Button>
           
-          <div className="flex items-center gap-3">
-            {role !== "cliente" && (
-              <Button 
-                onClick={() => setEditando(true)}
-                variant="outline"
-                className="font-bold w-50"
-              >
-                Editar Datos
-              </Button>
-            )}
+          {role === "administrador" && 
+           !["en_recogida", "en_itv", "retornando", "finalizado", "cancelado"].includes(solicitud!.estado?.slug || "") && (
+            <Button 
+              onClick={() => setEditando(true)}
+              variant={puedeAvanzar ? "outline" : "default"}
+              className="w-50"
+            >
+              Editar Datos
+            </Button>
+          )}
 
-            {puedeAvanzar && (
-              <Button
-                className={`font-bold w-50 ${isBusy && siguiente?.slug === 'en_recogida' ? 'opacity-50' : ''}`}
-                variant={isBusy && siguiente?.slug === 'en_recogida' ? 'outline' : 'default'}
-                onClick={handleAvanzarEstado}
-                disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
-              >
-                {avanzando ? "Actualizando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Ocupado" : `A "${siguiente?.nombre}"`}
-              </Button>
-             )}
-          </div>
+          {puedeAvanzar && (
+            <Button
+              className={`w-50 ${isBusy && siguiente?.slug === 'en_recogida' ? 'opacity-50' : ''}`}
+              variant={isBusy && siguiente?.slug === 'en_recogida' ? 'outline' : 'default'}
+              onClick={handleAvanzarEstado}
+              disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
+            >
+              {avanzando ? "Actualizando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Ocupado" : `A "${siguiente?.nombre}"`}
+            </Button>
+           )}
         </div>
       </div>
     );

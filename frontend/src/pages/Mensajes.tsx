@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, MailOpen, Mail } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, MailOpen } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -86,11 +86,11 @@ export default function MensajesPage() {
 
   const renderSortArrow = (field: SortField) => {
     if (sortField !== field)
-      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
     return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="inline ml-1" />
+      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
     ) : (
-      <ArrowDown size={14} className="inline ml-1" />
+      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
     );
   };
 
@@ -158,21 +158,21 @@ export default function MensajesPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]"></TableHead>
+            <TableHead className="w-[80px] text-center">Estado</TableHead>
             <TableHead
-              className="cursor-pointer font-bold"
+              className="cursor-pointer font-bold text-center w-[220px]"
               onClick={() => handleSort("nombre")}
             >
               Remitente{renderSortArrow("nombre")}
             </TableHead>
             <TableHead
-              className="cursor-pointer font-bold hidden sm:table-cell"
+              className="cursor-pointer font-bold text-center w-[250px] hidden sm:table-cell"
               onClick={() => handleSort("email")}
             >
               Email{renderSortArrow("email")}
             </TableHead>
             <TableHead
-              className="cursor-pointer font-bold"
+              className="cursor-pointer font-bold text-center w-[200px]"
               onClick={() => handleSort("created_at")}
             >
               Recibido{renderSortArrow("created_at")}
@@ -191,24 +191,31 @@ export default function MensajesPage() {
             mensajes.map((mensaje) => (
               <React.Fragment key={mensaje.id}>
                 <TableRow
-                  className={`cursor-pointer h-14 transition-colors ${
+                  key={mensaje.id}
+                  className={`cursor-pointer h-16 transition-colors ${
                     !mensaje.leido_at
-                      ? "bg-blue-50/50 dark:bg-blue-900/10 font-medium hover:bg-blue-100/50"
-                      : "hover:bg-muted/50 text-muted-foreground"
+                      ? "bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-100/50"
+                      : "hover:bg-muted/50"
                   }`}
                   onClick={() => handleMessageClick(mensaje)}
                 >
-                  <TableCell>
+                  <TableCell className="text-center">
                     {!mensaje.leido_at ? (
-                      <Mail className="text-primary w-5 h-5 mx-auto" />
+                      <div className="w-2.5 h-2.5 bg-primary rounded-full mx-auto shadow-[0_0_8px_rgba(var(--primary),0.5)] animate-pulse" />
                     ) : (
-                      <MailOpen className="text-muted-foreground w-5 h-5 mx-auto" />
+                      <MailOpen className="text-slate-400 w-4 h-4 mx-auto" />
                     )}
                   </TableCell>
-                  <TableCell className="text-foreground">{mensaje.nombre}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{mensaje.email}</TableCell>
-                  <TableCell>
-                    {new Date(mensaje.created_at).toLocaleDateString("es-ES")}
+                  <TableCell className="text-center font-medium text-slate-900 truncate">
+                    {mensaje.nombre}
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell text-center">
+                    <span className="text-sm text-slate-500 font-medium truncate inline-block max-w-[150px]">
+                      {mensaje.email}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center text-xs font-semibold text-slate-500">
+                    {new Date(mensaje.created_at).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })}
                   </TableCell>
                 </TableRow>
 
@@ -221,7 +228,7 @@ export default function MensajesPage() {
                           <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                             Mensaje
                           </span>
-                          <CardSinBorde className="border border-input/50 shadow-sm flex-1">
+                          <CardSinBorde className="bg-primary/5 border-2 border-primary/20 shadow-sm flex-1">
                             <CardContent className="p-5 text-sm text-foreground whitespace-pre-wrap leading-relaxed break-words">
                               {mensaje.mensaje}
                             </CardContent>
@@ -235,9 +242,9 @@ export default function MensajesPage() {
                           </span>
                           
                           {mensaje.respondido_at ? (
-                            <CardSinBorde className="bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800 shadow-sm flex-1">
+                            <CardSinBorde className="bg-blue-50/50 border-2 border-blue-600 shadow-sm flex-1">
                               <CardContent className="p-5 text-sm whitespace-pre-wrap break-words flex flex-col h-full">
-                                <p className="text-green-700 dark:text-green-400 font-semibold mb-4 flex items-center gap-2">
+                                <p className="text-blue-600 font-bold mb-4 flex items-center gap-2">
                                   ✓ Respondido el {new Date(mensaje.respondido_at).toLocaleString("es-ES")}
                                 </p>
                                 <span className="text-foreground flex-1">{mensaje.respuesta}</span>

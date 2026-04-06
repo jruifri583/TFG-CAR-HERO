@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Car } from "lucide-react";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -182,8 +183,13 @@ export default function VehiculoDetailPage() {
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {/* Bloque 1: Info Básica */}
-              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:pr-8">
-                <h3 className="font-bold text-lg mb-4">Información del Vehículo</h3>
+              <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
+                <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <Car className="text-primary" size={20} />
+                  </div>
+                  <h3 className="font-bold text-lg">Información del Vehículo</h3>
+                </div>
                 
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Matrícula</label>
@@ -242,7 +248,6 @@ export default function VehiculoDetailPage() {
 
               {/* Bloque 2: Detalles Técnicos */}
               <div className="space-y-4">
-                <h3 className="font-bold text-lg mb-4">Detalles Técnicos</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
@@ -287,7 +292,7 @@ export default function VehiculoDetailPage() {
 
                 {/* Propietario (solo admin/empleado) */}
                 {role !== "cliente" && (
-                  <div className="pt-6 border-t mt-6">
+                  <div className="pt-6 border-t-2 border-primary mt-6">
                     <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Propietario</h4>
                     {vehiculo.cliente ? (
                       <div className="bg-slate-50 p-3 rounded-md border border-slate-100 flex flex-col gap-1">
@@ -302,7 +307,7 @@ export default function VehiculoDetailPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t font-bold">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               {!isEditing ? (
                 <>
                   <Button

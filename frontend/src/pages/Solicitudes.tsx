@@ -1,4 +1,4 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown, X } from "lucide-react";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown, X, PlusIcon } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { useEffect, useState } from "react";
 import {
@@ -10,6 +10,8 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Pagination,
   PaginationContent,
@@ -19,8 +21,6 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 
 interface Solicitud {
@@ -57,7 +57,7 @@ type SortOrder = "asc" | "desc";
 
 function fmt(iso: string | null) {
   if (!iso) return "-";
-  return format(new Date(iso), "dd MMM yyyy", { locale: es });
+  return new Date(iso).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 interface Props {
@@ -139,62 +139,69 @@ export default function SolicitudesPage({
 
   return (
     <>
-      {!sinPago && (
-        <div className="flex justify-end mb-4 gap-2 items-center">
+      <div className="flex justify-end mb-4 gap-2 items-center">
+        <ButtonGroup>
           <div className="relative flex items-center">
-            {!search && (
-              <Search
-                size={14}
-                className="absolute left-2.5 text-muted-foreground pointer-events-none"
-              />
-            )}
-            <Input
-              type="text"
-              placeholder="Buscar..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                debouncedSearch(e.target.value);
-              }}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
-              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
-          ${search ? "pl-3" : "pl-8"}
-          ${inputFocused || search ? "w-64" : "w-32"}
-          focus-visible:ring-0`}
+          {!search && (
+            <Search
+              size={14}
+              className="absolute left-2.5 text-muted-foreground pointer-events-none"
             />
-            {search && (
-              <button
-                className="absolute right-2 text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setSearch("");
-                  debouncedSearch("");
-                }}
-              >
-                <X size={14} />
-              </button>
-            )}
-          </div>
+          )}
+          <Input
+            type="text"
+            placeholder="Buscar..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              debouncedSearch(e.target.value);
+            }}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
+            className={`border-black py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+        ${!sinPago ? "rounded-l-md rounded-r-none" : "rounded-md"}
+        ${search ? "pl-3" : "pl-8"}
+        ${inputFocused || search ? "w-64" : "w-32"}
+        focus-visible:ring-0`}
+          />
+          {search && (
+            <button
+              className="absolute right-2 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setSearch("");
+                debouncedSearch("");
+              }}
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
-      )}
+        {!sinPago && (
+            <Button className="w-50" onClick={() => navigate("/solicitudes/nuevo")}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Añadir
+            </Button>
+        )}
+        </ButtonGroup>
+      </div>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Vehículo</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Empleado</TableHead>
+            <TableHead className="text-center w-[70px]">ID</TableHead>
+            <TableHead className="text-center min-w-[200px]">Vehículo</TableHead>
+            <TableHead className="text-center min-w-[200px]">Cliente</TableHead>
+            <TableHead className="text-center min-w-[150px]">Empleado</TableHead>
             {!sinPago && (
               <TableHead
-                className="cursor-pointer"
+                className="cursor-pointer text-center w-[130px]"
                 onClick={() => handleSort("estado_id")}
               >
                 Estado{renderSortArrow("estado_id")}
               </TableHead>
             )}
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[180px]"
               onClick={() => handleSort("fecha_programada")}
             >
               Fecha programada{renderSortArrow("fecha_programada")}
@@ -208,30 +215,36 @@ export default function SolicitudesPage({
               key={s.id}
               className={`cursor-pointer transition-colors ${
                 onSelect && selectedId === s.id
-                  ? "bg-primary/10 border-l-4 border-l-primary"
+                  ? "bg-primary/10"
                   : "hover:bg-muted/50"
               }`}
               onClick={() =>
                 onSelect ? onSelect(s.id) : navigate(`/solicitudes/${s.id}`)
               }
             >
-              <TableCell className="text-sm font-medium">{s.id}</TableCell>
+              <TableCell 
+                className="text-center text-sm font-medium border-l-4 border-transparent"
+              >
+                {s.id}
+              </TableCell>
 
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-                    className="w-10 h-10 rounded object-cover shrink-0"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "/avatars/default_car.png";
-                    }}
-                  />
-                  <div className="flex-1 text-center">
-                    <p className="font-medium text-sm">
+                <div className="flex items-center gap-3 w-[180px] mx-auto">
+                  <div className="w-10 h-10 shrink-0">
+                    <img
+                      src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
+                      className="w-full h-full rounded shadow-sm object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/avatars/default_car.png";
+                      }}
+                    />
+                  </div>
+                  <div className="text-left overflow-hidden">
+                    <p className="font-bold text-sm text-slate-800 truncate">
                       {s.vehiculo?.marca} {s.vehiculo?.modelo}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-tight">
                       {s.vehiculo?.matricula}
                     </p>
                   </div>
@@ -239,26 +252,28 @@ export default function SolicitudesPage({
               </TableCell>
 
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={s.cliente?.imagen ?? "/avatars/default_user.png"}
-                    className="w-8 h-8 rounded-full object-cover shrink-0"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "/avatars/default_user.png";
-                    }}
-                  />
-                  <span className="text-sm flex-1 text-center">
+                <div className="flex items-center gap-3 w-[160px] mx-auto">
+                  <div className="w-8 h-8 shrink-0">
+                    <img
+                      src={s.cliente?.imagen ?? "/avatars/default_user.png"}
+                      className="w-full h-full rounded-full shadow-sm object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          "/avatars/default_user.png";
+                      }}
+                    />
+                  </div>
+                  <span className="text-sm font-medium truncate">
                     {s.cliente?.nombre} {s.cliente?.apellidos}
                   </span>
                 </div>
               </TableCell>
 
-              <TableCell className="text-sm">
+              <TableCell className="text-center text-sm">
                 {s.empleado ? (
-                  `${s.empleado.nombre} ${s.empleado.apellidos}`
+                  <span className="font-medium">{s.empleado.nombre} {s.empleado.apellidos}</span>
                 ) : (
-                  <span className="text-muted-foreground">Sin asignar</span>
+                  <span className="text-muted-foreground italic">Sin asignar</span>
                 )}
               </TableCell>
 
@@ -272,8 +287,10 @@ export default function SolicitudesPage({
                 </TableCell>
               )}
 
-              <TableCell className="text-sm">
-                {fmt(s.fecha_programada)}
+              <TableCell className="text-center">
+                <span className="text-xs font-semibold text-slate-500">
+                  {fmt(s.fecha_programada)}
+                </span>
               </TableCell>
             </TableRow>
           ))}

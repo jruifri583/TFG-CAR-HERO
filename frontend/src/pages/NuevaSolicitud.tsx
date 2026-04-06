@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import UsersPage from "@/pages/Users";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,9 +38,31 @@ interface Vehiculo {
 }
 
 export default function NuevaSolicitudPage() {
-  const { id: userId } = useParams();
+  const { id: paramUserId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const actualUserId = paramUserId ? Number(paramUserId) : selectedUserId;
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        !paramUserId &&
+        tableContainerRef.current &&
+        !tableContainerRef.current.contains(target)
+      ) {
+        if (["INPUT", "SELECT", "BUTTON", "LABEL"].includes(target.tagName) || target.closest("button") || target.closest("input")) {
+          return;
+        }
+        setSelectedUserId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [paramUserId]);
+
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [direcciones, setDirecciones] = useState<string[]>([]);
   const { user: authUser } = useAuth();
@@ -71,16 +94,16 @@ export default function NuevaSolicitudPage() {
       if (vId) initialValues.vehiculo_id = Number(vId);
 
       // 1. Datos del usuario (Priorizamos sesión actual)
-      if (authUser && String(authUser.id) === userId) {
+      if (authUser && String(authUser.id) === String(actualUserId)) {
         initialValues.direccion = authUser.direccion || "";
         
         // Direcciones sugeridas
         const previous = (authUser as any).direcciones_anteriores || [];
         const unique = Array.from(new Set([authUser.direccion, ...previous])).filter(Boolean) as string[];
         setDirecciones(unique);
-      } else if (userId) {
+      } else if (actualUserId) {
         try {
-          const res = await api.get(`/users/${userId}`);
+          const res = await api.get(`/users/${actualUserId}`);
           const u = res.data.data ?? res.data;
           initialValues.direccion = u.direccion || "";
           // Direcciones sugeridas del cliente seleccionado
@@ -96,9 +119,9 @@ export default function NuevaSolicitudPage() {
       reset(initialValues);
 
       // 2. Lista de vehículos completa (en segundo plano)
-      if (userId) {
+      if (actualUserId) {
         try {
-          const resV = await api.get(`/vehiculos?user_id=${userId}`);
+          const resV = await api.get(`/vehiculos?user_id=${actualUserId}`);
           const vList = Array.isArray(resV.data) ? resV.data : resV.data.data ?? [];
           setVehiculos(vList);
         } catch (error) {
@@ -108,13 +131,13 @@ export default function NuevaSolicitudPage() {
     };
 
     fetchData();
-  }, [userId, authUser, searchParams, reset]);
+  }, [actualUserId, authUser, searchParams, reset]);
 
   const onSubmit = async (data: FormData) => {
     try {
       await api.post("/solicitudes", {
         ...data,
-        user_cliente_id: Number(userId),
+        user_cliente_id: Number(actualUserId),
       });
       toast.success("¡Solicitud creada con éxito!");
       navigate("/dashboard");
@@ -130,10 +153,17 @@ export default function NuevaSolicitudPage() {
 
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-6 pt-6">
+          {!paramUserId && (
+            <div ref={tableContainerRef}>
+              <UsersPage isSelector onSelect={setSelectedUserId} selectedId={selectedUserId} />
+            </div>
+          )}
+
+          {actualUserId ? (
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {/* Bloque 1: Detalles del Servicio */}
-              <div className="space-y-4 border-b pb-8 sm:border-b-0 sm:pb-0 sm:border-r sm:border-black sm:pr-8">
+              <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
                 <h3 className="font-bold text-lg mb-4">Detalles del Servicio</h3>
                 
                 <div className="space-y-1">
@@ -256,7 +286,7 @@ export default function NuevaSolicitudPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t border-black font-bold">
+            <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               <Button
                 className="w-50"
                 type="button"
@@ -270,6 +300,11 @@ export default function NuevaSolicitudPage() {
               </Button>
             </div>
           </form>
+          ) : (
+            <div className="text-center py-10 mt-6 border-t-2 border-primary">
+               <p className="text-muted-foreground font-medium">Selecciona un usuario de la lista superior para crearle una solicitud de servicio.</p>
+            </div>
+          )}
         </CardContent>
       </CardSinBorde>
 

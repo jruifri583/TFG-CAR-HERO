@@ -49,7 +49,15 @@ type SortField =
   | "activo"
   | "created_at";
 
-export default function UsersPage() {
+export default function UsersPage({
+  isSelector = false,
+  onSelect,
+  selectedId,
+}: {
+  isSelector?: boolean;
+  onSelect?: (id: number) => void;
+  selectedId?: number | null;
+} = {}) {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,11 +113,11 @@ export default function UsersPage() {
 
   const renderSortArrow = (field: SortField) => {
     if (sortField !== field)
-      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
+      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
     return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="inline ml-1" />
+      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
     ) : (
-      <ArrowDown size={14} className="inline ml-1" />
+      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
     );
   };
 
@@ -136,7 +144,8 @@ export default function UsersPage() {
               }}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+              className={`border-black py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+                ${!isSelector ? "rounded-l-md rounded-r-none" : "rounded-md"}
                 ${search ? "pl-3" : "pl-8"}
                 ${inputFocused || search ? "w-50" : "w-32"}
                 focus-visible:ring-0`}
@@ -153,44 +162,46 @@ export default function UsersPage() {
               </button>
             )}
           </div>
-          <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Añadir
-          </Button>
+          {!isSelector && (
+            <Button className="w-50" onClick={() => navigate("/users/nuevo")}>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Añadir
+            </Button>
+          )}
         </ButtonGroup>
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Imagen</TableHead>
+            <TableHead className="text-center w-[80px]">Imagen</TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[220px]"
               onClick={() => handleSort("email")}
             >
               Email{renderSortArrow("email")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[200px]"
               onClick={() => handleSort("nombre")}
             >
               Nombre y Apellidos{renderSortArrow("nombre")}
             </TableHead>
-            <TableHead className="hidden sm:table-cell">Teléfono</TableHead>
+            <TableHead className="hidden sm:table-cell text-center w-[120px]">Teléfono</TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[120px]"
               onClick={() => handleSort("rol_id")}
             >
               Rol{renderSortArrow("rol_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer"
+              className="cursor-pointer text-center w-[100px]"
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
             </TableHead>
             <TableHead
-              className="hidden sm:table-cell cursor-pointer"
+              className="hidden sm:table-cell cursor-pointer text-center w-[140px]"
               onClick={() => handleSort("created_at")}
             >
               Creado{renderSortArrow("created_at")}
@@ -202,31 +213,57 @@ export default function UsersPage() {
           {users.map((user) => (
             <TableRow
               key={user.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => navigate(`/perfil/${user.id}`)}
+              className={`cursor-pointer transition-colors h-16 ${
+                isSelector && selectedId === user.id
+                  ? "bg-primary/10"
+                  : "hover:bg-muted/50"
+              }`}
+              onClick={() =>
+                isSelector && onSelect
+                  ? onSelect(user.id)
+                  : navigate(`/perfil/${user.id}`)
+              }
             >
-              <TableCell>
+              <TableCell className="text-center">
                 <img
                   src={user.imagen ?? "/avatars/default_user.png"}
                   alt="Imagen de usuario"
-                  className="w-10 h-10 rounded-full object-cover mx-auto"
+                  className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
                       "/avatars/default_user.png";
                   }}
                 />
               </TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>
+              <TableCell className="text-center">
+                <span className="text-sm text-slate-500 font-medium truncate inline-block max-w-[150px]">
+                  {user.email}
+                </span>
+              </TableCell>
+              <TableCell className="text-center font-medium truncate">
                 {[user.nombre, user.apellidos].filter(Boolean).join(" ")}
               </TableCell>
-              <TableCell className="hidden sm:table-cell">{user.telefono || "-"}</TableCell>
-              <TableCell>{user.rol?.nombre || "-"}</TableCell>
-              <TableCell>{user.activo ? "Sí" : "No"}</TableCell>
-              <TableCell className="hidden sm:table-cell">
-                {user.created_at
-                  ? new Date(user.created_at).toLocaleDateString("es-ES")
-                  : "-"}
+              <TableCell className="hidden sm:table-cell text-center">
+                {user.telefono || "-"}
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold">
+                   {user.rol?.nombre || "-"}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
+                {user.activo ? (
+                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block"/>
+                ) : (
+                    <span className="w-2 h-2 rounded-full bg-red-500 inline-block"/>
+                )}
+              </TableCell>
+              <TableCell className="hidden sm:table-cell text-center">
+                <span className="text-xs font-semibold text-slate-500 lowercase">
+                  {user.created_at
+                    ? new Date(user.created_at).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
+                    : "-"}
+                </span>
               </TableCell>
             </TableRow>
           ))}
