@@ -213,7 +213,7 @@ export default function SolicitudesPage({
           {solicitudes?.map((s) => (
             <TableRow
               key={s.id}
-              className={`cursor-pointer transition-colors ${
+              className={`cursor-pointer transition-colors h-14 ${
                 onSelect && selectedId === s.id
                   ? "bg-primary/10"
                   : "hover:bg-muted/50"
@@ -303,9 +303,10 @@ export default function SolicitudesPage({
             <PaginationItem>
               <PaginationPrevious
                 href="#"
+                disabled={currentPage === 1}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage - 1);
+                  if (currentPage > 1) goToPage(currentPage - 1);
                 }}
               />
             </PaginationItem>
@@ -329,9 +330,10 @@ export default function SolicitudesPage({
             <PaginationItem>
               <PaginationNext
                 href="#"
+                disabled={currentPage === totalPages}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage + 1);
+                  if (currentPage < totalPages) goToPage(currentPage + 1);
                 }}
               />
             </PaginationItem>

@@ -213,7 +213,7 @@ export default function UsersPage({
           {users.map((user) => (
             <TableRow
               key={user.id}
-              className={`cursor-pointer transition-colors h-16 ${
+              className={`cursor-pointer transition-colors h-14 ${
                 isSelector && selectedId === user.id
                   ? "bg-primary/10"
                   : "hover:bg-muted/50"
@@ -276,9 +276,10 @@ export default function UsersPage({
             <PaginationItem>
               <PaginationPrevious
                 href="#"
+                disabled={currentPage === 1}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage - 1);
+                  if (currentPage > 1) goToPage(currentPage - 1);
                 }}
               />
             </PaginationItem>
@@ -302,9 +303,10 @@ export default function UsersPage({
             <PaginationItem>
               <PaginationNext
                 href="#"
+                disabled={currentPage === totalPages}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage + 1);
+                  if (currentPage < totalPages) goToPage(currentPage + 1);
                 }}
               />
             </PaginationItem>

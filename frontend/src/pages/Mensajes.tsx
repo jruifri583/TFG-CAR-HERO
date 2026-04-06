@@ -192,7 +192,7 @@ export default function MensajesPage() {
               <React.Fragment key={mensaje.id}>
                 <TableRow
                   key={mensaje.id}
-                  className={`cursor-pointer h-16 transition-colors ${
+                  className={`cursor-pointer h-14 transition-colors ${
                     !mensaje.leido_at
                       ? "bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-100/50"
                       : "hover:bg-muted/50"
@@ -288,9 +288,10 @@ export default function MensajesPage() {
             <PaginationItem>
               <PaginationPrevious
                 href="#"
+                disabled={currentPage === 1}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage - 1);
+                  if (currentPage > 1) goToPage(currentPage - 1);
                 }}
               />
             </PaginationItem>
@@ -314,9 +315,10 @@ export default function MensajesPage() {
             <PaginationItem>
               <PaginationNext
                 href="#"
+                disabled={currentPage === totalPages}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage + 1);
+                  if (currentPage < totalPages) goToPage(currentPage + 1);
                 }}
               />
             </PaginationItem>

@@ -197,9 +197,10 @@ export default function HistorialPage() {
             <PaginationItem>
               <PaginationPrevious
                 href="#"
+                disabled={currentPage === 1}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage - 1);
+                  if (currentPage > 1) goToPage(currentPage - 1);
                 }}
               />
             </PaginationItem>
@@ -223,9 +224,10 @@ export default function HistorialPage() {
             <PaginationItem>
               <PaginationNext
                 href="#"
+                disabled={currentPage === totalPages}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage + 1);
+                  if (currentPage < totalPages) goToPage(currentPage + 1);
                 }}
               />
             </PaginationItem>

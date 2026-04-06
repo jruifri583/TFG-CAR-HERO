@@ -253,7 +253,7 @@ function AdminList({
           {vehiculos.map((vehiculo) => (
             <TableRow
               key={vehiculo.id}
-              className="cursor-pointer hover:bg-muted/50"
+              className="cursor-pointer hover:bg-muted/50 h-14"
               onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
             >
               <TableCell className="text-center">
@@ -303,9 +303,10 @@ function AdminList({
             <PaginationItem>
               <PaginationPrevious
                 href="#"
+                disabled={currentPage === 1}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage - 1);
+                  if (currentPage > 1) goToPage(currentPage - 1);
                 }}
               />
             </PaginationItem>
@@ -329,9 +330,10 @@ function AdminList({
             <PaginationItem>
               <PaginationNext
                 href="#"
+                disabled={currentPage === totalPages}
                 onClick={(e) => {
                   e.preventDefault();
-                  goToPage(currentPage + 1);
+                  if (currentPage < totalPages) goToPage(currentPage + 1);
                 }}
               />
             </PaginationItem>
