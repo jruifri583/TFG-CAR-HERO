@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -190,6 +190,523 @@ function SelectField({
   );
 }
 
+const MapCard = memo(({ direccion }: { direccion: string }) => {
+  // Añadimos "España" a la búsqueda para asegurar que Google Maps localice correctamente la calle.
+  const querySearch = direccion.toLowerCase().includes("españa") || direccion.toLowerCase().includes("spain")
+    ? direccion
+    : `${direccion}, España`;
+  const encoded = encodeURIComponent(querySearch);
+
+  return (
+    <CardSinBorde className="h-[450px] lg:h-full min-h-[450px] overflow-hidden relative group p-0 gap-0 shadow-sm rounded-xl">
+      <div className="absolute top-4 left-4 z-10 flex flex-col sm:flex-row gap-2">
+         <div className="bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-border flex items-center gap-2">
+            <MapPin size={16} className="text-primary" />
+            <span className="text-xs font-bold text-foreground truncate max-w-[150px] sm:max-w-[200px]">{direccion}</span>
+         </div>
+         <a 
+            href={`https://www.google.com/maps/search/?api=1&query=${encoded}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-primary text-white px-3 py-1.5 rounded-lg shadow-md flex items-center gap-2 text-xs font-bold hover:bg-primary/90 transition-all active:scale-95"
+         >
+            <ExternalLink size={14} /> Abrir en Maps
+         </a>
+      </div>
+      <iframe
+        width="100%"
+        height="100%"
+        frameBorder="0"
+        style={{ border: 0 }}
+        src={`https://maps.google.com/maps?width=100%25&height=100%25&hl=es&q=${encoded}&t=&z=15&ie=UTF8&iwloc=B&output=embed`}
+        allowFullScreen
+        className="contrast-[1.1] brightness-[0.95]"
+      ></iframe>
+    </CardSinBorde>
+  );
+});
+
+// ─── Props de Vistas ──────────────────────────────────────────────────────────
+
+interface CommonViewProps {
+  id: string | undefined;
+  solicitud: Solicitud;
+  role: string | undefined;
+  serverError: string | null;
+  avanzando: boolean;
+  setAvanzando: (v: boolean) => void;
+  cargarSolicitud: () => Promise<void>;
+  handleAvanzarEstado: () => Promise<void>;
+  puedeAvanzar: boolean;
+  siguiente: Estado | null;
+  isBusy: boolean;
+}
+
+interface EmpleadoDetailViewProps extends CommonViewProps {
+  resoluciones: Resolucion[];
+  pagoImporte: string;
+  setPagoImporte: (v: string) => void;
+  pagoMetodoId: number | null;
+  setPagoMetodoId: (v: number | null) => void;
+  handleRegistrarPago: () => Promise<void>;
+  handlePagar: (id: number) => Promise<void>;
+  pagando: boolean;
+  esFinalizar: boolean;
+  esTransferencia: boolean;
+}
+
+interface StandardDetailViewProps extends CommonViewProps {
+  editando: boolean;
+  setEditando: (v: boolean) => void;
+  setServerError: (v: string | null) => void;
+  resoluciones: Resolucion[];
+  empleados: Empleado[];
+  pagando: boolean;
+  handlePagar: (id: number) => Promise<void>;
+  // Form props
+  register: any;
+  handleSubmit: any;
+  setValue: any;
+  watch: any;
+  errors: any;
+  isSubmitting: boolean;
+  onSubmit: (data: any) => Promise<void>;
+  navigate: any;
+  // Pago props (para Admin)
+  pagoImporte: string;
+  setPagoImporte: (v: string) => void;
+  pagoMetodoId: number | null;
+  setPagoMetodoId: (v: number | null) => void;
+  handleRegistrarPago: () => Promise<void>;
+}
+
+// ─── Sub-Componentes (Vistas) ────────────────────────────────────────────────
+
+const EmpleadoDetailView = memo(({
+  id, solicitud, resoluciones, avanzando, setAvanzando, cargarSolicitud,
+  pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId,
+  handleRegistrarPago, handlePagar, pagando, serverError,
+  puedeAvanzar, handleAvanzarEstado, isBusy, siguiente,
+  esFinalizar, esTransferencia
+}: EmpleadoDetailViewProps) => {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div className="lg:col-span-7">
+         <MapCard direccion={solicitud.direccion} />
+      </div>
+      <div className="lg:col-span-5 space-y-6">
+        <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
+          <CardContent className="p-6 flex flex-col h-full space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Estado de Servicio</Label>
+                <h3 className="text-xl font-semibold leading-none">
+                  {solicitud.estado?.nombre}
+                </h3>
+              </div>
+              <div className="bg-muted p-3 rounded-xl">
+                 <Clock size={24} className="text-primary" />
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-primary flex items-center gap-2">
+                   <ShieldCheck size={14} /> Resultado ITV
+                </Label>
+                <select 
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  value={solicitud.resolucion?.id ?? ""}
+                  disabled={solicitud.estado?.slug === 'finalizado'}
+                  onChange={async (e) => {
+                    const rid = e.target.value ? Number(e.target.value) : null;
+                    try {
+                      setAvanzando(true);
+                      await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, resolucion_id: rid });
+                      await cargarSolicitud();
+                    } catch(err) {
+                      console.error(err);
+                    } finally {
+                      setAvanzando(false);
+                    }
+                  }}
+                >
+                  <option value="">Seleccionar</option>
+                  {resoluciones.map(r => (
+                    <option key={r.id} value={r.id}>{r.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-primary flex items-center gap-2">
+                   <FileText size={14} /> Notas Operativas
+                </Label>
+                <Textarea 
+                  className="min-h-[80px] resize-none"
+                  placeholder="Observaciones..."
+                  disabled={solicitud.estado?.slug === 'finalizado'}
+                  defaultValue={solicitud.notas ?? ""}
+                  onBlur={async (e) => {
+                    const val = e.target.value;
+                    if (val === solicitud.notas) return;
+                    try {
+                      setAvanzando(true);
+                      await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, notas: val });
+                      await cargarSolicitud();
+                    } catch(err) {
+                      console.error(err);
+                    } finally {
+                      setAvanzando(false);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* GESTIÓN DE COBRO */}
+            {solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                 <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-2 block">
+                   Registro de Cobro
+                 </Label>
+                 <div className="grid grid-cols-2 gap-3">
+                    {pagoMetodoId !== 3 && (
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Importe</Label>
+                        <Input 
+                          type="number" 
+                          value={pagoImporte}
+                          onChange={(e) => setPagoImporte(e.target.value)}
+                          className="h-9 text-sm"
+                        />
+                      </div>
+                    )}
+                    <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
+                      <Label className="text-[10px] text-muted-foreground">Método</Label>
+                      <select 
+                        className="w-full h-9 border rounded-md px-2 text-xs"
+                        value={pagoMetodoId ?? ""}
+                        onChange={(e) => setPagoMetodoId(Number(e.target.value))}
+                      >
+                        <option value="">Seleccionar</option>
+                        <option value="1">Efectivo</option>
+                        <option value="2">Tarjeta</option>
+                        <option value="3">Transferencia</option>
+                      </select>
+                    </div>
+                 </div>
+                 {pagoMetodoId !== 3 && (
+                   <Button 
+                    onClick={handleRegistrarPago}
+                    disabled={pagando || !pagoMetodoId || !pagoImporte}
+                    className="w-full h-10 bg-primary text-white font-bold"
+                   >
+                     {pagando ? "Procesando..." : "Registrar y Confirmar Pago"}
+                   </Button>
+                 )}
+                 {pagoMetodoId === 3 && (
+                   <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-100">
+                      <p className="text-[10px] text-blue-700 font-bold italic">
+                         Seleccionado: Transferencia. Pulsa "Finalizar" abajo.
+                      </p>
+                   </div>
+                 )}
+              </div>
+            )}
+
+            {/* Pago COMPLETADO */}
+            {solicitud.pago && solicitud.pago.estado_pago?.slug === 'pagado' && (
+              <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                  <div className="flex items-center justify-center gap-2 text-emerald-700 font-black text-sm uppercase italic">
+                    <ShieldCheck size={18} /> Pago completado ({solicitud.pago.metodo_pago?.nombre})
+                  </div>
+              </div>
+            )}
+
+            {serverError && (
+              <p className="text-[10px] text-destructive font-bold text-center italic">{serverError}</p>
+            )}
+
+            <div className="pt-2">
+               {puedeAvanzar ? (
+                 <div className="space-y-3">
+                   <Button 
+                     onClick={handleAvanzarEstado}
+                     disabled={
+                       avanzando || 
+                       (isBusy && siguiente?.slug === 'en_recogida')
+                     }
+                     className="w-full py-6 text-md font-bold uppercase tracking-wider shadow-lg shadow-primary/20"
+                   >
+                     {avanzando ? "Actualizando..." : 
+                      esFinalizar && esTransferencia && !solicitud.pago 
+                        ? "Finalizar con Transferencia" 
+                        : `Avanzar a ${siguiente?.nombre}`}
+                   </Button>
+                   {isBusy && siguiente?.slug === 'en_recogida' && (
+                      <p className="text-center text-destructive font-medium animate-pulse text-xs">
+                        * Tienes otro servicio activo pendiente de entrega.
+                      </p>
+                   )}
+                 </div>
+               ) : (
+                  <div className="pt-2">
+                    {solicitud.estado?.slug === 'finalizado' ? (
+                      <div className="bg-emerald-500 text-white p-4 rounded-xl flex items-center justify-center gap-3 shadow-inner">
+                         <ShieldCheck size={24} />
+                         <span className="font-black italic uppercase tracking-widest">Servicio Finalizado</span>
+                      </div>
+                    ) : (
+                      <CardSinBorde className="bg-muted/50 p-4 rounded-xl text-center border border-dashed">
+                        <p className="text-xs font-medium text-muted-foreground italic">
+                          {!solicitud.pago && esFinalizar 
+                            ? "Debes registrar el método de cobro antes de finalizar" 
+                            : "Estado finalizado o sin transiciones"}
+                        </p>
+                      </CardSinBorde>
+                    )}
+                  </div>
+               )}
+            </div>
+          </CardContent>
+        </CardSinBorde>
+      </div>
+    </div>
+  );
+});
+
+const StandardDetailView = memo(({
+  id, solicitud, role, editando, setEditando, serverError, setServerError, 
+  avanzando, setAvanzando,
+  resoluciones, empleados, pagando, handlePagar, puedeAvanzar, handleAvanzarEstado,
+  siguiente, isBusy, register, handleSubmit, setValue, watch, errors, 
+  isSubmitting, onSubmit, navigate, 
+  pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago
+}: StandardDetailViewProps) => {
+  if (editando) {
+    return (
+      <div className="w-full">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <CardSinBorde className="w-full">
+            <CardContent className="flex flex-col gap-6 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
+                  <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <FileText className="text-primary" size={20} />
+                    </div>
+                    <h3 className="font-bold text-lg">Detalles del Servicio</h3>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Dirección de recogida *</label>
+                    <Input type="text" {...register("direccion")} className="border-slate-200" />
+                    {errors.direccion && <p className="text-red-500 text-xs font-medium">{errors.direccion.message}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Fecha programada</label>
+                    <Input type="datetime-local" {...register("fecha_programada")} className="border-slate-200" />
+                  </div>
+                  <div className="space-y-1">
+                     <SelectField 
+                      label="Resolución ITV" 
+                      value={watch("resolucion_id")} 
+                      onChange={(v) => setValue("resolucion_id", v)} 
+                      options={resoluciones} 
+                      placeholder="Pendiente de determinar" 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <Activity className="text-primary" size={20} />
+                    </div>
+                    <h3 className="font-bold text-lg">Gestión y Notas</h3>
+                  </div>
+                  {role === "administrador" && (
+                    <div className="space-y-1">
+                      <SelectField 
+                        label="Empleado Asignado" 
+                        value={watch("user_empleado_id")} 
+                        onChange={(v) => setValue("user_empleado_id", v)} 
+                        options={empleados.map((e: Empleado) => ({ 
+                          id: e.id, 
+                          nombre: `${e.nombre} ${e.apellidos}` 
+                        }))} 
+                        placeholder="Sin asignar" 
+                      />
+                      {errors.user_empleado_id && <p className="text-red-500 text-xs font-medium">{errors.user_empleado_id.message}</p>}
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Observaciones</label>
+                    <Textarea {...register("notas")} placeholder="Notas..." className="min-h-[120px] bg-slate-50/50 border-slate-200" />
+                  </div>
+                </div>
+              </div>
+              {serverError && <p className="text-red-500 text-sm font-bold italic text-center p-3 bg-red-50 rounded-lg">{serverError}</p>}
+              <div className="flex justify-end gap-3 pt-6 border-t-2 border-primary font-bold">
+                <Button type="button" variant="outline" className="w-50" onClick={() => { setEditando(false); setServerError(null); }}>Cancelar</Button>
+                <Button type="submit" className="w-50" disabled={isSubmitting}>{isSubmitting ? "Guardando..." : "Guardar cambios"}</Button>
+              </div>
+            </CardContent>
+          </CardSinBorde>
+        </form>
+      </div>
+    );
+  }
+
+  const esFinalizar = siguiente?.slug === 'finalizado';
+  const esTransferencia = pagoMetodoId === 3;
+
+  return (
+    <div className="w-full animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <CardSinBorde>
+          <CardContent className="space-y-6 pt-6">
+            <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <FileText className="text-primary" size={20} />
+              </div>
+              <h3 className="font-bold text-lg">Detalles del Servicio</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="sm:col-span-2"><ReadOnlyField label="Dirección de Recogida" value={solicitud.direccion} icon={MapPin} /></div>
+              <ReadOnlyField label="Fecha Programada" value={fmt(solicitud.fecha_programada)} icon={Clock} />
+              <ReadOnlyField label="Estado Actual" value={solicitud.estado?.nombre} />
+              <ReadOnlyField label="Agente Asignado" value={solicitud.empleado ? `${solicitud.empleado.nombre} ${solicitud.empleado.apellidos}` : "No asignado"} />
+              <ReadOnlyField label="Resolución ITV" value={solicitud.resolucion?.nombre} icon={ShieldCheck} />
+              
+              {role === 'administrador' && solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
+                <div className="sm:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                   <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-1 block text-center">Registro de Cobro</Label>
+                   <div className="grid grid-cols-2 gap-3">
+                      {pagoMetodoId !== 3 && (
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Importe</Label>
+                          <Input type="number" value={pagoImporte} onChange={(e) => setPagoImporte(e.target.value)} className="h-9 text-sm" />
+                        </div>
+                      )}
+                      <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
+                        <Label className="text-[10px]">Método</Label>
+                        <select className="w-full h-9 border rounded-md px-2 text-xs" value={pagoMetodoId ?? ""} onChange={(e) => setPagoMetodoId(Number(e.target.value))}>
+                          <option value="">Seleccionar</option>
+                          <option value="1">Efectivo</option>
+                          <option value="2">Tarjeta</option>
+                          <option value="3">Transferencia</option>
+                        </select>
+                      </div>
+                   </div>
+                   {pagoMetodoId !== 3 && (
+                     <Button onClick={handleRegistrarPago} disabled={pagando || !pagoMetodoId || !pagoImporte} className="w-full h-10 bg-primary text-white font-bold">Cobrar ahora</Button>
+                   )}
+                </div>
+              )}
+
+              {solicitud.pago && (
+                <div className="sm:col-span-2 mt-4 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pago</label>
+                    <div className="text-lg font-bold text-slate-800">
+                      {Number(solicitud.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ring-1 ${solicitud.pago.estado_pago?.slug === 'pagado' ? 'bg-success/10 text-success ring-success/20' : 'bg-warning/10 text-warning ring-warning/20'}`}>
+                    {solicitud.pago.estado_pago?.nombre} ({solicitud.pago.metodo_pago?.nombre})
+                  </span>
+                </div>
+              )}
+              <div className="sm:col-span-2 font-medium">
+                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas</label>
+                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">{solicitud.notas || "-"}</div>
+              </div>
+            </div>
+          </CardContent>
+        </CardSinBorde>
+
+        <div className="flex flex-col gap-8 h-full">
+          {role !== "cliente" && (
+            <CardSinBorde className="border-l-2 border-l-primary flex-1">
+              <CardContent className="pt-6 space-y-4">
+                <h3 className="font-bold text-lg">Cliente</h3>
+                <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover border-2 shadow-sm" />
+                  <div className="flex-1">
+                    <p className="font-bold text-lg">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
+                    <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </CardSinBorde>
+          )}
+          <CardSinBorde className="border-l-2 border-l-primary flex-1">
+            <CardContent className="pt-6 space-y-4">
+              <h3 className="font-bold text-lg">Vehículo</h3>
+              <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="w-16 h-16 bg-white rounded-xl border flex items-center justify-center overflow-hidden">
+                  <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1">
+                  <div className="inline-block px-2 py-0.5 bg-slate-800 text-white text-[10px] font-bold rounded mb-1">{solicitud.vehiculo?.matricula}</div>
+                  <p className="font-bold text-lg">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
+                </div>
+              </div>
+            </CardContent>
+          </CardSinBorde>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <CardSinBorde className="h-full">
+          <CardContent className="pt-6 flex flex-col items-center">
+            <div className="w-full flex items-center justify-start gap-3 border-b-2 border-primary pb-4 mb-4">
+              <Activity className="text-primary" size={20} />
+              <h3 className="font-bold text-lg">Estado Circular</h3>
+            </div>
+            <SolicitudCircularTracker estado={solicitud.estado} />
+          </CardContent>
+        </CardSinBorde>
+        <CardSinBorde className="h-full">
+          <CardContent className="pt-6 space-y-4">
+            <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+              <Clock className="text-primary" size={20} />
+              <h3 className="font-bold text-lg">Historial Horario</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex justify-between p-3 rounded-lg bg-slate-50"><span>Recogida</span><span className="font-bold">{fmt(solicitud.hora_recogida)}</span></div>
+              <div className="flex justify-between p-3 rounded-lg bg-slate-50"><span>ITV</span><span className="font-bold">{fmt(solicitud.hora_itv)}</span></div>
+              <div className="flex justify-between p-3 rounded-lg bg-slate-50"><span>Entrega</span><span className="font-bold">{fmt(solicitud.hora_entrega)}</span></div>
+            </div>
+          </CardContent>
+        </CardSinBorde>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
+        <Button variant="outline" onClick={() => navigate(-1)} className="w-50">Volver</Button>
+        {role === "administrador" && !["en_recogida", "en_itv", "retornando", "finalizado", "cancelado"].includes(solicitud.estado?.slug || "") && (
+          <Button onClick={() => setEditando(true)} variant={puedeAvanzar ? "outline" : "default"} className="w-50">Editar</Button>
+        )}
+        {puedeAvanzar && (
+          <Button
+            className="w-50"
+            onClick={handleAvanzarEstado}
+            disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
+          >
+            {avanzando ? "..." : esFinalizar && esTransferencia && !solicitud.pago ? "Finalizar (Transferencia)" : `A "${siguiente?.nombre}"`}
+          </Button>
+         )}
+        {solicitud.pago && solicitud.pago.estado_pago?.slug === 'pendiente' && (
+          <div className="flex gap-2">
+            <Button className="bg-emerald-600 text-white" disabled={pagando} onClick={() => handlePagar(1)}>Cobrar Efectivo</Button>
+            <Button className="bg-cyan-600 text-white" disabled={pagando} onClick={() => handlePagar(2)}>Cobrar Tarjeta</Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
 // ─── Componente Principal ──────────────────────────────────────────────────────
 
 export default function SolicitudDetailPage() {
@@ -200,31 +717,30 @@ export default function SolicitudDetailPage() {
 
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
   const [editando, setEditando] = useState(false);
-
   const [resoluciones, setResoluciones] = useState<Resolucion[]>([]);
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [estados, setEstados] = useState<Estado[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [avanzando, setAvanzando] = useState(false);
   const [pagando, setPagando] = useState(false);
+  const [pagoImporte, setPagoImporte] = useState<string>("");
+  const [pagoMetodoId, setPagoMetodoId] = useState<number | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
   const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-    reset,
+    register, handleSubmit, setValue, watch,
+    formState: { errors, isSubmitting }, reset,
   } = useForm<EditFormData>({ resolver: zodResolver(editSchema) });
   const { setHeaderData } = useHeader();
 
-  const cargarSolicitud = () =>
-    api.get(`/solicitudes/${id}`).then((res) => setSolicitud(res.data.data));
+  const cargarSolicitud = async () => {
+    try {
+      const res = await api.get(`/solicitudes/${id}`);
+      setSolicitud(res.data.data);
+    } catch(err) { console.error(err); }
+  };
 
-  useEffect(() => {
-    cargarSolicitud();
-  }, [id]);
+  useEffect(() => { cargarSolicitud(); }, [id]);
 
   useEffect(() => {
     if (role !== "cliente") {
@@ -234,11 +750,8 @@ export default function SolicitudDetailPage() {
         setEmpleados(res.data.empleados ?? []);
       });
     }
-
     if (role === "empleado") {
-      api.get("/contadores").then((res) => {
-        setIsBusy(res.data.has_active_request || false);
-      });
+      api.get("/contadores").then((res) => { setIsBusy(res.data.has_active_request || false); });
     }
   }, [role]);
 
@@ -246,20 +759,18 @@ export default function SolicitudDetailPage() {
     if (editando && solicitud) {
       reset({
         direccion: solicitud.direccion ?? "",
-        fecha_programada: solicitud.fecha_programada
-          ? solicitud.fecha_programada.slice(0, 16)
-          : "",
+        fecha_programada: solicitud.fecha_programada?.slice(0, 16) ?? "",
         resolucion_id: solicitud.resolucion?.id ?? null,
         user_empleado_id: solicitud.empleado?.id ?? null,
         notas: solicitud.notas ?? "",
       });
     }
-  }, [editando, solicitud]);
+  }, [editando, solicitud, reset]);
 
   useEffect(() => {
     if (solicitud) {
       setHeaderData({
-        nombre: editando ? "Editar solicitud" : `Solicitud`,
+        nombre: editando ? "Editar solicitud" : "Detalle de solicitud",
         imagen: null,
         avatar: String(solicitud.id), 
       });
@@ -269,11 +780,9 @@ export default function SolicitudDetailPage() {
 
   const siguienteEstado = (): Estado | null => {
     if (!solicitud?.estado) return null;
-    const slugActual = solicitud.estado.slug;
-    const posActual = ORDEN_ESTADOS.indexOf(slugActual);
-    if (posActual === -1 || posActual >= ORDEN_ESTADOS.length - 1) return null;
-    const slugSiguiente = ORDEN_ESTADOS[posActual + 1];
-    return estados.find((e) => e.slug === slugSiguiente) ?? null;
+    const pos = ORDEN_ESTADOS.indexOf(solicitud.estado.slug);
+    if (pos === -1 || pos >= ORDEN_ESTADOS.length - 1) return null;
+    return estados.find((e) => e.slug === ORDEN_ESTADOS[pos + 1]) ?? null;
   };
 
   const handleAvanzarEstado = async () => {
@@ -282,38 +791,45 @@ export default function SolicitudDetailPage() {
     setAvanzando(true);
     setServerError(null);
     try {
-      await api.put(`/solicitudes/${id}`, {
-        direccion: solicitud.direccion,
-        estado_id: siguiente.id,
-      });
+      const esFinalizar = siguiente.slug === 'finalizado';
+      if (esFinalizar && !solicitud.pago && pagoMetodoId === 3) {
+        await api.post(`/pagos`, { solicitud_id: solicitud.id, importe: Number(pagoImporte) || 0, metodo_pago_id: 3, estado_pago_id: 1 });
+      }
+      await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, estado_id: siguiente.id });
       await cargarSolicitud();
-    } catch (error: any) {
-      const msg =
-        error?.response?.data?.message ||
-        error?.response?.data?.errors?.estado_id?.[0] ||
-        "Error al avanzar el estado.";
-      setServerError(msg);
-    } finally {
-      setAvanzando(false);
-    }
+    } catch (err: any) {
+      setServerError(err?.response?.data?.message || "Error al avanzar.");
+    } finally { setAvanzando(false); }
   };
 
-  const handlePagar = async (metodoId: number) => {
+  const handleRegistrarPago = async () => {
+    if (!solicitud || !pagoMetodoId) return;
+    setPagando(true);
+    try {
+      await api.post(`/pagos`, {
+        solicitud_id: solicitud.id,
+        importe: Number(pagoImporte),
+        metodo_pago_id: pagoMetodoId,
+        estado_pago_id: (pagoMetodoId === 3) ? 1 : 2,
+      });
+      await cargarSolicitud();
+    } catch (err: any) { setServerError(err?.response?.data?.message || "Error pago."); }
+    finally { setPagando(false); }
+  };
+
+  const handlePagar = async (mId: number) => {
     if (!solicitud?.pago) return;
     setPagando(true);
     try {
       await api.put(`/pagos/${solicitud.pago.id}`, {
         solicitud_id: solicitud.id,
         importe: solicitud.pago.importe,
-        estado_pago_id: 2, // 2 = Pagado
-        metodo_pago_id: metodoId,
+        estado_pago_id: 2,
+        metodo_pago_id: mId,
       });
       await cargarSolicitud();
-    } catch (error) {
-      console.error("Error al registrar pago", error);
-    } finally {
-      setPagando(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setPagando(false); }
   };
 
   const onSubmit = async (data: EditFormData) => {
@@ -328,525 +844,41 @@ export default function SolicitudDetailPage() {
       });
       await cargarSolicitud();
       setEditando(false);
-    } catch (error: any) {
-      const msg =
-        error?.response?.data?.message ||
-        error?.response?.data?.errors?.estado_id?.[0] ||
-        "Error al actualizar la solicitud.";
-      setServerError(msg);
-    }
+    } catch (err: any) { setServerError(err?.response?.data?.message || "Error update."); }
   };
 
   if (!solicitud) return <p className="p-8 text-center animate-pulse">Cargando...</p>;
 
   const siguiente = siguienteEstado();
-  const puedeAvanzar =
-    role === "empleado" &&
-    siguiente !== null &&
-    solicitud.estado?.slug !== "pendiente" &&
-    solicitud.estado?.slug !== "cancelado" &&
-    solicitud.estado?.slug !== "finalizado";
+  const esFinalizar = siguiente?.slug === 'finalizado';
+  const esTransferencia = pagoMetodoId === 3;
+  const puedeAvanzar = 
+    (role === "empleado" || role === "administrador") && 
+    !!siguiente && 
+    !["finalizado", "cancelado"].includes(solicitud.estado?.slug || "") &&
+    (!esFinalizar || !!solicitud.pago || esTransferencia);
 
-  // ─── Vistas Secundarias ──────────────────────────────────────────────────────
+  const viewProps = {
+    id, solicitud, role, serverError, avanzando, setAvanzando, cargarSolicitud,
+    handleAvanzarEstado, puedeAvanzar, siguiente, isBusy
+  };
 
-  function MapCard({ direccion }: { direccion: string }) {
-    // Añadimos "España" a la búsqueda para asegurar que Google Maps localice correctamente la calle.
-    const querySearch = direccion.toLowerCase().includes("españa") || direccion.toLowerCase().includes("spain")
-      ? direccion
-      : `${direccion}, España`;
-    const encoded = encodeURIComponent(querySearch);
+  const employeeProps: EmpleadoDetailViewProps = {
+    ...viewProps, resoluciones, pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId,
+    handleRegistrarPago, handlePagar, pagando, esFinalizar, esTransferencia
+  };
 
-    return (
-      <CardSinBorde className="h-[450px] lg:h-full min-h-[450px] overflow-hidden relative group p-0 gap-0 shadow-sm rounded-xl">
-        <div className="absolute top-4 left-4 z-10 flex flex-col sm:flex-row gap-2">
-           <div className="bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-border flex items-center gap-2">
-              <MapPin size={16} className="text-primary" />
-              <span className="text-xs font-bold text-foreground truncate max-w-[150px] sm:max-w-[200px]">{direccion}</span>
-           </div>
-           <a 
-              href={`https://www.google.com/maps/search/?api=1&query=${encoded}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-primary text-white px-3 py-1.5 rounded-lg shadow-md flex items-center gap-2 text-xs font-bold hover:bg-primary/90 transition-all active:scale-95"
-           >
-              <ExternalLink size={14} /> Abrir en Maps
-           </a>
-        </div>
-        <iframe
-          width="100%"
-          height="100%"
-          frameBorder="0"
-          style={{ border: 0 }}
-          src={`https://maps.google.com/maps?width=100%25&height=100%25&hl=es&q=${encoded}&t=&z=15&ie=UTF8&iwloc=B&output=embed`}
-          allowFullScreen
-          className="contrast-[1.1] brightness-[0.95]"
-        ></iframe>
-      </CardSinBorde>
-    );
-  }
-
-  function EmpleadoDetailView() {
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-        <div className="lg:col-span-7">
-           <MapCard direccion={solicitud!.direccion} />
-        </div>
-        <div className="lg:col-span-5 space-y-6">
-          <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
-            <CardContent className="p-6 flex flex-col h-full space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Estado de Servicio</Label>
-                  <h3 className="text-xl font-semibold leading-none">
-                    {solicitud!.estado?.nombre}
-                  </h3>
-                </div>
-                <div className="bg-muted p-3 rounded-xl">
-                   <Clock size={24} className="text-primary" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-primary flex items-center gap-2">
-                   <ShieldCheck size={14} /> Resultado ITV
-                </Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={solicitud!.resolucion?.id ?? ""}
-                  onChange={async (e) => {
-                    const rid = e.target.value ? Number(e.target.value) : null;
-                    try {
-                      setAvanzando(true);
-                      await api.put(`/solicitudes/${id}`, { direccion: solicitud!.direccion, resolucion_id: rid });
-                      await cargarSolicitud();
-                    } catch(e) {
-                      console.error(e);
-                    } finally {
-                      setAvanzando(false);
-                    }
-                  }}
-                >
-                  <option value="">-- Determinar resolución --</option>
-                  {resoluciones.map(r => (
-                    <option key={r.id} value={r.id}>{r.nombre}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2 flex-1">
-                <Label className="text-primary flex items-center gap-2">
-                   <FileText size={14} /> Notas Operativas
-                </Label>
-                <Textarea 
-                  className="min-h-[80px] resize-none"
-                  placeholder="Observaciones..."
-                  defaultValue={solicitud!.notas ?? ""}
-                  onBlur={async (e) => {
-                    const val = e.target.value;
-                    if (val === solicitud!.notas) return;
-                    try {
-                      setAvanzando(true);
-                      await api.put(`/solicitudes/${id}`, { direccion: solicitud!.direccion, notas: val });
-                      await cargarSolicitud();
-                    } catch(e) {
-                      console.error(e);
-                    } finally {
-                      setAvanzando(false);
-                    }
-                  }}
-                />
-              </div>
-              <div className="pt-2">
-                 {puedeAvanzar ? (
-                   <div className="space-y-3">
-                     <Button 
-                       onClick={handleAvanzarEstado}
-                       disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
-                       className="w-full py-6 text-md font-bold uppercase tracking-wider"
-                       variant={(isBusy && siguiente?.slug === 'en_recogida') ? 'outline' : 'default'}
-                     >
-                       {avanzando ? "Actualizando..." : 
-                        (isBusy && siguiente?.slug === 'en_recogida') ? "Servicio activo" : 
-                        `Avanzar a ${siguiente?.nombre}`}
-                     </Button>
-                     {isBusy && siguiente?.slug === 'en_recogida' && (
-                        <p className="text-center text-destructive font-medium animate-pulse">
-                          * Tienes otro servicio activo pendiente de entrega.
-                        </p>
-                     )}
-                   </div>
-                 ) : (
-                    <CardSinBorde className="bg-muted/50 p-4 rounded-xl text-center border border-dashed">
-                      <p className="text-xs font-medium text-muted-foreground italic">Servicio finalizado o en espera de pago</p>
-                    </CardSinBorde>
-                 )}
-              </div>
-
-              {/* Botones de Cobro para el Empleado */}
-              {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pendiente' && (
-                <div className="pt-4 border-t border-border mt-4">
-                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 block">
-                    Gestión de Cobro (Pendiente: {Number(solicitud!.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })})
-                  </Label>
-                  <div className="flex gap-2">
-                    <Button 
-                      disabled={pagando}
-                      onClick={() => handlePagar(1)} // 1 = Efectivo
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                    >
-                      {pagando ? "Procesando..." : "Cobrar Efectivo"}
-                    </Button>
-                    <Button 
-                      disabled={pagando}
-                      onClick={() => handlePagar(2)} // 2 = Tarjeta
-                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white"
-                    >
-                      {pagando ? "Procesando..." : "Cobrar Tarjeta"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-              {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pagado' && (
-                <div className="pt-4 border-t border-border mt-4">
-                  <div className="bg-success/10 text-success p-3 rounded-xl border border-success/20 text-center">
-                    <span className="font-bold text-sm">Pago completado ({solicitud!.pago.metodo_pago?.nombre})</span>
-                  </div>
-                </div>
-              )}
-
-            </CardContent>
-          </CardSinBorde>
-        </div>
-      </div>
-    );
-  }
-
-  function StandardDetailView() {
-    if (editando) {
-      return (
-        <div className="w-full">
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
-            <CardSinBorde className="w-full">
-              <CardContent className="flex flex-col gap-6 pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Bloque 1: Detalles del Servicio */}
-                  <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
-                    <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <FileText className="text-primary" size={20} />
-                      </div>
-                      <h3 className="font-bold text-lg">Detalles del Servicio</h3>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <label className="text-sm font-medium">Dirección de recogida *</label>
-                      <Input 
-                        type="text" 
-                        {...register("direccion")} 
-                        className="border-slate-200"
-                      />
-                      {errors.direccion && (
-                        <p className="text-red-500 text-xs font-medium">{errors.direccion.message}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-sm font-medium">Fecha programada</label>
-                      <Input 
-                        type="datetime-local" 
-                        {...register("fecha_programada")} 
-                        className="border-slate-200"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                       <SelectField 
-                        label="Resolución ITV" 
-                        value={watch("resolucion_id")} 
-                        onChange={(v) => setValue("resolucion_id", v)} 
-                        options={resoluciones} 
-                        placeholder="Pendiente de determinar" 
-                      />
-                    </div>
-                  </div>
-
-                  {/* Bloque 2: Gestión y Notas */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <Activity className="text-primary" size={20} />
-                      </div>
-                      <h3 className="font-bold text-lg">Gestión y Notas</h3>
-                    </div>
-
-                    {role === "administrador" && (
-                      <div className="space-y-1">
-                        <SelectField 
-                          label="Empleado Asignado" 
-                          value={watch("user_empleado_id")} 
-                          onChange={(v) => setValue("user_empleado_id", v)} 
-                          options={empleados.map((e) => ({ 
-                            id: e.id, 
-                            nombre: `${e.nombre} ${e.apellidos}` 
-                          }))} 
-                          placeholder="Sin asignar" 
-                        />
-                        {errors.user_empleado_id && (
-                          <p className="text-red-500 text-xs font-medium">{errors.user_empleado_id.message}</p>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="space-y-1">
-                      <label className="text-sm font-medium">Observaciones</label>
-                      <Textarea 
-                        {...register("notas")} 
-                        placeholder="Notas internas o instrucciones adicionales..." 
-                        className="min-h-[120px] bg-slate-50/50 border-slate-200"
-                      />
-                      {errors.notas && (
-                        <p className="text-red-500 text-xs font-medium">{errors.notas.message}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {serverError && (
-                  <p className="text-red-500 text-sm font-bold italic text-center p-3 bg-red-50 rounded-lg">
-                    {serverError}
-                  </p>
-                )}
-
-                <div className="flex justify-end gap-3 pt-6 border-t-2 border-primary font-bold">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-50"
-                    onClick={() => { setEditando(false); setServerError(null); }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="w-50"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Guardando..." : "Guardar cambios"}
-                  </Button>
-                </div>
-              </CardContent>
-            </CardSinBorde>
-          </form>
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full animate-in fade-in duration-500">
-        {/* Fila 1: Detalles y Cliente/Vehículo */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <CardSinBorde>
-            <CardContent className="space-y-6 pt-6">
-              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <FileText className="text-primary" size={20} />
-                </div>
-                <h3 className="font-bold text-lg">Detalles del Servicio</h3>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <ReadOnlyField label="Dirección de Recogida" value={solicitud!.direccion} icon={MapPin} />
-                </div>
-                <ReadOnlyField label="Fecha Programada" value={fmt(solicitud!.fecha_programada)} icon={Clock} />
-                <ReadOnlyField label="Estado Actual" value={solicitud!.estado?.nombre} />
-                <ReadOnlyField label="Agente Asignado" value={solicitud!.empleado ? `${solicitud!.empleado.nombre} ${solicitud!.empleado.apellidos}` : "Pendiente de asignar"} />
-                <ReadOnlyField label="Resolución ITV" value={solicitud!.resolucion?.nombre} icon={ShieldCheck} />
-                {solicitud!.pago && (
-                  <div className="sm:col-span-2 mt-4 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estado del Pago</label>
-                      <div className="text-lg font-bold text-slate-800">
-                        {Number(solicitud!.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                      </div>
-                    </div>
-                    <div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ring-1 ${solicitud!.pago.estado_pago?.slug === 'pagado' ? 'bg-success/10 text-success ring-success/20' : 'bg-warning/10 text-warning ring-warning/20'}`}>
-                        {solicitud!.pago.estado_pago?.nombre || "Pendiente"} {solicitud!.pago.metodo_pago ? `(${solicitud!.pago.metodo_pago.nombre})` : ''}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                <div className="sm:col-span-2 font-medium">
-                   <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del Servicio</label>
-                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">
-                      {solicitud!.notas || "Sin observaciones adicionales."}
-                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </CardSinBorde>
-
-          <div className="flex flex-col gap-8 h-full">
-            {role !== "cliente" && (
-              <CardSinBorde className="border-l-2 border-l-primary flex-1">
-                <CardContent className="pt-6 space-y-4">
-                  <h3 className="font-bold text-lg flex items-center gap-2">
-                    Información del Cliente
-                  </h3>
-                  <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <img 
-                      src={solicitud!.cliente?.imagen ?? "/avatars/default_user.png"} 
-                      className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm" 
-                    />
-                    <div className="flex-1">
-                      <p className="font-bold text-lg text-slate-800">
-                        {solicitud!.cliente?.nombre} {solicitud!.cliente?.apellidos}
-                      </p>
-                      <p className="text-sm text-slate-500 font-medium truncate">
-                        {solicitud!.cliente?.email}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </CardSinBorde>
-            )}
-
-            <CardSinBorde className="border-l-2 border-l-primary flex-1">
-              <CardContent className="pt-6 space-y-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  Vehículo Vinculado
-                </h3>
-                <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
-                    <img 
-                      src={solicitud!.vehiculo?.imagen ?? "/avatars/default_car.png"} 
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="inline-block px-2 py-0.5 bg-slate-800 text-white text-[10px] font-bold rounded mb-1">
-                      {solicitud!.vehiculo?.matricula}
-                    </div>
-                    <p className="font-bold text-lg text-slate-800">
-                      {solicitud!.vehiculo?.marca} {solicitud!.vehiculo?.modelo}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </CardSinBorde>
-          </div>
-        </div>
-
-        {/* Fila 2: Progreso y Seguimiento */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <CardSinBorde className="h-full">
-            <CardContent className="pt-6 h-full flex flex-col">
-              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <Activity className="text-primary" size={20} />
-                </div>
-                <h3 className="font-bold text-lg">Progreso de la Solicitud</h3>
-              </div>
-              <div className="flex-1 flex items-center justify-center py-4">
-                <SolicitudCircularTracker estado={solicitud!.estado} />
-              </div>
-            </CardContent>
-          </CardSinBorde>
-
-          <CardSinBorde className="h-full">
-            <CardContent className="pt-6 h-full flex flex-col">
-              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <Clock className="text-primary" size={20} />
-                </div>
-                <h3 className="font-bold text-lg">Seguimiento Horario Real</h3>
-              </div>
-              <div className="flex-1 flex flex-col justify-center py-4">
-                <div className="grid grid-cols-1 gap-4">
-                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="text-sm font-medium text-slate-500">Recogida</span>
-                      <span className="font-bold text-slate-700">{fmt(solicitud!.hora_recogida)}</span>
-                   </div>
-                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="text-sm font-medium text-slate-500">Llegada ITV</span>
-                      <span className="font-bold text-slate-700">{fmt(solicitud!.hora_itv)}</span>
-                   </div>
-                   <div className="flex justify-between items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
-                      <span className="text-sm font-medium text-slate-500">Entrega Final</span>
-                      <span className="font-bold text-slate-700">{fmt(solicitud!.hora_entrega)}</span>
-                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </CardSinBorde>
-        </div>
-
-        {/* Botones de acción */}
-        <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
-          <Button variant="outline" onClick={() => navigate(-1)} className="w-50">
-            Volver
-          </Button>
-          
-          {role === "administrador" && 
-           !["en_recogida", "en_itv", "retornando", "finalizado", "cancelado"].includes(solicitud!.estado?.slug || "") && (
-            <Button 
-              onClick={() => setEditando(true)}
-              variant={puedeAvanzar ? "outline" : "default"}
-              className="w-50"
-            >
-              Editar Datos
-            </Button>
-          )}
-
-          {puedeAvanzar && (
-            <Button
-              className={`w-50 ${isBusy && siguiente?.slug === 'en_recogida' ? 'opacity-50' : ''}`}
-              variant={isBusy && siguiente?.slug === 'en_recogida' ? 'outline' : 'default'}
-              onClick={handleAvanzarEstado}
-              disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
-            >
-              {avanzando ? "Actualizando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Ocupado" : `A "${siguiente?.nombre}"`}
-            </Button>
-           )}
-
-          {/* Botones de Pago */}
-          {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pendiente' && role === 'cliente' && (
-            <Button 
-              className="w-50 bg-emerald-600 hover:bg-emerald-700 text-white"
-              disabled={pagando}
-              onClick={() => handlePagar(3)} // 3 = Transferencia
-            >
-              {pagando ? "Procesando..." : "Notificar Pago (Transferencia)"}
-            </Button>
-          )}
-
-          {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pendiente' && (role === 'administrador' || role === 'empleado') && (
-            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-               <Button 
-                 className="flex-1 sm:w-40 bg-emerald-600 hover:bg-emerald-700 text-white"
-                 disabled={pagando}
-                 onClick={() => handlePagar(1)} // 1 = Efectivo
-               >
-                 {pagando ? "Procesando..." : "Cobrar (Efectivo)"}
-               </Button>
-               <Button 
-                 className="flex-1 sm:w-40 bg-cyan-600 hover:bg-cyan-700 text-white"
-                 disabled={pagando}
-                 onClick={() => handlePagar(2)} // 2 = Tarjeta
-               >
-                 {pagando ? "Procesando..." : "Cobrar (Tarjeta)"}
-               </Button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Render Final ────────────────────────────────────────────────────────────
+  const standardProps: StandardDetailViewProps = {
+    ...viewProps, setServerError, resoluciones, empleados, pagando, handlePagar,
+    register, handleSubmit, setValue, watch, errors, isSubmitting, onSubmit, navigate,
+    setEditando, editando, pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago
+  };
 
   return (
     <div className="w-full">
-      {role === "empleado" && !editando ? <EmpleadoDetailView /> : <StandardDetailView />}
+      {role === "empleado" && !editando 
+        ? <EmpleadoDetailView {...employeeProps} /> 
+        : <StandardDetailView {...standardProps} />}
     </div>
   );
 }

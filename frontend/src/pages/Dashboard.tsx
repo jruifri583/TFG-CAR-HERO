@@ -547,99 +547,75 @@ export default function DashboardPage() {
   }
 
   function EmpleadoDashboard() {
-    // Consideramos que no tiene trabajo si el contador es 0 o si no hay solicitudes recientes en absoluto
-    const hasAssignments = (contadores?.solicitudes && contadores.solicitudes > 0) || solicitudesActualizadas.length > 0;
+    const pendingAssignments = solicitudesActualizadas.filter(s => s.estado?.slug === 'asignado');
 
     return (
       <div className="space-y-6">
-        {/* Sección de solicitudes activas */}
+        {/* Sección de nuevas asignaciones */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Actualmente...</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Actividades</h2>
           </div>
           
-          {!hasAssignments ? (
-            <Card className="border-dashed border-2 bg-slate-50/50 dark:bg-slate-900/50">
-              <CardContent className="py-12 flex flex-col items-center justify-center text-center">
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-full shadow-sm mb-4">
-                  <CheckCircle className="text-slate-300" size={32} />
-                </div>
-                <h3 className="font-bold text-slate-800 dark:text-slate-100 italic">No tienes tareas asignadas</h3>
-                <p className="text-slate-500 dark:text-slate-400 max-w-[280px] mt-2 mb-6">
-                  Parece que no tienes ninguna solicitud asignada en este momento.
+          {pendingAssignments.length === 0 ? (
+            <div className="relative overflow-hidden rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-md p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm group">
+              {/* Decorative background element */}
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-blue-400/5 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-500" />
+              
+              <div className="relative shrink-0 w-14 h-14 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm border border-blue-50 dark:border-slate-700">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent rounded-2xl opacity-50" />
+                <CheckCircle className="text-blue-600 dark:text-blue-400 relative z-10" size={28} strokeWidth={2} />
+              </div>
+              
+              <div className="flex-1 text-center sm:text-left relative z-10">
+                <h3 className="text-base font-black text-blue-900 dark:text-blue-100 tracking-tight leading-none mb-1 uppercase italic">
+                  Todo al día
+                </h3>
+                <p className="text-xs text-blue-700/70 dark:text-blue-300/60 font-bold uppercase tracking-widest leading-relaxed">
+                  Actualmente no tienes tareas asignadas pendientes de procesar
                 </p>
-                <Button variant="outline" asChild>
-                  <NavLink to="/solicitudes">
-                    Ver todas las solicitudes
-                  </NavLink>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 gap-4">
-               {/* Solo mostramos las que no estén finalizadas/canceladas en este bloque principal */}
-               {solicitudesActualizadas
-                 .filter(s => s.estado?.slug !== 'finalizado' && s.estado?.slug !== 'cancelado')
-                 .map(s => (
-                   <SolicitudStatusCard key={s.id} s={s} />
-                 ))}
-               
-               {/* Si todas las actuales están finalizadas pero el contador dice que hay alguna activa, avisamos */}
-               {contadores?.solicitudes && contadores.solicitudes > 0 && 
-                solicitudesActualizadas.filter(s => s.estado?.slug !== 'finalizado' && s.estado?.slug !== 'cancelado').length === 0 && (
-                  <p className="text-sm text-muted-foreground italic text-center py-4">
-                    Tienes {contadores.solicitudes} {contadores.solicitudes === 1 ? 'tarea activa' : 'tareas activas'} fuera de la lista reciente.
-                    <NavLink to="/solicitudes" className="text-primary ml-2 underline">Ver todas</NavLink>
-                  </p>
-               )}
+              </div>
             </div>
-          )}
-        </div>
+          ) : (
+            <div className="space-y-3">
+              {pendingAssignments.map(s => (
+                <CardSinBorde key={s.id} className="bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 overflow-hidden relative group transition-all hover:shadow-lg">
+                  <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none group-hover:bg-yellow-400/20 transition-all duration-500" />
+                  
+                  <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4 relative z-10">
+                    <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-2xl ring-4 ring-yellow-50/50 dark:ring-yellow-900/10 shadow-inner">
+                      <AlertTriangle className="text-yellow-600 dark:text-yellow-400 animate-pulse" size={24} />
+                    </div>
+                    
+                    <div className="flex-1 text-center md:text-left">
+                      <p className="text-[10px] font-black text-yellow-800 dark:text-yellow-200 uppercase italic tracking-tighter mb-1">
+                        Nueva Solicitud Asignada
+                      </p>
+                      <h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white leading-tight">
+                        {s.vehiculo?.marca} {s.vehiculo?.modelo} - <span className="font-mono text-xs opacity-70">{s.vehiculo?.matricula}</span>
+                      </h3>
+                      <p className="text-xs text-yellow-700/80 dark:text-yellow-300/60 font-medium">
+                        Cliente: {s.cliente?.nombre} {s.cliente?.apellidos} • {s.direccion}
+                      </p>
+                    </div>
 
-        {/* Alertas de nuevas asignaciones (cuando están en estado 'asignado') */}
-        {solicitudesActualizadas.filter(s => s.estado?.slug === 'asignado').length > 0 && (
-          <div className="space-y-3">
-            {solicitudesActualizadas
-              .filter(s => s.estado?.slug === 'asignado')
-              .map(s => (
-                <CardSinBorde key={s.id} className="bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30">
-                  <CardContent className="p-4 flex items-center gap-4">
-                    <div className="bg-yellow-100 dark:bg-yellow-900/40 p-2 rounded-full ring-4 ring-yellow-50 dark:ring-yellow-900/10">
-                      <AlertTriangle className="text-yellow-600 dark:text-yellow-400 animate-pulse" size={20} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-black text-yellow-900 dark:text-yellow-100 uppercase italic">
-                        {contadores?.has_active_request ? "Pendiente de procesar" : "Solicitud Asignada"}
-                      </p>
-                      <p className="text-xs text-yellow-700 dark:text-yellow-300">
-                        {contadores?.has_active_request 
-                          ? "Termina tu servicio actual para poder gestionar el "
-                          : "Tienes pendiente el "}
-                        {s.vehiculo?.marca} {s.vehiculo?.modelo} ({s.vehiculo?.matricula})
-                      </p>
-                    </div>
-                    <Button 
-                      asChild={!contadores?.has_active_request}
-                      disabled={contadores?.has_active_request}
-                      className={`${contadores?.has_active_request ? 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-70' : 'bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50'} border-none transition-all font-bold h-10 px-6 rounded-xl whitespace-nowrap`}
-                    >
-                      {contadores?.has_active_request ? (
-                        <div className="flex items-center">
-                          <Clock size={16} className="mr-2" />
-                          Servicio activo
-                        </div>
-                      ) : (
+                    <div className="flex items-center gap-2 mt-4 md:mt-0">
+                      <Button 
+                        asChild
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 px-6 rounded-xl group-hover:scale-105 active:scale-95"
+                      >
                         <NavLink to={`/solicitudes/${s.id}`}>
-                          <FileText size={16} className="mr-2" />
+                          <FileText size={18} className="mr-2" />
                           Gestionar ahora
                         </NavLink>
-                      )}
-                    </Button>
+                      </Button>
+                    </div>
                   </CardContent>
                 </CardSinBorde>
               ))}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
 
         {/* Gráficas duplicadas del Admin */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

@@ -258,7 +258,7 @@ export default function PerfilPage() {
     <div className="w-full">
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-6 pt-6">
-          {isStaff && !isEditing && (
+          {((isStaff || isOwnProfile) && user?.rol?.slug === 'cliente') && !isEditing && (
             <div className="flex justify-end pb-2">
               <ButtonGroup>
                 <Button

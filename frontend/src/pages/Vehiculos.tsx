@@ -144,6 +144,7 @@ export default function VehiculosPage() {
           debouncedSearch={debouncedSearch}
           inputFocused={inputFocused}
           setInputFocused={setInputFocused}
+          user={user}
         />
       )}
     </div>
@@ -352,6 +353,7 @@ interface ClienteListProps {
   debouncedSearch: (v: string) => void;
   inputFocused: boolean;
   setInputFocused: (v: boolean) => void;
+  user: any;
 }
 
 function ClienteList({
@@ -362,10 +364,12 @@ function ClienteList({
   debouncedSearch,
   inputFocused,
   setInputFocused,
+  user
 }: ClienteListProps) {
   return (
     <>
       <div className="flex justify-end mb-4 items-center">
+        <ButtonGroup>
           <div className="relative flex items-center">
             {!search && (
               <Search
@@ -383,7 +387,7 @@ function ClienteList({
               }}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+              className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
               ${search ? "pl-3" : "pl-8"}
               ${inputFocused || search ? "w-50" : "w-32"}
               focus-visible:ring-0`}
@@ -400,6 +404,11 @@ function ClienteList({
               </button>
             )}
           </div>
+          <Button className="w-50" onClick={() => navigate(`/perfil/${user?.id}/nuevo-vehiculo`)}>
+            <PlusIcon className="mr-2 h-4 w-4" />
+            Añadir
+          </Button>
+        </ButtonGroup>
       </div>
       <div className="flex flex-wrap gap-6 justify-center md:justify-start">
         {vehiculos.map((vehiculo) => (
