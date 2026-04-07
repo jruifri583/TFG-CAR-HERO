@@ -54,8 +54,8 @@ interface Solicitud {
   pago: {
     id: number;
     importe: number;
-    metodo_pago: { id: number; nombre: string } | null;
-    estado_pago: { id: number; nombre: string } | null;
+    metodo_pago: { id: number; nombre: string; slug?: string } | null;
+    estado_pago: { id: number; nombre: string; slug: string } | null;
   } | null;
 }
 
@@ -206,6 +206,7 @@ export default function SolicitudDetailPage() {
   const [estados, setEstados] = useState<Estado[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [avanzando, setAvanzando] = useState(false);
+  const [pagando, setPagando] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
 
   const {
@@ -297,6 +298,24 @@ export default function SolicitudDetailPage() {
     }
   };
 
+  const handlePagar = async (metodoId: number) => {
+    if (!solicitud?.pago) return;
+    setPagando(true);
+    try {
+      await api.put(`/pagos/${solicitud.pago.id}`, {
+        solicitud_id: solicitud.id,
+        importe: solicitud.pago.importe,
+        estado_pago_id: 2, // 2 = Pagado
+        metodo_pago_id: metodoId,
+      });
+      await cargarSolicitud();
+    } catch (error) {
+      console.error("Error al registrar pago", error);
+    } finally {
+      setPagando(false);
+    }
+  };
+
   const onSubmit = async (data: EditFormData) => {
     setServerError(null);
     try {
@@ -331,7 +350,12 @@ export default function SolicitudDetailPage() {
   // ─── Vistas Secundarias ──────────────────────────────────────────────────────
 
   function MapCard({ direccion }: { direccion: string }) {
-    const encoded = encodeURIComponent(direccion);
+    // Añadimos "España" a la búsqueda para asegurar que Google Maps localice correctamente la calle.
+    const querySearch = direccion.toLowerCase().includes("españa") || direccion.toLowerCase().includes("spain")
+      ? direccion
+      : `${direccion}, España`;
+    const encoded = encodeURIComponent(querySearch);
+
     return (
       <CardSinBorde className="h-[450px] lg:h-full min-h-[450px] overflow-hidden relative group p-0 gap-0 shadow-sm rounded-xl">
         <div className="absolute top-4 left-4 z-10 flex flex-col sm:flex-row gap-2">
@@ -353,7 +377,7 @@ export default function SolicitudDetailPage() {
           height="100%"
           frameBorder="0"
           style={{ border: 0 }}
-          src={`https://maps.google.com/maps?q=${encoded}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+          src={`https://maps.google.com/maps?width=100%25&height=100%25&hl=es&q=${encoded}&t=&z=15&ie=UTF8&iwloc=B&output=embed`}
           allowFullScreen
           className="contrast-[1.1] brightness-[0.95]"
         ></iframe>
@@ -455,6 +479,39 @@ export default function SolicitudDetailPage() {
                     </CardSinBorde>
                  )}
               </div>
+
+              {/* Botones de Cobro para el Empleado */}
+              {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pendiente' && (
+                <div className="pt-4 border-t border-border mt-4">
+                  <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 block">
+                    Gestión de Cobro (Pendiente: {Number(solicitud!.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })})
+                  </Label>
+                  <div className="flex gap-2">
+                    <Button 
+                      disabled={pagando}
+                      onClick={() => handlePagar(1)} // 1 = Efectivo
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      {pagando ? "Procesando..." : "Cobrar Efectivo"}
+                    </Button>
+                    <Button 
+                      disabled={pagando}
+                      onClick={() => handlePagar(2)} // 2 = Tarjeta
+                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white"
+                    >
+                      {pagando ? "Procesando..." : "Cobrar Tarjeta"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pagado' && (
+                <div className="pt-4 border-t border-border mt-4">
+                  <div className="bg-success/10 text-success p-3 rounded-xl border border-success/20 text-center">
+                    <span className="font-bold text-sm">Pago completado ({solicitud!.pago.metodo_pago?.nombre})</span>
+                  </div>
+                </div>
+              )}
+
             </CardContent>
           </CardSinBorde>
         </div>
@@ -603,6 +660,21 @@ export default function SolicitudDetailPage() {
                 <ReadOnlyField label="Estado Actual" value={solicitud!.estado?.nombre} />
                 <ReadOnlyField label="Agente Asignado" value={solicitud!.empleado ? `${solicitud!.empleado.nombre} ${solicitud!.empleado.apellidos}` : "Pendiente de asignar"} />
                 <ReadOnlyField label="Resolución ITV" value={solicitud!.resolucion?.nombre} icon={ShieldCheck} />
+                {solicitud!.pago && (
+                  <div className="sm:col-span-2 mt-4 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Estado del Pago</label>
+                      <div className="text-lg font-bold text-slate-800">
+                        {Number(solicitud!.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                      </div>
+                    </div>
+                    <div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold ring-1 ${solicitud!.pago.estado_pago?.slug === 'pagado' ? 'bg-success/10 text-success ring-success/20' : 'bg-warning/10 text-warning ring-warning/20'}`}>
+                        {solicitud!.pago.estado_pago?.nombre || "Pendiente"} {solicitud!.pago.metodo_pago ? `(${solicitud!.pago.metodo_pago.nombre})` : ''}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div className="sm:col-span-2 font-medium">
                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del Servicio</label>
                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">
@@ -735,6 +807,36 @@ export default function SolicitudDetailPage() {
               {avanzando ? "Actualizando..." : isBusy && siguiente?.slug === 'en_recogida' ? "Ocupado" : `A "${siguiente?.nombre}"`}
             </Button>
            )}
+
+          {/* Botones de Pago */}
+          {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pendiente' && role === 'cliente' && (
+            <Button 
+              className="w-50 bg-emerald-600 hover:bg-emerald-700 text-white"
+              disabled={pagando}
+              onClick={() => handlePagar(3)} // 3 = Transferencia
+            >
+              {pagando ? "Procesando..." : "Notificar Pago (Transferencia)"}
+            </Button>
+          )}
+
+          {solicitud!.pago && solicitud!.pago.estado_pago?.slug === 'pendiente' && (role === 'administrador' || role === 'empleado') && (
+            <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+               <Button 
+                 className="flex-1 sm:w-40 bg-emerald-600 hover:bg-emerald-700 text-white"
+                 disabled={pagando}
+                 onClick={() => handlePagar(1)} // 1 = Efectivo
+               >
+                 {pagando ? "Procesando..." : "Cobrar (Efectivo)"}
+               </Button>
+               <Button 
+                 className="flex-1 sm:w-40 bg-cyan-600 hover:bg-cyan-700 text-white"
+                 disabled={pagando}
+                 onClick={() => handlePagar(2)} // 2 = Tarjeta
+               >
+                 {pagando ? "Procesando..." : "Cobrar (Tarjeta)"}
+               </Button>
+            </div>
+          )}
         </div>
       </div>
     );

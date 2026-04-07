@@ -18,9 +18,13 @@ class StorePagoRequest extends FormRequest
         $validator->after(function ($validator) {
             $solicitudId = $this->input('solicitud_id');
             $solicitud = \App\Models\Solicitud::find($solicitudId);
+            $pago = $this->route('pago');
 
-            if ($solicitud?->pago) {
-                $validator->errors()->add('solicitud_id', 'Esta solicitud ya tiene un pago registrado.');
+            if ($solicitud && $solicitud->pago) {
+                // If we are creating (no $pago) or updating a different pago, fail
+                if (!$pago || $pago->id !== $solicitud->pago->id) {
+                    $validator->errors()->add('solicitud_id', 'Esta solicitud ya tiene un pago registrado.');
+                }
             }
         });
     }
