@@ -29,6 +29,7 @@ interface Solicitud {
   hora_itv: string | null;
   hora_entrega: string | null;
   notas: string | null;
+  importe_cobro: number | null;
   cliente: {
     id: number;
     nombre: string;
@@ -310,33 +311,38 @@ const EmpleadoDetailView = memo(({
             </div>
             
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-primary flex items-center gap-2">
-                   <ShieldCheck size={14} /> Resultado ITV
-                </Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={solicitud.resolucion?.id ?? ""}
-                  disabled={solicitud.estado?.slug === 'finalizado'}
-                  onChange={async (e) => {
-                    const rid = e.target.value ? Number(e.target.value) : null;
-                    try {
-                      setAvanzando(true);
-                      await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, resolucion_id: rid });
-                      await cargarSolicitud();
-                    } catch(err) {
-                      console.error(err);
-                    } finally {
-                      setAvanzando(false);
+              {(solicitud.estado?.slug === 'en_itv' || solicitud.resolucion) && (
+                <div className="space-y-2">
+                  <Label className="text-primary flex items-center gap-2">
+                     <ShieldCheck size={14} /> Resultado ITV
+                  </Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={solicitud.resolucion?.id ?? ""}
+                    disabled={solicitud.estado?.slug !== 'en_itv'}
+                    onChange={async (e) => {
+                      const rid = e.target.value ? Number(e.target.value) : null;
+                      try {
+                        setAvanzando(true);
+                        await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, resolucion_id: rid });
+                        await cargarSolicitud();
+                      } catch(err) {
+                        console.error(err);
+                      } finally {
+                        setAvanzando(false);
+                      }
+                    }}
+                  >
+                    <option value="" disabled>Seleccionar resultado</option>
+                    {resoluciones
+                      .filter(r => r.nombre.toLowerCase() !== 'pendiente')
+                      .map(r => (
+                        <option key={r.id} value={r.id}>{r.nombre}</option>
+                      ))
                     }
-                  }}
-                >
-                  <option value="">Seleccionar</option>
-                  {resoluciones.map(r => (
-                    <option key={r.id} value={r.id}>{r.nombre}</option>
-                  ))}
-                </select>
-              </div>
+                  </select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label className="text-primary flex items-center gap-2">
@@ -367,51 +373,42 @@ const EmpleadoDetailView = memo(({
             {/* GESTIÓN DE COBRO */}
             {solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                 <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-2 block">
-                   Registro de Cobro
-                 </Label>
-                 <div className="grid grid-cols-2 gap-3">
-                    {pagoMetodoId !== 3 && (
-                      <div className="space-y-1">
-                        <Label className="text-[10px] text-muted-foreground">Importe</Label>
-                        <Input 
-                          type="number" 
-                          value={pagoImporte}
-                          onChange={(e) => setPagoImporte(e.target.value)}
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                    )}
-                    <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
-                      <Label className="text-[10px] text-muted-foreground">Método</Label>
-                      <select 
-                        className="w-full h-9 border rounded-md px-2 text-xs"
-                        value={pagoMetodoId ?? ""}
-                        onChange={(e) => setPagoMetodoId(Number(e.target.value))}
-                      >
-                        <option value="">Seleccionar</option>
-                        <option value="1">Efectivo</option>
-                        <option value="2">Tarjeta</option>
-                        <option value="3">Transferencia</option>
-                      </select>
+                <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-2 block">
+                  Cobro del servicio
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {pagoMetodoId !== 3 && (
+                    <div className="space-y-1">
+                      <Label className="text-[10px] text-muted-foreground">Importe</Label>
+                      <Input
+                        type="number"
+                        value={pagoImporte !== "" ? pagoImporte : (solicitud.importe_cobro ? String(solicitud.importe_cobro) : "")}
+                        onChange={(e) => setPagoImporte(e.target.value)}
+                        className="h-9 text-sm"
+                      />
                     </div>
-                 </div>
-                 {pagoMetodoId !== 3 && (
-                   <Button 
-                    onClick={handleRegistrarPago}
-                    disabled={pagando || !pagoMetodoId || !pagoImporte}
-                    className="w-full h-10 bg-primary text-white font-bold"
-                   >
-                     {pagando ? "Procesando..." : "Registrar y Confirmar Pago"}
-                   </Button>
-                 )}
-                 {pagoMetodoId === 3 && (
-                   <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-100">
-                      <p className="text-[10px] text-blue-700 font-bold italic">
-                         Seleccionado: Transferencia. Pulsa "Finalizar" abajo.
-                      </p>
-                   </div>
-                 )}
+                  )}
+                  <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
+                    <Label className="text-[10px] text-muted-foreground">Método de pago</Label>
+                    <select
+                      className="w-full h-9 border rounded-md px-2 text-xs"
+                      value={pagoMetodoId ?? ""}
+                      onChange={(e) => setPagoMetodoId(e.target.value ? Number(e.target.value) : null)}
+                    >
+                      <option value="">Seleccionar</option>
+                      <option value="1">Efectivo</option>
+                      <option value="2">Tarjeta</option>
+                      <option value="3">Transferencia</option>
+                    </select>
+                  </div>
+                </div>
+                {pagoMetodoId === 3 && (
+                  <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-100">
+                    <p className="text-[10px] text-blue-700 font-bold italic">
+                      Transferencia: el pago quedará pendiente hasta confirmar recepción.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -429,11 +426,12 @@ const EmpleadoDetailView = memo(({
             )}
 
             <div className="pt-2">
-               {puedeAvanzar ? (
+               {puedeAvanzar || !["finalizado", "cancelado"].includes(solicitud.estado?.slug || "") ? (
                  <div className="space-y-3">
                    <Button 
                      onClick={handleAvanzarEstado}
                      disabled={
+                       !puedeAvanzar ||
                        avanzando || 
                        (isBusy && siguiente?.slug === 'en_recogida')
                      }
@@ -444,6 +442,11 @@ const EmpleadoDetailView = memo(({
                         ? "Finalizar con Transferencia" 
                         : `Avanzar a ${siguiente?.nombre}`}
                    </Button>
+                   {!puedeAvanzar && solicitud.estado?.slug === 'en_itv' && !solicitud.resolucion && (
+                     <p className="text-center text-warning font-medium text-xs italic">
+                       * Selecciona el resultado de la ITV para continuar.
+                     </p>
+                   )}
                    {isBusy && siguiente?.slug === 'en_recogida' && (
                       <p className="text-center text-destructive font-medium animate-pulse text-xs">
                         * Tienes otro servicio activo pendiente de entrega.
@@ -525,18 +528,33 @@ const StandardDetailView = memo(({
                     <h3 className="font-bold text-lg">Gestión y Notas</h3>
                   </div>
                   {role === "administrador" && (
-                    <div className="space-y-1">
-                      <SelectField 
-                        label="Empleado Asignado" 
-                        value={watch("user_empleado_id")} 
-                        onChange={(v) => setValue("user_empleado_id", v)} 
-                        options={empleados.map((e: Empleado) => ({ 
-                          id: e.id, 
-                          nombre: `${e.nombre} ${e.apellidos}` 
-                        }))} 
-                        placeholder="Sin asignar" 
-                      />
-                      {errors.user_empleado_id && <p className="text-red-500 text-xs font-medium">{errors.user_empleado_id.message}</p>}
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <SelectField 
+                          label="Empleado Asignado" 
+                          value={watch("user_empleado_id")} 
+                          onChange={(v) => setValue("user_empleado_id", v)} 
+                          options={empleados.map((e: Empleado) => ({ 
+                            id: e.id, 
+                            nombre: `${e.nombre} ${e.apellidos}` 
+                          }))} 
+                          placeholder="Sin asignar" 
+                        />
+                        {errors.user_empleado_id && <p className="text-red-500 text-xs font-medium">{errors.user_empleado_id.message}</p>}
+                      </div>
+                      {/* Importe del servicio: el admin lo fija en la solicitud */}
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium">Importe del Servicio (€)</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          value={pagoImporte !== "" ? pagoImporte : (solicitud.importe_cobro ? String(solicitud.importe_cobro) : "")}
+                          onChange={(e) => setPagoImporte(e.target.value)}
+                          className="border-slate-200"
+                        />
+                      </div>
                     </div>
                   )}
                   <div className="space-y-1">
@@ -604,16 +622,37 @@ const StandardDetailView = memo(({
                 </div>
               )}
 
+              {/* Importe fijado por el admin — el cliente solo lo ve como información */}
+              {!solicitud.pago && solicitud.importe_cobro && (
+                <div className="sm:col-span-2 mt-4 px-4 py-4 rounded-xl border border-yellow-200 flex items-center justify-between gap-4" style={{ background: 'rgb(254 252 232)' }}>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Importe del servicio</label>
+                    <div className="text-xl font-black text-slate-800">
+                      {Number(solicitud.importe_cobro).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                    </div>
+                    <div className="text-xs text-yellow-700 mt-0.5 italic">Pendiente de cobro</div>
+                  </div>
+                </div>
+              )}
+
               {solicitud.pago && (
-                <div className="sm:col-span-2 mt-4 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                <div className="sm:col-span-2 mt-4 px-4 py-4 rounded-xl border flex items-center justify-between gap-4" style={{
+                  background: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(240 253 244)' : 'rgb(254 252 232)',
+                  borderColor: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(187 247 208)' : 'rgb(253 224 71 / 0.4)',
+                }}>
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pago</label>
-                    <div className="text-lg font-bold text-slate-800">
+                    <div className="text-xl font-black text-slate-800">
                       {Number(solicitud.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </div>
+                    <div className="text-xs text-slate-500 mt-0.5">{solicitud.pago.metodo_pago?.nombre}</div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ring-1 ${solicitud.pago.estado_pago?.slug === 'pagado' ? 'bg-success/10 text-success ring-success/20' : 'bg-warning/10 text-warning ring-warning/20'}`}>
-                    {solicitud.pago.estado_pago?.nombre} ({solicitud.pago.metodo_pago?.nombre})
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ring-1 ${
+                    solicitud.pago.estado_pago?.slug === 'pagado'
+                      ? 'bg-success/10 text-success ring-success/20'
+                      : 'bg-warning/10 text-warning ring-warning/20'
+                  }`}>
+                    {solicitud.pago.estado_pago?.nombre}
                   </span>
                 </div>
               )}
@@ -631,7 +670,7 @@ const StandardDetailView = memo(({
               <CardContent className="pt-6 space-y-4">
                 <h3 className="font-bold text-lg">Cliente</h3>
                 <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover border-2 shadow-sm" />
+                  <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm" />
                   <div className="flex-1">
                     <p className="font-bold text-lg">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
                     <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
@@ -644,7 +683,7 @@ const StandardDetailView = memo(({
             <CardContent className="pt-6 space-y-4">
               <h3 className="font-bold text-lg">Vehículo</h3>
               <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="w-16 h-16 bg-white rounded-xl border flex items-center justify-center overflow-hidden">
+                <div className="w-16 h-16 bg-white rounded-xl overflow-hidden flex items-center justify-center">
                   <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
@@ -684,7 +723,7 @@ const StandardDetailView = memo(({
 
       <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
         <Button variant="outline" onClick={() => navigate(-1)} className="w-50">Volver</Button>
-        {role === "administrador" && !["en_recogida", "en_itv", "retornando", "finalizado", "cancelado"].includes(solicitud.estado?.slug || "") && (
+        {role === "administrador" && !["cancelado"].includes(solicitud.estado?.slug || "") && (
           <Button onClick={() => setEditando(true)} variant={puedeAvanzar ? "outline" : "default"} className="w-50">Editar</Button>
         )}
         {puedeAvanzar && (
@@ -792,11 +831,20 @@ export default function SolicitudDetailPage() {
     setServerError(null);
     try {
       const esFinalizar = siguiente.slug === 'finalizado';
-      if (esFinalizar && !solicitud.pago && pagoMetodoId === 3) {
-        await api.post(`/pagos`, { solicitud_id: solicitud.id, importe: Number(pagoImporte) || 0, metodo_pago_id: 3, estado_pago_id: 1 });
+      // Al finalizar: registrar pago si hay método seleccionado y no hay pago ya
+      if (esFinalizar && !solicitud.pago && pagoMetodoId) {
+        const importeEfectivo = pagoImporte !== "" ? Number(pagoImporte) : Number(solicitud.importe_cobro ?? 0);
+        await api.post(`/pagos`, {
+          solicitud_id: solicitud.id,
+          importe: importeEfectivo,
+          metodo_pago_id: pagoMetodoId,
+          estado_pago_id: pagoMetodoId === 3 ? 1 : 2, // transferencia → pendiente, resto → pagado
+        });
       }
       await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, estado_id: siguiente.id });
       await cargarSolicitud();
+      setPagoMetodoId(null);
+      setPagoImporte("");
     } catch (err: any) {
       setServerError(err?.response?.data?.message || "Error al avanzar.");
     } finally { setAvanzando(false); }
@@ -804,11 +852,14 @@ export default function SolicitudDetailPage() {
 
   const handleRegistrarPago = async () => {
     if (!solicitud || !pagoMetodoId) return;
+    // Usa el importe del input; si está vacío, usa el fijado por el admin
+    const importeEfectivo = pagoImporte !== "" ? Number(pagoImporte) : Number(solicitud.importe_cobro ?? 0);
+    if (!importeEfectivo) return; // no enviar si sigue siendo 0
     setPagando(true);
     try {
       await api.post(`/pagos`, {
         solicitud_id: solicitud.id,
-        importe: Number(pagoImporte),
+        importe: importeEfectivo,
         metodo_pago_id: pagoMetodoId,
         estado_pago_id: (pagoMetodoId === 3) ? 1 : 2,
       });
@@ -818,18 +869,32 @@ export default function SolicitudDetailPage() {
   };
 
   const handlePagar = async (mId: number) => {
-    if (!solicitud?.pago) return;
+    if (!solicitud) return;
     setPagando(true);
+    setServerError(null);
     try {
-      await api.put(`/pagos/${solicitud.pago.id}`, {
-        solicitud_id: solicitud.id,
-        importe: solicitud.pago.importe,
-        estado_pago_id: 2,
-        metodo_pago_id: mId,
-      });
+      if (solicitud.pago) {
+        // Actualizar pago existente (cambia el método y lo marca como pagado)
+        await api.put(`/pagos/${solicitud.pago.id}`, {
+          solicitud_id: solicitud.id,
+          importe: solicitud.pago.importe,
+          estado_pago_id: 2, // pagado
+          metodo_pago_id: mId,
+        });
+      } else if (solicitud.importe_cobro) {
+        // Crear el pago con el importe fijado por el admin
+        await api.post(`/pagos`, {
+          solicitud_id: solicitud.id,
+          importe: solicitud.importe_cobro,
+          metodo_pago_id: mId,
+          estado_pago_id: 2, // pagado directamente al confirmar
+        });
+      }
       await cargarSolicitud();
-    } catch (err) { console.error(err); }
-    finally { setPagando(false); }
+      setPagoMetodoId(null);
+    } catch (err: any) {
+      setServerError(err?.response?.data?.message || "Error al registrar el pago. Inténtalo de nuevo.");
+    } finally { setPagando(false); }
   };
 
   const onSubmit = async (data: EditFormData) => {
@@ -841,8 +906,12 @@ export default function SolicitudDetailPage() {
         user_empleado_id: data.user_empleado_id ?? null,
         fecha_programada: data.fecha_programada || null,
         notas: data.notas || null,
+        // El admin fija el importe directamente en la solicitud (no crea un pago)
+        importe_cobro: pagoImporte !== "" ? Number(pagoImporte) : (solicitud?.importe_cobro ?? null),
       });
       await cargarSolicitud();
+      setPagoImporte("");
+      setPagoMetodoId(null);
       setEditando(false);
     } catch (err: any) { setServerError(err?.response?.data?.message || "Error update."); }
   };
@@ -852,11 +921,14 @@ export default function SolicitudDetailPage() {
   const siguiente = siguienteEstado();
   const esFinalizar = siguiente?.slug === 'finalizado';
   const esTransferencia = pagoMetodoId === 3;
+  const esEnItv = solicitud.estado?.slug === 'en_itv';
+  const esRetornando = solicitud.estado?.slug === 'retornando';
   const puedeAvanzar = 
-    (role === "empleado" || role === "administrador") && 
+    role === "empleado" && 
     !!siguiente && 
     !["finalizado", "cancelado"].includes(solicitud.estado?.slug || "") &&
-    (!esFinalizar || !!solicitud.pago || esTransferencia);
+    (!esEnItv || !!solicitud.resolucion) && // en ITV: requiere resultado
+    (!esFinalizar || !!solicitud.pago || !!pagoMetodoId); // al finalizar: requiere pago o método
 
   const viewProps = {
     id, solicitud, role, serverError, avanzando, setAvanzando, cargarSolicitud,

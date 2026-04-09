@@ -81,7 +81,7 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --gradient-blue: linear-gradient(
-    to bottom,
+    to top,
     rgb(209, 233, 255) 0%,
     rgb(83, 177, 253) 100%
   );

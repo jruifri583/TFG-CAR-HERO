@@ -9,7 +9,12 @@ class PagoPolicy
 {
     public function before(User $user, $ability)
     {
-        return $user->isAdmin() || $user->isEmployee();
+        if ($user->isAdmin() || $user->isEmployee()) {
+            return true;
+        }
+        // El cliente sólo puede pasar al método 'update' (confirmar pago)
+        // Para el resto (create, delete...) retornamos null para que evalúe el método concreto
+        return null;
     }
     /**
      * Determine whether the user can view any models.
@@ -24,6 +29,19 @@ class PagoPolicy
     }
 
     
+    /**
+     * Determine whether the user can update the model.
+     * El cliente puede confirmar el pago de su propia solicitud.
+     */
+    public function update(User $user, \App\Models\Pago $pago): bool
+    {
+        if ($user->isAdmin() || $user->isEmployee()) {
+            return true;
+        }
+        // El cliente puede actualizar el pago si la solicitud le pertenece
+        return $pago->solicitud?->user_cliente_id === $user->id;
+    }
+
     /**
      * Determine whether the user can delete the model.
      */

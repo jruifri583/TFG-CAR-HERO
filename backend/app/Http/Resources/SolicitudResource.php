@@ -23,6 +23,7 @@ class SolicitudResource extends JsonResource
             'hora_itv'         => $this->hora_itv?->toISOString(),
             'hora_entrega'     => $this->hora_entrega?->toISOString(),
             'notas' => $this->notas,
+            'importe_cobro' => $this->importe_cobro,
 
             'cliente' => [
                 'id' => $this->cliente?->id,

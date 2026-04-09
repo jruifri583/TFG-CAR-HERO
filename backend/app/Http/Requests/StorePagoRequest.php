@@ -9,8 +9,27 @@ class StorePagoRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Usamos automáticamente la policy 'create' del modelo Pago
-        return $this->user()->can('create', Pago::class);
+        $user = $this->user();
+
+        // Actualización: la policy 'update' ya maneja el acceso del cliente
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+            $pago = $this->route('pago');
+            return $user->can('update', $pago);
+        }
+
+        // Creación: admin y empleados siempre pueden
+        if ($user->isAdmin() || $user->isEmployee()) {
+            return true;
+        }
+
+        // Cliente: sólo puede crear un pago si la solicitud le pertenece
+        if ($user->isCustomer()) {
+            $solicitudId = $this->input('solicitud_id');
+            $solicitud = \App\Models\Solicitud::find($solicitudId);
+            return $solicitud && $solicitud->user_cliente_id === $user->id;
+        }
+
+        return false;
     }
 
     public function withValidator($validator)
@@ -31,9 +50,11 @@ class StorePagoRequest extends FormRequest
 
     public function rules(): array
     {
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
+
         return [
             'solicitud_id'   => 'required|exists:solicitudes,id',
-            'importe'        => 'required|numeric|min:0|max:99999999.99',
+            'importe'        => ($isUpdate ? 'sometimes|' : 'required|') . 'numeric|min:0|max:99999999.99',
             'metodo_pago_id' => 'nullable|exists:metodos_pago,id',
             'estado_pago_id' => 'required|exists:estados_pago,id',
         ];

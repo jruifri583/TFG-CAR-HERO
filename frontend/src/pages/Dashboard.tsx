@@ -234,32 +234,38 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
       onClick={() => navigate(`/solicitudes/${s.id}`)}
     >
       <CardContent className="p-4 lg:p-6 text-slate-800 dark:text-slate-100">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-y-8 gap-x-4 items-center">
-          
-          {/* Bloque 1: Vehículo */}
-          <div className="flex items-center gap-4 min-w-0">
-            <img 
-              src={s.vehiculo?.imagen ?? "/avatars/default_car.png"} 
-              className="w-14 h-14 lg:w-16 lg:h-16 object-cover rounded-2xl shadow-sm border-2 border-white dark:border-slate-800 shrink-0"
-            />
-            <div className="min-w-0">
-              <h3 className="font-black text-sm lg:text-base leading-tight truncate">
-                {s.vehiculo?.marca} {s.vehiculo?.modelo}
-              </h3>
-              <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-widest font-mono font-bold truncate">
-                {s.vehiculo?.matricula}
-              </p>
+        <div className="flex md:items-center gap-4 w-full">
+          <span className="text-xl font-black text-slate-400 dark:text-slate-500 shrink-0 select-none mt-1 md:mt-0">
+            {s.id}
+          </span>
+          <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap justify-between gap-y-6 gap-x-4 w-full min-w-0">
+            
+            {/* Bloque 1: Vehículo */}
+            <div className="flex items-center gap-4 min-w-0">
+              <img 
+                src={s.vehiculo?.imagen ?? "/avatars/default_car.png"} 
+                className="w-12 h-12 lg:w-14 lg:h-14 object-cover rounded-full shadow-sm border-2 border-white dark:border-slate-800 shrink-0"
+              />
+              <div className="min-w-0">
+                <h3 className="font-black text-sm lg:text-base leading-tight truncate">
+                  {s.vehiculo?.marca} {s.vehiculo?.modelo}
+                </h3>
+                <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-widest font-mono font-bold truncate">
+                  {s.vehiculo?.matricula}
+                </p>
+              </div>
             </div>
-          </div>
 
           {/* Estado */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="relative flex items-center justify-center shrink-0">
-              {(() => {
-                const Icon = STATUS_ICONS[s.estado?.slug || ""] || Clock;
-                return <Icon size={24} className={`z-10 ${isCancelled ? "text-red-500" : "text-primary"}`} />;
-              })()}
-              <div className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary animate-ping"}`} />
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+              <div className="relative flex items-center justify-center shrink-0">
+                {(() => {
+                  const Icon = STATUS_ICONS[s.estado?.slug || ""] || Clock;
+                  return <Icon size={28} className={`z-10 ${isCancelled ? "text-red-500" : "text-primary"}`} />;
+                })()}
+                <div className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary animate-ping"}`} />
+              </div>
             </div>
             <div className="min-w-0">
               <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Estado</p>
@@ -270,10 +276,12 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
           </div>
 
           {/* Empleado */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-4 min-w-0">
             {s.empleado ? (
               <>
-                <img src={s.empleado.imagen ?? "/avatars/default_user.png"} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+                <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                  <img src={s.empleado.imagen ?? "/avatars/default_user.png"} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+                </div>
                 <div className="min-w-0">
                   <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Empleado</p>
                   <p className="text-xs font-black italic truncate">{s.empleado.nombre}</p>
@@ -281,8 +289,10 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
               </>
             ) : (
               <>
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
-                   <UserCheck size={18} className="text-slate-300 dark:text-slate-600" />
+                <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                     <UserCheck size={20} className="text-slate-300 dark:text-slate-600" />
+                  </div>
                 </div>
                 <div className="min-w-0">
                   <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Empleado</p>
@@ -293,9 +303,11 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
           </div>
 
           {/* Resolución */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
-              <ShieldCheck size={20} className="text-slate-400" />
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                <ShieldCheck size={22} className="text-slate-400" />
+              </div>
             </div>
             <div className="min-w-0">
               <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1.5">Resolución</p>
@@ -306,9 +318,11 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
           </div>
 
           {/* Actualizado */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
-              <Calendar size={20} className="text-slate-400" />
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                <Calendar size={22} className="text-slate-400" />
+              </div>
             </div>
             <div className="min-w-0">
               <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Actualizado</p>
@@ -316,6 +330,7 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
             </div>
           </div>
 
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -369,50 +384,61 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Tarjetas */}
         <div className="grid grid-cols-4 gap-8">
-          <Card>
+          {/* Usuarios — azul profundo 900→800 */}
+          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #194185 0%, #1849A9 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-muted-foreground">
-                Usuarios
-              </CardTitle>
-              <Users size={18} className="text-muted-foreground" />
+              <CardTitle className="text-sm font-semibold" style={{ color: '#84CAFF' }}>Usuarios</CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: '#175CD3' }}>
+                <Users size={16} style={{ color: '#D1E9FF' }} />
+              </div>
             </CardHeader>
             <CardContent>
-              <span className="text-3xl font-bold">
+              <span className="text-3xl font-black text-white">
                 {contadores?.usuarios ?? "-"}
               </span>
             </CardContent>
           </Card>
-          <Card className="bg-secondary">
+
+          {/* Vehículos — azul oscuro 800→700 */}
+          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #1849A9 0%, #175CD3 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-muted-foreground">
-                Vehículos
-              </CardTitle>
-              <Car size={18} className="text-muted-foreground" />
+              <CardTitle className="text-sm font-semibold" style={{ color: '#B2DDFF' }}>Vehículos</CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: '#1570EF' }}>
+                <Car size={16} style={{ color: '#EFF8FF' }} />
+              </div>
             </CardHeader>
             <CardContent>
-              <span className="text-3xl font-bold">
+              <span className="text-3xl font-black text-white">
                 {contadores?.vehiculos ?? "-"}
               </span>
             </CardContent>
           </Card>
-          <Card className="bg-ring">
+
+          {/* Solicitudes — azul medio 600→500 */}
+          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #1570EF 0%, #2E90FA 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-white">Solicitudes</CardTitle>
-              <FileText size={18} className="text-white" />
+              <CardTitle className="text-sm font-semibold" style={{ color: '#D1E9FF' }}>Solicitudes</CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: '#1849A9' }}>
+                <FileText size={16} style={{ color: '#EFF8FF' }} />
+              </div>
             </CardHeader>
             <CardContent>
-              <span className="text-3xl font-bold">
+              <span className="text-3xl font-black text-white">
                 {contadores?.solicitudes ?? "-"}
               </span>
             </CardContent>
           </Card>
-          <Card className="bg-primary">
+
+          {/* Pagos — azul claro 100→50 */}
+          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #D1E9FF 0%, #EFF8FF 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm text-white">Pagos</CardTitle>
-              <CreditCard size={18} className="text-white" />
+              <CardTitle className="text-sm font-semibold" style={{ color: '#175CD3' }}>Pagos</CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: '#84CAFF' }}>
+                <CreditCard size={16} style={{ color: '#194185' }} />
+              </div>
             </CardHeader>
             <CardContent>
-              <span className="text-3xl font-bold text-white">
+              <span className="text-3xl font-black" style={{ color: '#1849A9' }}>
                 {contadores?.pagos ?? "-"}
               </span>
             </CardContent>
@@ -672,21 +698,9 @@ export default function DashboardPage() {
 
   function ClienteDashboard() {
     const navigate = useNavigate();
-    const nombreCompleto = [user?.nombre, user?.apellidos]
-      .filter(Boolean)
-      .join(" ");
 
     return (
       <div className="space-y-6">
-        {/* Saludo */}
-        <div>
-          <h1 className="text-2xl font-bold">
-            Bienvenido/a{nombreCompleto ? `, ${nombreCompleto}` : ""}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Aquí tienes un resumen de tu actividad.
-          </p>
-        </div>
 
         {/* Sección ITV */}
         <CardSinBorde className="border-none shadow-none bg-white overflow-hidden">
@@ -694,32 +708,32 @@ export default function DashboardPage() {
             {contadores?.itv_alertas && contadores.itv_alertas.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {contadores.itv_alertas.map((alert) => (
-                  <div key={alert.id} className="flex flex-col sm:flex-row items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl gap-4">
+                  <div key={alert.id} className="flex flex-col sm:flex-row items-center justify-between py-8 px-6 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="bg-yellow-100 dark:bg-yellow-900/40 p-2 rounded-full">
-                        <AlertTriangle className="text-yellow-600 dark:text-yellow-500" size={24} />
+                      <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-full">
+                        <AlertTriangle className="text-yellow-600 dark:text-yellow-500" size={28} />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 italic">
+                        <h4 className="text-lg font-bold text-yellow-900 dark:text-yellow-100 italic">
                           ¡Atención ITV!
                         </h4>
-                        <p className="text-sm text-yellow-800/80 dark:text-yellow-200/60">
+                        <p className="text-sm text-yellow-800/80 dark:text-yellow-200/60 max-w-lg">
                           La ITV de tu <strong>{alert.marca} {alert.modelo} ({alert.matricula})</strong> caduca pronto. (Última: {fmt(alert.fecha_ultima_itv)})
                         </p>
                       </div>
                     </div>
                     <Button 
                       onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud?vehiculo_id=${alert.id}&v_marca=${alert.marca}&v_modelo=${alert.modelo}&v_matricula=${alert.matricula}`)}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white border-none shadow-md whitespace-nowrap"
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
                     >
-                      <FileText size={16} className="mr-2" />
+                      <FileText size={18} className="mr-2" />
                       Solicitar recogida
                     </Button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl gap-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between py-8 px-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl gap-4">
                 <div className="flex items-center gap-4 text-center sm:text-left">
                   <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full hidden sm:block">
                     <Car className="text-blue-600 dark:text-blue-400" size={28} />

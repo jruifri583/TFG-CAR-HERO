@@ -86,12 +86,18 @@ export default function Header() {
                 <div className="h-9" />
               )}
             </div>
-            <Avatar className="size-40 border-4 border-white rounded-full">
-              <AvatarImage src={headerData.imagen ?? undefined} />
-              <AvatarFallback className="bg-slate-100 text-blue-900 text-8xl font-black border-none ring-0">
+            {headerData.imagen ? (
+              <Avatar className="size-40 border-4 border-white rounded-full">
+                <AvatarImage src={headerData.imagen} />
+                <AvatarFallback className="bg-slate-100 text-blue-900 text-8xl font-black border-none ring-0">
+                  {headerData.avatar || headerData.nombre.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="size-40 border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 text-8xl font-black shrink-0">
                 {headerData.avatar || headerData.nombre.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+              </div>
+            )}
           </div>
         </div>
         <div className="bg-background h-full w-full"></div>

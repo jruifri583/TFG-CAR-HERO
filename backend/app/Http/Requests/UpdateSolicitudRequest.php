@@ -72,6 +72,11 @@ class UpdateSolicitudRequest extends SolicitudRequest
             unset($rules['fecha_programada']);
         }
 
+        // 4. Importe de cobro: sólo el admin puede definirlo
+        if ($user->isAdmin()) {
+            $rules['importe_cobro'] = ['nullable', 'numeric', 'min:0', 'max:99999.99'];
+        }
+
         return $rules;
     }
 }

@@ -28,14 +28,16 @@ class Solicitud extends Model
         'hora_recogida',
         'hora_itv',
         'hora_entrega',
-        'notas'
+        'notas',
+        'importe_cobro',
     ];
 
     protected $casts = [
-    'fecha_programada' => 'datetime',
-    'hora_recogida' => 'datetime',
-    'hora_itv' => 'datetime',
-    'hora_entrega' => 'datetime',
+        'fecha_programada' => 'datetime',
+        'hora_recogida' => 'datetime',
+        'hora_itv' => 'datetime',
+        'hora_entrega' => 'datetime',
+        'importe_cobro' => 'decimal:2',
     ];
 
     // RELACIONES 

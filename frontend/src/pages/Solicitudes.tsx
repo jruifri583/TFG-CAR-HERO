@@ -1,4 +1,4 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown, X, PlusIcon } from "lucide-react";
+import { Search, ArrowUp, ArrowDown, ArrowUpDown, X, PlusIcon, Clock, UserCheck, Truck, RotateCcw, CheckCircle, XCircle, ShieldCheck, Calendar } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -22,6 +23,9 @@ import {
 } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/useAuth";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 interface Solicitud {
   id: number;
@@ -39,8 +43,27 @@ interface Solicitud {
     imagen: string | null;
   } | null;
   estado: { slug: string; nombre: string };
-  empleado: { nombre: string; apellidos: string } | null;
+  resolucion?: { nombre: string } | null;
+  empleado: { nombre: string; apellidos: string; imagen: string | null } | null;
+  updated_at?: string;
 }
+
+const STATUS_ICONS: Record<string, any> = {
+  pendiente: Clock,
+  asignado: UserCheck,
+  en_recogida: Truck,
+  en_itv: Search,
+  retornando: RotateCcw,
+  finalizado: CheckCircle,
+  cancelado: XCircle,
+};
+
+const getResolucionClass = (nombre: string) => {
+  const n = nombre.toLowerCase();
+  if (n.includes("favorable") && !n.includes("desfavorable")) return "bg-green-100 text-green-700 border-green-200";
+  if (n.includes("desfavorable")) return "bg-red-100 text-red-700 border-red-200";
+  return "bg-slate-100 text-slate-600 border-slate-200";
+};
 
 const ESTADO_COLORS: Record<string, string> = {
   pendiente: "bg-yellow-100 text-yellow-800",
@@ -80,6 +103,8 @@ export default function SolicitudesPage({
   const [inputFocused, setInputFocused] = useState(false);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const role = user?.rol?.slug;
 
   const fetchSolicitudes = async (searchValue = search) => {
     try {
@@ -185,117 +210,239 @@ export default function SolicitudesPage({
         </ButtonGroup>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-center w-[70px]">ID</TableHead>
-            <TableHead className="text-center min-w-[200px]">Vehículo</TableHead>
-            <TableHead className="text-center min-w-[200px]">Cliente</TableHead>
-            <TableHead className="text-center min-w-[150px]">Empleado</TableHead>
-            {!sinPago && (
-              <TableHead
-                className="cursor-pointer text-center w-[130px]"
-                onClick={() => handleSort("estado_id")}
+      {role === "cliente" ? (
+        <div className="grid grid-cols-1 gap-4">
+          {solicitudes?.map((s) => {
+            const isCancelled = s.estado?.slug === "cancelado";
+            return (
+              <Card 
+                key={s.id}
+                className={`overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group bg-slate-50/50 ${
+                  onSelect && selectedId === s.id ? "ring-2 ring-primary" : ""
+                }`}
+                onClick={() =>
+                  onSelect ? onSelect(s.id) : navigate(`/solicitudes/${s.id}`)
+                }
               >
-                Estado{renderSortArrow("estado_id")}
-              </TableHead>
-            )}
-            <TableHead
-              className="cursor-pointer text-center w-[180px]"
-              onClick={() => handleSort("fecha_programada")}
-            >
-              Fecha programada{renderSortArrow("fecha_programada")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+                <CardContent className="p-4 lg:p-6 text-slate-800">
+                  <div className="flex md:items-center gap-4 w-full">
+                    <span className="text-xl font-black text-slate-400 shrink-0 select-none mt-1 md:mt-0">
+                      {s.id}
+                    </span>
+                    <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap justify-between gap-y-6 gap-x-4 w-full min-w-0">
+                      
+                      {/* Bloque 1: Vehículo */}
+                      <div className="flex items-center gap-4 min-w-0">
+                        <img 
+                          src={s.vehiculo?.imagen ?? "/avatars/default_car.png"} 
+                          className="w-12 h-12 lg:w-14 lg:h-14 object-cover rounded-full shadow-sm border-2 border-white shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <h3 className="font-black text-sm lg:text-base leading-tight truncate">
+                            {s.vehiculo?.marca} {s.vehiculo?.modelo}
+                          </h3>
+                          <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-widest font-mono font-bold truncate">
+                            {s.vehiculo?.matricula}
+                          </p>
+                        </div>
+                      </div>
 
-        <TableBody>
-          {solicitudes?.map((s) => (
-            <TableRow
-              key={s.id}
-              className={`cursor-pointer transition-colors h-14 ${
-                onSelect && selectedId === s.id
-                  ? "bg-primary/10"
-                  : "hover:bg-muted/50"
-              }`}
-              onClick={() =>
-                onSelect ? onSelect(s.id) : navigate(`/solicitudes/${s.id}`)
-              }
-            >
-              <TableCell 
-                className="text-center text-sm font-medium border-l-4 border-transparent"
-              >
-                {s.id}
-              </TableCell>
+                    {/* Estado */}
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                        <div className="relative flex items-center justify-center shrink-0">
+                          {(() => {
+                            const Icon = STATUS_ICONS[s.estado?.slug || ""] || Clock;
+                            return <Icon size={28} className={`z-10 ${isCancelled ? "text-red-500" : "text-primary"}`} />;
+                          })()}
+                          <div className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary animate-ping"}`} />
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Estado</p>
+                        <h4 className={`text-xs font-black uppercase italic truncate ${isCancelled ? "text-red-600" : "text-slate-900"}`}>
+                          {s.estado?.nombre}
+                        </h4>
+                      </div>
+                    </div>
 
-              <TableCell>
-                <div className="flex items-center gap-3 w-[180px] mx-auto">
-                  <div className="w-10 h-10 shrink-0">
-                    <img
-                      src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-                      className="w-full h-full rounded shadow-sm object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/avatars/default_car.png";
-                      }}
-                    />
+                    {/* Empleado */}
+                    <div className="flex items-center gap-4 min-w-0">
+                      {s.empleado ? (
+                        <>
+                          <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                             <img src={s.empleado.imagen ?? "/avatars/default_user.png"} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Empleado</p>
+                            <p className="text-xs font-black italic truncate">{s.empleado.nombre}</p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                            <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                               <UserCheck size={20} className="text-slate-300" />
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Empleado</p>
+                            <p className="text-[10px] text-muted-foreground italic font-medium leading-none">Asignando...</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Resolución */}
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                          <ShieldCheck size={22} className="text-slate-400" />
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1.5">Resolución</p>
+                        <div className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-black border uppercase tracking-widest italic leading-none ${getResolucionClass(s.resolucion?.nombre || "Pendiente")}`}>
+                          {s.resolucion?.nombre || "Pendiente"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actualizado */}
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                        <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                          <Calendar size={22} className="text-slate-400" />
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Actualizado</p>
+                        <p className="text-xs font-bold text-slate-700 italic leading-none truncate">
+                           {s.updated_at ? format(new Date(s.updated_at), "dd MMM yyyy", { locale: es }) : "-"}
+                        </p>
+                      </div>
+                    </div>
+
+                    </div>
                   </div>
-                  <div className="text-left overflow-hidden">
-                    <p className="font-bold text-sm text-slate-800 truncate">
-                      {s.vehiculo?.marca} {s.vehiculo?.modelo}
-                    </p>
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-tight">
-                      {s.vehiculo?.matricula}
-                    </p>
-                  </div>
-                </div>
-              </TableCell>
-
-              <TableCell>
-                <div className="flex items-center gap-3 w-[160px] mx-auto">
-                  <div className="w-8 h-8 shrink-0">
-                    <img
-                      src={s.cliente?.imagen ?? "/avatars/default_user.png"}
-                      className="w-full h-full rounded-full shadow-sm object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/avatars/default_user.png";
-                      }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium truncate">
-                    {s.cliente?.nombre} {s.cliente?.apellidos}
-                  </span>
-                </div>
-              </TableCell>
-
-              <TableCell className="text-center text-sm">
-                {s.empleado ? (
-                  <span className="font-medium">{s.empleado.nombre} {s.empleado.apellidos}</span>
-                ) : (
-                  <span className="text-muted-foreground italic">Sin asignar</span>
-                )}
-              </TableCell>
-
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-center w-[70px]">ID</TableHead>
+              <TableHead className="text-center min-w-[200px]">Vehículo</TableHead>
+              <TableHead className="text-center min-w-[200px]">Cliente</TableHead>
+              <TableHead className="text-center min-w-[150px]">Empleado</TableHead>
               {!sinPago && (
+                <TableHead
+                  className="cursor-pointer text-center w-[130px]"
+                  onClick={() => handleSort("estado_id")}
+                >
+                  Estado{renderSortArrow("estado_id")}
+                </TableHead>
+              )}
+              <TableHead
+                className="cursor-pointer text-center w-[180px]"
+                onClick={() => handleSort("fecha_programada")}
+              >
+                Fecha programada{renderSortArrow("fecha_programada")}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {solicitudes?.map((s) => (
+              <TableRow
+                key={s.id}
+                className={`cursor-pointer transition-colors h-14 ${
+                  onSelect && selectedId === s.id
+                    ? "bg-primary/10"
+                    : "hover:bg-muted/50"
+                }`}
+                onClick={() =>
+                  onSelect ? onSelect(s.id) : navigate(`/solicitudes/${s.id}`)
+                }
+              >
+                <TableCell 
+                  className="text-center text-sm font-medium border-l-4 border-transparent"
+                >
+                  {s.id}
+                </TableCell>
+
                 <TableCell>
-                  <span
-                    className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
-                  >
-                    {s.estado.nombre}
+                  <div className="flex items-center gap-3 w-[180px] mx-auto">
+                    <div className="w-10 h-10 shrink-0">
+                      <img
+                        src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
+                        className="w-full h-full rounded shadow-sm object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "/avatars/default_car.png";
+                        }}
+                      />
+                    </div>
+                    <div className="text-left overflow-hidden">
+                      <p className="font-bold text-sm text-slate-800 truncate">
+                        {s.vehiculo?.marca} {s.vehiculo?.modelo}
+                      </p>
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-tight">
+                        {s.vehiculo?.matricula}
+                      </p>
+                    </div>
+                  </div>
+                </TableCell>
+
+                <TableCell>
+                  <div className="flex items-center gap-3 w-[160px] mx-auto">
+                    <div className="w-8 h-8 shrink-0">
+                      <img
+                        src={s.cliente?.imagen ?? "/avatars/default_user.png"}
+                        className="w-full h-full rounded-full shadow-sm object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src =
+                            "/avatars/default_user.png";
+                        }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium truncate">
+                      {s.cliente?.nombre} {s.cliente?.apellidos}
+                    </span>
+                  </div>
+                </TableCell>
+
+                <TableCell className="text-center text-sm">
+                  {s.empleado ? (
+                    <span className="font-medium">{s.empleado.nombre} {s.empleado.apellidos}</span>
+                  ) : (
+                    <span className="text-muted-foreground italic">Sin asignar</span>
+                  )}
+                </TableCell>
+
+                {!sinPago && (
+                  <TableCell>
+                    <span
+                      className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
+                    >
+                      {s.estado.nombre}
+                    </span>
+                  </TableCell>
+                )}
+
+                <TableCell className="text-center">
+                  <span className="text-xs font-semibold text-slate-500">
+                    {fmt(s.fecha_programada)}
                   </span>
                 </TableCell>
-              )}
-
-              <TableCell className="text-center">
-                <span className="text-xs font-semibold text-slate-500">
-                  {fmt(s.fecha_programada)}
-                </span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       {totalPages > 1 && (
         <Pagination className="mt-6">
