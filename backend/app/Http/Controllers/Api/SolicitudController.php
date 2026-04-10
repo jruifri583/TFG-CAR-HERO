@@ -113,4 +113,21 @@ class SolicitudController extends Controller
             'solicitud' => $solicitud,
         ]);
     }
+
+    public function cancelar(Solicitud $solicitud)
+    {
+        // Load estado for policy checks
+        $solicitud->load('estado');
+
+        $this->authorize('cancel', $solicitud);
+
+        $estadoCancelado = \App\Models\Estado::where('slug', \App\Enums\EstadoSlug::CANCELADO->value)->firstOrFail();
+
+        $solicitud->estado_id = $estadoCancelado->id;
+        $solicitud->save();
+
+        return response()->json([
+            'message' => 'Solicitud cancelada correctamente.',
+        ]);
+    }
 }

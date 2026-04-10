@@ -241,6 +241,9 @@ interface CommonViewProps {
   puedeAvanzar: boolean;
   siguiente: Estado | null;
   isBusy: boolean;
+  cancelando: boolean;
+  handleCancelar: () => Promise<void>;
+  puedeCancelar: boolean;
 }
 
 interface EmpleadoDetailViewProps extends CommonViewProps {
@@ -485,7 +488,8 @@ const StandardDetailView = memo(({
   resoluciones, empleados, pagando, handlePagar, puedeAvanzar, handleAvanzarEstado,
   siguiente, isBusy, register, handleSubmit, setValue, watch, errors, 
   isSubmitting, onSubmit, navigate, 
-  pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago
+  pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago,
+  cancelando, handleCancelar, puedeCancelar
 }: StandardDetailViewProps) => {
   if (editando) {
     return (
@@ -683,12 +687,12 @@ const StandardDetailView = memo(({
             <CardContent className="pt-6 space-y-4">
               <h3 className="font-bold text-lg">Vehículo</h3>
               <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="w-16 h-16 bg-white rounded-xl overflow-hidden flex items-center justify-center">
+                <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center">
                   <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1">
-                  <div className="inline-block px-2 py-0.5 bg-slate-800 text-white text-[10px] font-bold rounded mb-1">{solicitud.vehiculo?.matricula}</div>
                   <p className="font-bold text-lg">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
+                  <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
                 </div>
               </div>
             </CardContent>
@@ -741,6 +745,16 @@ const StandardDetailView = memo(({
             <Button className="bg-cyan-600 text-white" disabled={pagando} onClick={() => handlePagar(2)}>Cobrar Tarjeta</Button>
           </div>
         )}
+        {role === "cliente" && puedeCancelar && (
+          <Button
+            variant="destructive"
+            className="w-50 hover:bg-red-700"
+            onClick={handleCancelar}
+            disabled={cancelando}
+          >
+            {cancelando ? "Cancelando..." : "Cancelar solicitud"}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -761,6 +775,7 @@ export default function SolicitudDetailPage() {
   const [estados, setEstados] = useState<Estado[]>([]);
   const [serverError, setServerError] = useState<string | null>(null);
   const [avanzando, setAvanzando] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
   const [pagando, setPagando] = useState(false);
   const [pagoImporte, setPagoImporte] = useState<string>("");
   const [pagoMetodoId, setPagoMetodoId] = useState<number | null>(null);
@@ -916,6 +931,20 @@ export default function SolicitudDetailPage() {
     } catch (err: any) { setServerError(err?.response?.data?.message || "Error update."); }
   };
 
+  const handleCancelar = async () => {
+    if (!solicitud) return;
+    setCancelando(true);
+    setServerError(null);
+    try {
+      await api.post(`/solicitudes/${id}/cancelar`);
+      await cargarSolicitud();
+    } catch (err: any) {
+      setServerError(err?.response?.data?.message || "No se pudo cancelar la solicitud.");
+    } finally {
+      setCancelando(false);
+    }
+  };
+
   if (!solicitud) return <p className="p-8 text-center animate-pulse">Cargando...</p>;
 
   const siguiente = siguienteEstado();
@@ -930,9 +959,25 @@ export default function SolicitudDetailPage() {
     (!esEnItv || !!solicitud.resolucion) && // en ITV: requiere resultado
     (!esFinalizar || !!solicitud.pago || !!pagoMetodoId); // al finalizar: requiere pago o método
 
+  // A client can cancel if the solicitud isn't in a terminal state and
+  // the scheduled date (if set) hasn't passed yet.
+  const puedeCancelar = role === "cliente" &&
+    ![
+      "cancelado",
+      "finalizado",
+      "en_recogida",
+      "en_itv",
+      "retornando",
+    ].includes(solicitud.estado?.slug || "") &&
+    (
+      !solicitud.fecha_programada ||
+      new Date(solicitud.fecha_programada) > new Date()
+    );
+
   const viewProps = {
     id, solicitud, role, serverError, avanzando, setAvanzando, cargarSolicitud,
-    handleAvanzarEstado, puedeAvanzar, siguiente, isBusy
+    handleAvanzarEstado, puedeAvanzar, siguiente, isBusy,
+    cancelando, handleCancelar, puedeCancelar
   };
 
   const employeeProps: EmpleadoDetailViewProps = {

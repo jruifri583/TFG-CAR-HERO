@@ -64,6 +64,32 @@ class SolicitudPolicy
     }
 
     /**
+     * Determine whether the client can cancel their own solicitud.
+     * Condition: must be their own solicitud, not already terminal, and fecha_programada not yet passed.
+     */
+    public function cancel(User $user, Solicitud $solicitud): bool
+    {
+        if ($user->isAdmin()) return true;
+
+        if (!$user->isCustomer()) return false;
+
+        if ((int) $user->id !== (int) $solicitud->user_cliente_id) return false;
+
+        // Already terminal states
+        $slug = $solicitud->estado?->slug;
+        if (in_array($slug, [\App\Enums\EstadoSlug::CANCELADO->value, \App\Enums\EstadoSlug::FINALIZADO->value])) {
+            return false;
+        }
+
+        // If fecha_programada is set and has already passed → cannot cancel
+        if ($solicitud->fecha_programada && $solicitud->fecha_programada->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Determine whether the user can delete the model.
      */
     public function delete(User $user, Solicitud $solicitud): bool

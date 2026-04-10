@@ -375,7 +375,7 @@ export default function SolicitudesPage({
                 </TableCell>
 
                 <TableCell>
-                  <div className="flex items-center gap-3 w-[180px] mx-auto">
+                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 shrink-0">
                       <img
                         src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
@@ -386,8 +386,8 @@ export default function SolicitudesPage({
                         }}
                       />
                     </div>
-                    <div className="text-left overflow-hidden">
-                      <p className="font-bold text-sm text-slate-800 truncate">
+                    <div className="text-left">
+                      <p className="font-bold text-sm text-slate-800">
                         {s.vehiculo?.marca} {s.vehiculo?.modelo}
                       </p>
                       <p className="text-[10px] font-bold text-primary uppercase tracking-tight">
@@ -398,7 +398,7 @@ export default function SolicitudesPage({
                 </TableCell>
 
                 <TableCell>
-                  <div className="flex items-center gap-3 w-[160px] mx-auto">
+                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 shrink-0">
                       <img
                         src={s.cliente?.imagen ?? "/avatars/default_user.png"}
@@ -409,7 +409,7 @@ export default function SolicitudesPage({
                         }}
                       />
                     </div>
-                    <span className="text-sm font-medium truncate">
+                    <span className="text-sm font-medium">
                       {s.cliente?.nombre} {s.cliente?.apellidos}
                     </span>
                   </div>
