@@ -1,4 +1,11 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown, X, PlusIcon } from "lucide-react";
+import {
+  Search,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  X,
+  PlusIcon,
+} from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
@@ -37,6 +44,7 @@ interface Vehiculo {
 }
 
 type SortField = "matricula" | "marca" | "año";
+const dominio = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function VehiculosPage() {
   const { user } = useAuth();
@@ -107,7 +115,9 @@ export default function VehiculosPage() {
 
   const renderSortArrow = (field: SortField) => {
     if (sortField !== field)
-      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
+      return (
+        <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />
+      );
     return sortOrder === "asc" ? (
       <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
     ) : (
@@ -224,29 +234,31 @@ function AdminList({
           </Button>
         </ButtonGroup>
       </div>
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow>
             <TableHead className="text-center w-[80px]">Imagen</TableHead>
             <TableHead
-              className="cursor-pointer text-center w-[160px]"
+              className="hidden md:table-cell cursor-pointer text-center w-[160px]"
               onClick={() => handleSort("matricula")}
             >
               Matrícula{renderSortArrow("matricula")}
             </TableHead>
             <TableHead
-              className="cursor-pointer text-center w-[220px]"
+              className="cursor-pointer text-left pl-4 md:text-center md:pl-2 min-w-0 md:w-[220px]"
               onClick={() => handleSort("marca")}
             >
               Marca y Modelo{renderSortArrow("marca")}
             </TableHead>
             <TableHead
-              className="hidden sm:table-cell cursor-pointer text-center w-[120px]"
+              className="hidden md:table-cell cursor-pointer text-center w-[120px]"
               onClick={() => handleSort("año")}
             >
               Año{renderSortArrow("año")}
             </TableHead>
-            <TableHead className="hidden sm:table-cell text-center w-[140px]">Kilómetros</TableHead>
+            <TableHead className="hidden md:table-cell text-center w-[140px]">
+              Kilómetros
+            </TableHead>
           </TableRow>
         </TableHeader>
 
@@ -259,35 +271,37 @@ function AdminList({
             >
               <TableCell className="text-center">
                 <img
-                  src={vehiculo.imagen ?? "/avatars/default_car.png"}
-                  className="w-10 h-10 rounded shadow-sm object-cover mx-auto"
+                  src={vehiculo.imagen ?? dominio + "/avatars/default_car.png"}
+                  className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      "/avatars/default_car.png";
+                      dominio + "/avatars/default_car.png";
                   }}
                 />
               </TableCell>
-              <TableCell className="text-center truncate">
+              <TableCell className="hidden md:table-cell text-center truncate">
                 <span className="inline-flex items-center border-2 border-black bg-white text-black rounded overflow-hidden text-[13px] font-black tracking-widest shadow-md h-8">
                   <span className="w-5 h-full bg-blue-700 shrink-0 flex flex-col items-center justify-between py-[4px]">
                     <div className="grid grid-cols-2 gap-[1.5px] opacity-80">
-                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
-                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
-                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
-                      <div className="w-[2px] h-[2px] bg-white rounded-full"/>
+                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
                     </div>
-                    <span className="text-[8px] text-white font-black translate-y-[1px]">E</span>
+                    <span className="text-[8px] text-white font-black translate-y-[1px]">
+                      E
+                    </span>
                   </span>
                   <span className="px-3">{vehiculo.matricula}</span>
                 </span>
               </TableCell>
-              <TableCell className="text-center truncate font-medium">
+              <TableCell className="text-left pl-4 md:text-center md:pl-2 truncate font-medium">
                 {[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" ")}
               </TableCell>
-              <TableCell className="hidden sm:table-cell text-center text-slate-500 font-bold">
+              <TableCell className="hidden md:table-cell text-center text-slate-500 font-bold">
                 {vehiculo.año ?? "-"}
               </TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
+              <TableCell className="hidden md:table-cell text-center">
                 <span className="text-sm font-bold text-slate-700">
                   {vehiculo.kilometros != null
                     ? vehiculo.kilometros.toLocaleString("es-ES") + " km"
@@ -364,7 +378,7 @@ function ClienteList({
   debouncedSearch,
   inputFocused,
   setInputFocused,
-  user
+  user,
 }: ClienteListProps) {
   return (
     <>
@@ -404,7 +418,10 @@ function ClienteList({
               </button>
             )}
           </div>
-          <Button className="w-50" onClick={() => navigate(`/perfil/${user?.id}/nuevo-vehiculo`)}>
+          <Button
+            className="w-50"
+            onClick={() => navigate(`/perfil/${user?.id}/nuevo-vehiculo`)}
+          >
             <PlusIcon className="mr-2 h-4 w-4" />
             Añadir
           </Button>
@@ -414,17 +431,17 @@ function ClienteList({
         {vehiculos.map((vehiculo) => (
           <CardSinBorde
             key={vehiculo.id}
-            className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full p-0 rounded-lg w-52 h-72"
+            className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full sm:w-52 p-0 rounded-lg sm:h-72"
             onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
           >
             {/* Imagen a pantalla completa */}
             <div className="w-full aspect-square overflow-hidden">
               <img
-                src={vehiculo.imagen ?? "/avatars/default_car.png"}
+                src={vehiculo.imagen ?? dominio + "/avatars/default_car.png"}
                 className="object-cover w-full h-full"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src =
-                    "/avatars/default_car.png";
+                    dominio + "/avatars/default_car.png";
                 }}
               />
             </div>

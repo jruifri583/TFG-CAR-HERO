@@ -105,4 +105,21 @@ class UserController extends Controller
             'user' => $user
         ]);
     }
+
+    public function updateImagen(\Illuminate\Http\Request $request, User $user)
+    {
+        $request->validate([
+            'imagen' => 'required|image|max:2048',
+        ]);
+
+        if ($user->getRawOriginal('imagen') && !filter_var($user->getRawOriginal('imagen'), FILTER_VALIDATE_URL)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete('avatars/' . $user->getRawOriginal('imagen'));
+        }
+
+        $filename = $request->file('imagen')->store('avatars', 'public');
+        $user->imagen = basename($filename);
+        $user->save();
+
+        return response()->json(['user' => $user->fresh()->load('rol')]);
+    }
 }

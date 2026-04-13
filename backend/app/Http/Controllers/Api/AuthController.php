@@ -130,6 +130,6 @@ class AuthController extends Controller
     $user->imagen = basename($filename);
     $user->save();
 
-    return response()->json(['user' => $user->fresh()]);
+    return response()->json(['user' => $user->fresh()->load('rol')]);
 }
 }

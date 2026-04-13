@@ -27,15 +27,17 @@ class Vehiculo extends Model
 
     public function getImagenAttribute($value)
     {
+        $appUrl = rtrim(config('app.url'), '/');
+        
         if (!$value) {
-            return '/avatars/default_car.png';
+            return $appUrl . '/avatars/default_car.png';
         }
 
         if (filter_var($value, FILTER_VALIDATE_URL)) {
             return $value;
         }
 
-        return '/storage/avatars/' . $value;
+        return $appUrl . '/storage/avatars/' . $value;
     }
 
     // Relación: Un vehículo puede tener muchas solicitudes de ITV

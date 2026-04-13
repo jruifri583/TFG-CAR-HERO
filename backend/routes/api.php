@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Recursos
     Route::middleware('rol:' . RolSlug::ADMINISTRADOR->value)->group(function () {
         Route::resource('users', UserController::class);
+        Route::post('/users/{user}/imagen', [UserController::class, 'updateImagen']);
         
         // Mensajes de contacto (sólo lectura, marcado de leído y borrado)
         Route::apiResource('mensajes', MensajeContactoController::class)->only(['index', 'destroy']);

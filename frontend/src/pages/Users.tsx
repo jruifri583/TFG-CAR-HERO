@@ -49,6 +49,8 @@ type SortField =
   | "activo"
   | "created_at";
 
+const dominio = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 export default function UsersPage({
   isSelector = false,
   onSelect,
@@ -171,31 +173,31 @@ export default function UsersPage({
         </ButtonGroup>
       </div>
 
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow>
             <TableHead className="text-center w-[80px]">Imagen</TableHead>
             <TableHead
-              className="cursor-pointer text-center w-[220px]"
+              className="hidden md:table-cell cursor-pointer text-center w-[220px]"
               onClick={() => handleSort("email")}
             >
               Email{renderSortArrow("email")}
             </TableHead>
             <TableHead
-              className="cursor-pointer text-center w-[200px]"
+              className="cursor-pointer text-left pl-4 md:text-center md:pl-2 min-w-0 md:w-[200px]"
               onClick={() => handleSort("nombre")}
             >
               Nombre y Apellidos{renderSortArrow("nombre")}
             </TableHead>
             <TableHead className="hidden sm:table-cell text-center w-[120px]">Teléfono</TableHead>
             <TableHead
-              className="cursor-pointer text-center w-[120px]"
+              className="hidden md:table-cell cursor-pointer text-center w-[120px]"
               onClick={() => handleSort("rol_id")}
             >
               Rol{renderSortArrow("rol_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer text-center w-[100px]"
+              className="cursor-pointer text-center min-w-0 md:w-[100px]"
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
@@ -226,27 +228,27 @@ export default function UsersPage({
             >
               <TableCell className="text-center">
                 <img
-                  src={user.imagen ?? "/avatars/default_user.png"}
+                  src={user.imagen ?? dominio + "/avatars/default_user.png"}
                   alt="Imagen de usuario"
                   className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src =
-                      "/avatars/default_user.png";
+                      dominio + "/avatars/default_user.png";
                   }}
                 />
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="hidden md:table-cell text-center">
                 <span className="text-sm text-slate-500 font-medium truncate inline-block max-w-[150px]">
                   {user.email}
                 </span>
               </TableCell>
-              <TableCell className="text-center font-medium truncate">
+              <TableCell className="text-left pl-4 md:text-center md:pl-2 font-medium truncate">
                 {[user.nombre, user.apellidos].filter(Boolean).join(" ")}
               </TableCell>
               <TableCell className="hidden sm:table-cell text-center">
                 {user.telefono || "-"}
               </TableCell>
-              <TableCell className="text-center">
+              <TableCell className="hidden md:table-cell text-center">
                 <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold">
                    {user.rol?.nombre || "-"}
                 </span>

@@ -23,7 +23,7 @@ export default defineConfig({
     fs: {
       strict: false,
     },
-    proxy: {
+    /* proxy: {
       "/api": {
         target: "http://backend:8000",
         changeOrigin: true,
@@ -36,6 +36,6 @@ export default defineConfig({
         target: "http://backend:8000",
         changeOrigin: true,
       },
-    },
+    }, */
   },
 });

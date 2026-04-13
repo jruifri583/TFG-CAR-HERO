@@ -335,19 +335,19 @@ export default function SolicitudesPage({
           <TableHeader>
             <TableRow>
               <TableHead className="text-center w-[70px]">ID</TableHead>
-              <TableHead className="text-center min-w-[200px]">Vehículo</TableHead>
-              <TableHead className="text-center min-w-[200px]">Cliente</TableHead>
-              <TableHead className="text-center min-w-[150px]">Empleado</TableHead>
+              <TableHead className="text-center min-w-[200px] hidden md:table-cell">Vehículo</TableHead>
+              <TableHead className="text-center min-w-0 md:min-w-[200px]">Cliente</TableHead>
+              <TableHead className="text-center min-w-[150px] hidden md:table-cell">Empleado</TableHead>
               {!sinPago && (
                 <TableHead
-                  className="cursor-pointer text-center w-[130px]"
+                  className="cursor-pointer text-center w-[130px] hidden md:table-cell"
                   onClick={() => handleSort("estado_id")}
                 >
                   Estado{renderSortArrow("estado_id")}
                 </TableHead>
               )}
               <TableHead
-                className="cursor-pointer text-center w-[180px]"
+                className="cursor-pointer text-center min-w-0 md:w-[180px]"
                 onClick={() => handleSort("fecha_programada")}
               >
                 Fecha programada{renderSortArrow("fecha_programada")}
@@ -374,12 +374,12 @@ export default function SolicitudesPage({
                   {s.id}
                 </TableCell>
 
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 shrink-0">
                       <img
                         src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-                        className="w-full h-full rounded shadow-sm object-cover"
+                        className="w-full h-full rounded-full shadow-sm object-cover"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
                             "/avatars/default_car.png";
@@ -415,7 +415,7 @@ export default function SolicitudesPage({
                   </div>
                 </TableCell>
 
-                <TableCell className="text-center text-sm">
+                <TableCell className="text-center text-sm hidden md:table-cell">
                   {s.empleado ? (
                     <span className="font-medium">{s.empleado.nombre} {s.empleado.apellidos}</span>
                   ) : (
@@ -424,7 +424,7 @@ export default function SolicitudesPage({
                 </TableCell>
 
                 {!sinPago && (
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <span
                       className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado.slug] ?? "bg-gray-100 text-gray-800"}`}
                     >

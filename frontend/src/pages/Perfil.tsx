@@ -114,7 +114,7 @@ export default function PerfilPage() {
     setUser: setContextUser,
     user: authUser,
   } = useAuth();
-  const { setHeaderData } = useHeader();
+  const { setHeaderData, setOnImageChange } = useHeader();
 
   const isOwnProfile = !id;
   const isAdmin = authUser?.rol?.slug === "administrador" || authUser?.rol_id === 1;
@@ -176,8 +176,36 @@ export default function PerfilPage() {
     return () => {
       setHeaderData(null);
       setIsEditing(false);
+      setOnImageChange(null);
     };
-  }, [id, reset, isOwnProfile, authUser?.imagen, setHeaderData, setIsEditing]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, reset, isOwnProfile, setHeaderData, setIsEditing, setOnImageChange]);
+
+  useEffect(() => {
+    setOnImageChange(() => async (file: File) => {
+      const formData = new FormData();
+      formData.append("imagen", file);
+      try {
+        const res = isOwnProfile
+          ? await api.post("/me/imagen", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            })
+          : await api.post(`/users/${id}/imagen`, formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+            
+        const updated = res.data.user;
+        setUser(updated);
+        if (isOwnProfile) setContextUser(updated);
+
+        setHeaderData((prev) => (prev ? { ...prev, imagen: updated.imagen } : prev));
+        toast.success("Imagen de perfil actualizada");
+      } catch (error) {
+        console.error("Error actualizando imagen:", error);
+        toast.error("Hubo un error al actualizar la imagen");
+      }
+    });
+  }, [id, isOwnProfile, setContextUser, setHeaderData, setOnImageChange]);
 
   // Actualiza isEditing en el header cuando cambia
   useEffect(() => {

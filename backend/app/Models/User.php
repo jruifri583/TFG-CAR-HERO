@@ -71,15 +71,17 @@ class User extends Authenticatable
 
     public function getImagenAttribute($value)
     {
+        $appUrl = rtrim(config('app.url'), '/');
+        
         if (!$value) {
-            return '/avatars/default_user.png';
+            return $appUrl . '/avatars/default_user.png';
         }
 
         if (filter_var($value, FILTER_VALIDATE_URL)) {
             return $value;
         }
 
-        return '/storage/avatars/' . $value;
+        return $appUrl . '/storage/avatars/' . $value;
     }
 
     public function isAdmin(): bool
