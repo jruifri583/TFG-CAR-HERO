@@ -149,7 +149,7 @@ function NuevaRow({ s }: { s: SolicitudReciente }) {
           </span>
         </div>
       </td>
-      <td className="py-2 max-w-[200px] truncate">{s.direccion}</td>
+      <td className="py-2 hidden md:table-cell max-w-[200px] truncate">{s.direccion}</td>
     </tr>
   );
 }
@@ -196,12 +196,12 @@ function ActualizadaRow({ s }: { s: SolicitudReciente }) {
           {s.estado?.nombre ?? "-"}
         </span>
       </td>
-      <td className="py-2">
+      <td className="py-2 hidden sm:table-cell">
         {s.updated_at
           ? format(new Date(s.updated_at), "dd MMM yyyy", { locale: es })
           : "-"}
       </td>
-      <td className="py-2 max-w-[200px] truncate">{s.direccion}</td>
+      <td className="py-2 hidden md:table-cell max-w-[200px] truncate">{s.direccion}</td>
     </tr>
   );
 }
@@ -383,7 +383,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         {/* Tarjetas */}
-        <div className="grid grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
           {/* Usuarios — azul profundo 900→800 */}
           <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #194185 0%, #1849A9 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -456,31 +456,33 @@ export default function DashboardPage() {
               <p className="text-sm font-semibold text-muted-foreground mb-2">
                 Nuevas solicitudes
               </p>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-muted-foreground border-b">
-                    <th className="text-left py-2">Vehículo</th>
-                    <th className="text-left py-2">Cliente</th>
-                    <th className="text-left py-2">Dirección</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solicitudesRecientes.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="py-4 text-center text-muted-foreground"
-                      >
-                        No hay nuevas solicitudes
-                      </td>
-                    </tr>
-                  ) : (
-                    solicitudesRecientes.map((s) => (
-                      <NuevaRow key={s.id} s={s} />
-                    ))
-                  )}
-                </tbody>
-              </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-muted-foreground border-b italic uppercase text-[10px] tracking-widest">
+                        <th className="text-left py-2">Vehículo</th>
+                        <th className="text-left py-2">Cliente</th>
+                        <th className="text-left py-2 hidden md:table-cell">Dirección</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {solicitudesRecientes.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={3}
+                            className="py-4 text-center text-muted-foreground"
+                          >
+                            No hay nuevas solicitudes
+                          </td>
+                        </tr>
+                      ) : (
+                        solicitudesRecientes.map((s) => (
+                          <NuevaRow key={s.id} s={s} />
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
             </div>
 
             {/* Actualizadas */}
@@ -488,39 +490,41 @@ export default function DashboardPage() {
               <p className="text-sm font-semibold text-muted-foreground mb-2">
                 Actualizadas recientemente
               </p>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-muted-foreground border-b">
-                    <th className="text-left py-2">Vehículo</th>
-                    <th className="text-left py-2">Cliente</th>
-                    <th className="text-left py-2">Estado</th>
-                    <th className="text-left py-2">Última actualización</th>
-                    <th className="text-left py-2">Dirección</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {solicitudesActualizadas.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="py-4 text-center text-muted-foreground"
-                      >
-                        Sin actualizaciones recientes
-                      </td>
-                    </tr>
-                  ) : (
-                    solicitudesActualizadas.map((s) => (
-                      <ActualizadaRow key={s.id} s={s} />
-                    ))
-                  )}
-                </tbody>
-              </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-muted-foreground border-b italic uppercase text-[10px] tracking-widest">
+                        <th className="text-left py-2">Vehículo</th>
+                        <th className="text-left py-2">Cliente</th>
+                        <th className="text-left py-2">Estado</th>
+                        <th className="text-left py-2 hidden sm:table-cell">Última actualización</th>
+                        <th className="text-left py-2 hidden md:table-cell">Dirección</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {solicitudesActualizadas.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="py-4 text-center text-muted-foreground"
+                          >
+                            Sin actualizaciones recientes
+                          </td>
+                        </tr>
+                      ) : (
+                        solicitudesActualizadas.map((s) => (
+                          <ActualizadaRow key={s.id} s={s} />
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Gráficas */}
-        <div className="grid grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
               <CardTitle>Solicitudes por mes</CardTitle>

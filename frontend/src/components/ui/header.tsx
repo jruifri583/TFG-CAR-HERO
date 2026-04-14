@@ -69,24 +69,26 @@ export default function Header() {
 
   if (headerData) {
     return (
-      <header className="h-45 flex flex-col relative">
-        <div className="h-full w-full bg-gradiente">
-          <div className="flex gap-4 md:gap-6 absolute top-1/2 right-4 md:right-12 -translate-y-1/2">
-            <div className="flex flex-col self-center gap-2 md:gap-4 text-right items-end">
-              <span className="text-2xl md:text-4xl text-foreground">
-                <strong>{headerData.nombre}</strong>
+      <header className="min-h-[180px] md:h-56 flex flex-col relative overflow-hidden shrink-0">
+        <div className="h-1/2 w-full bg-gradiente" />
+        <div className="h-1/2 w-full bg-background" />
+        <div className="absolute inset-0 flex items-center justify-end px-4 md:px-12">
+          <div className="flex gap-4 md:gap-6 items-center -translate-y-4 md:-translate-y-6">
+            <div className="flex flex-col gap-1 md:gap-2 text-right items-end">
+              <span className="text-xl sm:text-2xl md:text-4xl text-foreground font-bold">
+                {headerData.nombre}
               </span>
               {headerData.matricula && (
-                <span className="text-[10px] md:text-sm font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-1 rounded inline-block mt-1">
+                <span className="text-[10px] md:text-sm font-black text-primary uppercase tracking-widest bg-primary/10 px-2 py-1 rounded inline-block">
                   {headerData.matricula}
                 </span>
               )}
               {headerData.subtitulo && (
-                <span className="text-xs md:text-sm text-muted-foreground line-clamp-1 max-w-[200px] md:max-w-none">
+                <span className="text-[10px] md:text-sm text-muted-foreground line-clamp-1 max-w-[150px] sm:max-w-[250px] md:max-w-none">
                   {headerData.subtitulo}
                 </span>
               )}
-              {headerData.isEditing ? (
+              {headerData.isEditing && (
                 <>
                   <input
                     ref={fileInputRef}
@@ -97,31 +99,29 @@ export default function Header() {
                   />
                   <Button
                     variant="outline"
-                    className="w-50"
+                    size="sm"
+                    className="h-7 md:h-9 text-[10px] md:text-sm mt-1"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Cambiar imagen
                   </Button>
                 </>
-              ) : (
-                <div className="h-9" />
               )}
             </div>
             {headerData.imagen ? (
-              <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
-                <AvatarImage src={headerData.imagen} />
-                <AvatarFallback className="bg-slate-100 text-blue-900 text-4xl md:text-8xl font-black border-none ring-0">
+              <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-md shrink-0">
+                <AvatarImage src={headerData.imagen} className="object-cover" />
+                <AvatarFallback className="bg-slate-100 text-blue-900 text-3xl md:text-8xl font-black">
                   {headerData.avatar || headerData.nombre.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 text-4xl md:text-8xl font-black shrink-0 transition-all shadow-sm">
+              <div className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 text-3xl md:text-8xl font-black shrink-0 shadow-md">
                 {headerData.avatar || headerData.nombre.charAt(0)}
               </div>
             )}
           </div>
         </div>
-        <div className="bg-background h-full w-full"></div>
       </header>
     );
   }
@@ -129,40 +129,39 @@ export default function Header() {
   // Header rutas con imagen específica
   if (routeConfig && !isDashboard && !isPerfilPage) {
     return (
-      <header className="h-45 flex flex-col relative">
-        <div className="h-full w-full bg-gradiente">
-          <div className="flex gap-4 md:gap-6 absolute top-1/2 right-4 md:right-12 -translate-y-1/2">
-            <div className="flex flex-col self-center gap-2 md:gap-4 text-right items-end">
-              <span className="text-2xl md:text-4xl text-foreground">
-                <strong>{routeConfig.titulo}</strong>
+      <header className="h-40 md:h-56 flex flex-col relative overflow-hidden shrink-0">
+        <div className="h-1/2 w-full bg-gradiente" />
+        <div className="h-1/2 w-full bg-background" />
+        <div className="absolute inset-0 flex items-center justify-end px-4 md:px-12">
+          <div className="flex gap-4 md:gap-6 items-center -translate-y-4 md:-translate-y-6">
+            <div className="flex flex-col gap-1 md:gap-2 text-right items-end">
+              <span className="text-xl sm:text-2xl md:text-4xl text-foreground font-bold">
+                {routeConfig.titulo}
               </span>
-              <div className="h-4 md:h-9" />
             </div>
-            <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
-              <AvatarImage src={routeConfig.imagen} />
+            <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full shadow-md shrink-0">
+              <AvatarImage src={routeConfig.imagen} className="object-cover" />
               <AvatarFallback>--</AvatarFallback>
             </Avatar>
           </div>
         </div>
-        <div className="bg-background h-full w-full"></div>
       </header>
     );
   }
 
   // Header normal usuario (dashboard, perfil propio)
   return (
-    <header className="h-45 flex flex-col relative">
-      <div className="h-full w-full bg-gradiente">
-        <div className="flex gap-4 md:gap-6 absolute top-1/2 right-4 md:right-12 -translate-y-1/2">
-          <div className="flex flex-col self-center gap-2 md:gap-4 text-right items-end">
-            <span className="text-2xl md:text-4xl text-foreground">
-              Hola{" "}
-              <strong>
-                {user ? user.nombre || user.email.split("@")[0] : ""}
-              </strong>
+    <header className="h-40 md:h-56 flex flex-col relative overflow-hidden shrink-0">
+      <div className="h-1/2 w-full bg-gradiente" />
+      <div className="h-1/2 w-full bg-background" />
+      <div className="absolute inset-0 flex items-center justify-end px-4 md:px-12">
+        <div className="flex gap-4 md:gap-6 items-center">
+          <div className="flex flex-col gap-1 md:gap-2 text-right items-end">
+            <span className="text-xl sm:text-2xl md:text-4xl text-foreground">
+              Hola <strong>{user ? user.nombre || user.email.split("@")[0] : ""}</strong>
             </span>
             {!isPerfilPage ? (
-              <Button asChild className="w-full md:w-50 h-8 md:h-10 text-xs md:text-sm">
+              <Button asChild className="w-full md:w-50 h-8 md:h-10 text-[10px] md:text-sm">
                 <NavLink to="/perfil">Ver perfil</NavLink>
               </Button>
             ) : isEditing ? (
@@ -176,25 +175,23 @@ export default function Header() {
                 />
                 <Button
                   variant="outline"
-                  className="w-full md:w-50 h-8 md:h-10 text-xs md:text-sm"
+                  className="w-full md:w-50 h-8 md:h-10 text-[10px] md:text-sm mt-1"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   Cambiar imagen
                 </Button>
               </>
-            ) : (
-              <div className="h-4 md:h-9" />
-            )}
+            ) : null}
           </div>
-          <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
+          <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full shadow-md shrink-0">
             <AvatarImage
               src={user?.imagen ?? dominio + "/avatars/default_user.png"}
+              className="object-cover"
             />
-            <AvatarFallback>CR</AvatarFallback>
+            <AvatarFallback className="bg-slate-100 text-blue-900 text-3xl md:text-8xl font-black">CR</AvatarFallback>
           </Avatar>
         </div>
       </div>
-      <div className="bg-background h-full w-full"></div>
     </header>
   );
 }
