@@ -127,7 +127,7 @@ export default function UsersPage({
 
   return (
     <>
-      <div className="flex justify-end mb-4 items-center">
+      <div className="flex justify-end mb-4 items-center w-full overflow-x-auto pb-2">
         <ButtonGroup>
           <div className="relative flex items-center">
             {!search && (
@@ -149,7 +149,7 @@ export default function UsersPage({
               className={`border-black py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
                 ${!isSelector ? "rounded-l-md rounded-r-none" : "rounded-md"}
                 ${search ? "pl-3" : "pl-8"}
-                ${inputFocused || search ? "w-50" : "w-32"}
+                ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
                 focus-visible:ring-0`}
             />
             {search && (

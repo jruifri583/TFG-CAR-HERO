@@ -192,7 +192,7 @@ function AdminList({
 }: AdminListProps) {
   return (
     <>
-      <div className="flex justify-end mb-4 items-center">
+      <div className="flex justify-end mb-4 items-center w-full overflow-x-auto pb-2">
         <ButtonGroup>
           <div className="relative flex items-center">
             {!search && (
@@ -213,7 +213,7 @@ function AdminList({
               onBlur={() => setInputFocused(false)}
               className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
               ${search ? "pl-3" : "pl-8"}
-              ${inputFocused || search ? "w-50" : "w-32"}
+              ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
               focus-visible:ring-0`}
             />
             {search && (
@@ -382,7 +382,7 @@ function ClienteList({
 }: ClienteListProps) {
   return (
     <>
-      <div className="flex justify-end mb-4 items-center">
+      <div className="flex justify-end mb-4 items-center w-full overflow-x-auto pb-2">
         <ButtonGroup>
           <div className="relative flex items-center">
             {!search && (
@@ -403,7 +403,7 @@ function ClienteList({
               onBlur={() => setInputFocused(false)}
               className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
               ${search ? "pl-3" : "pl-8"}
-              ${inputFocused || search ? "w-50" : "w-32"}
+              ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
               focus-visible:ring-0`}
             />
             {search && (

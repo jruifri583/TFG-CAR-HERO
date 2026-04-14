@@ -108,14 +108,14 @@ export default function Header() {
               )}
             </div>
             {headerData.imagen ? (
-              <Avatar className="size-16 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
+              <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
                 <AvatarImage src={headerData.imagen} />
-                <AvatarFallback className="bg-slate-100 text-blue-900 text-2xl md:text-8xl font-black border-none ring-0">
+                <AvatarFallback className="bg-slate-100 text-blue-900 text-4xl md:text-8xl font-black border-none ring-0">
                   {headerData.avatar || headerData.nombre.charAt(0)}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="size-16 md:size-40 border-2 md:border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 text-2xl md:text-8xl font-black shrink-0 transition-all shadow-sm">
+              <div className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 text-4xl md:text-8xl font-black shrink-0 transition-all shadow-sm">
                 {headerData.avatar || headerData.nombre.charAt(0)}
               </div>
             )}
@@ -138,7 +138,7 @@ export default function Header() {
               </span>
               <div className="h-4 md:h-9" />
             </div>
-            <Avatar className="size-16 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
+            <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
               <AvatarImage src={routeConfig.imagen} />
               <AvatarFallback>--</AvatarFallback>
             </Avatar>
@@ -186,7 +186,7 @@ export default function Header() {
               <div className="h-4 md:h-9" />
             )}
           </div>
-          <Avatar className="size-16 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
+          <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-sm">
             <AvatarImage
               src={user?.imagen ?? dominio + "/avatars/default_user.png"}
             />
