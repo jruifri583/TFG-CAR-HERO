@@ -72,8 +72,10 @@ class AuthController extends Controller
         'nombre'    => 'sometimes|string|max:255',
         'apellidos' => 'sometimes|string|max:255|nullable',
         'nif'       => 'sometimes|string|max:20|nullable',
-        'telefono'  => 'sometimes|string|max:20|nullable',
+        'telefono'  => 'sometimes|string|max:50|nullable',
         'direccion' => 'sometimes|string|max:255|nullable',
+        'ciudad'    => 'sometimes|string|max:100|nullable',
+        'codigo_postal' => 'sometimes|string|max:10|nullable',
         'email'     => 'sometimes|email|unique:users,email,' . $user->id,
         'password'  => 'sometimes|string|min:8|nullable',
     ]);

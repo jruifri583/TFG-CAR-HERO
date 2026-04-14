@@ -49,6 +49,16 @@ const schema = z
       .max(255, "La dirección no puede exceder los 255 caracteres")
       .optional()
       .or(z.literal("")),
+    ciudad: z
+      .string()
+      .max(100, "La ciudad no puede exceder los 100 caracteres")
+      .optional()
+      .or(z.literal("")),
+    codigo_postal: z
+      .string()
+      .max(10, "El código postal no puede exceder los 10 caracteres")
+      .optional()
+      .or(z.literal("")),
     rol_id: z.number().optional(),
     activo: z.boolean(),
   })
@@ -244,6 +254,32 @@ export default function NuevoUsuarioPage() {
                       {errors.direccion.message}
                     </p>
                   )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Ciudad</label>
+                    <Input
+                      type="text"
+                      {...register("ciudad")}
+                      placeholder="Ciudad"
+                    />
+                    {errors.ciudad && (
+                      <p className="text-red-500 text-xs font-medium">{errors.ciudad.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Código Postal</label>
+                    <Input
+                      type="text"
+                      {...register("codigo_postal")}
+                      placeholder="CP"
+                    />
+                    {errors.codigo_postal && (
+                      <p className="text-red-500 text-xs font-medium">{errors.codigo_postal.message}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

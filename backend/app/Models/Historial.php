@@ -23,7 +23,7 @@ class Historial extends Model
     ];
 
     protected $casts = [
-        'fecha_itv' => 'date:d / m / Y',
+        'fecha_itv' => 'date:Y-m-d',
     ];
 
     /* ================= RELACIONES ================= */

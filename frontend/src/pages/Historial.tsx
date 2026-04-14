@@ -175,13 +175,13 @@ export default function HistorialPage() {
               <TableCell className="text-center font-medium">
                 <span className="text-xs font-semibold text-slate-500">
                   {h.fecha_itv
-                    ? new Date(h.fecha_itv).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
+                    ? new Date(h.fecha_itv.replace(/-/g, '/')).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
                     : "-"}
                 </span>
               </TableCell>
               <TableCell className="text-center">
                 <span
-                  className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre] ?? "bg-gray-100 text-gray-800"}`}
+                  className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre?.toLowerCase()] ?? "bg-gray-100 text-gray-800"}`}
                 >
                   {h.resolucion?.nombre ?? "-"}
                 </span>

@@ -95,20 +95,30 @@ export default function NuevaSolicitudPage() {
 
       // 1. Datos del usuario (Priorizamos sesión actual)
       if (authUser && String(authUser.id) === String(actualUserId)) {
-        initialValues.direccion = authUser.direccion || "";
+        const fullDir = [authUser.direccion, authUser.codigo_postal, authUser.ciudad]
+          .filter(Boolean)
+          .join(", ");
+        
+        initialValues.direccion = fullDir;
         
         // Direcciones sugeridas
         const previous = (authUser as any).direcciones_anteriores || [];
-        const unique = Array.from(new Set([authUser.direccion, ...previous])).filter(Boolean) as string[];
+        const unique = Array.from(new Set([fullDir, ...previous])).filter(Boolean) as string[];
         setDirecciones(unique);
       } else if (actualUserId) {
         try {
           const res = await api.get(`/users/${actualUserId}`);
           const u = res.data.data ?? res.data;
-          initialValues.direccion = u.direccion || "";
+          
+          const fullDir = [u.direccion, u.codigo_postal, u.ciudad]
+            .filter(Boolean)
+            .join(", ");
+
+          initialValues.direccion = fullDir;
+          
           // Direcciones sugeridas del cliente seleccionado
           const previous = u.direcciones_anteriores || [];
-          const unique = Array.from(new Set([u.direccion, ...previous])).filter(Boolean) as string[];
+          const unique = Array.from(new Set([fullDir, ...previous])).filter(Boolean) as string[];
           setDirecciones(unique);
         } catch (error) {
           console.error("Error cargando usuario:", error);

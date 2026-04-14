@@ -110,7 +110,10 @@ export default function Header() {
             </div>
             {headerData.imagen ? (
               <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full transition-all shadow-md shrink-0">
-                <AvatarImage src={headerData.imagen} className="object-cover" />
+                <AvatarImage 
+                  src={headerData.imagen.startsWith("/avatars/") ? dominio + headerData.imagen : headerData.imagen} 
+                  className="object-cover" 
+                />
                 <AvatarFallback className="bg-slate-100 text-blue-900 text-3xl md:text-8xl font-black">
                   {headerData.avatar || headerData.nombre.charAt(0)}
                 </AvatarFallback>

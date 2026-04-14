@@ -37,6 +37,9 @@ interface User {
   nombre: string;
   apellidos: string | null;
   telefono: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  codigo_postal: string | null;
   rol?: { nombre: string; slug: string };
   activo: boolean;
   created_at?: string;

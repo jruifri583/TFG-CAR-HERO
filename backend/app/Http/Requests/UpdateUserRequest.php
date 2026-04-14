@@ -39,6 +39,8 @@ class UpdateUserRequest extends FormRequest
             'password'  => 'nullable|string|min:6|max:20|confirmed',
             'telefono'  => 'nullable|string|max:50',
             'direccion' => 'nullable|string|max:255',
+            'ciudad' => 'nullable|string|max:100',
+            'codigo_postal' => 'nullable|string|max:10',
         ];
     }
 
@@ -55,6 +57,10 @@ class UpdateUserRequest extends FormRequest
             'nif.max' => 'El NIF no puede exceder los 20 caracteres.',
             'telefono.max' => 'El teléfono no puede exceder los 50 caracteres.',
             'direccion.max' => 'La dirección no puede exceder los 255 caracteres.',
+            'ciudad.string' => 'La ciudad debe ser una cadena de texto.',
+            'ciudad.max' => 'La ciudad no puede exceder los 100 caracteres.',
+            'codigo_postal.string' => 'El código postal debe ser una cadena de texto.',
+            'codigo_postal.max' => 'El código postal no puede exceder los 10 caracteres.',
         ];
     }
 }

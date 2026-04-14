@@ -26,6 +26,8 @@ class User extends Authenticatable
         'nif',
         'telefono',
         'direccion',
+        'ciudad',
+        'codigo_postal',
         'imagen',
         'rol_id',
         'activo',

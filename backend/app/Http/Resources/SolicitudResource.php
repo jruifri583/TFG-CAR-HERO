@@ -30,6 +30,8 @@ class SolicitudResource extends JsonResource
                 'nombre' => $this->cliente?->nombre,
                 'apellidos' => $this->cliente?->apellidos,
                 'email' => $this->cliente?->email,
+                'ciudad' => $this->cliente?->ciudad,
+                'codigo_postal' => $this->cliente?->codigo_postal,
                 'imagen'   => $this->cliente?->imagen,
             ],
 

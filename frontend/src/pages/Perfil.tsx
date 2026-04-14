@@ -70,6 +70,16 @@ const schema = z.object({
     .max(255, "Máximo 255 caracteres")
     .optional()
     .or(z.literal("")),
+  ciudad: z
+    .string()
+    .max(100, "Máximo 100 caracteres")
+    .optional()
+    .or(z.literal("")),
+  codigo_postal: z
+    .string()
+    .max(10, "Máximo 10 caracteres")
+    .optional()
+    .or(z.literal("")),
     password: z
       .string()
       .min(6, "Mínimo 6 caracteres")
@@ -98,6 +108,8 @@ interface User {
   nif: string | null;
   telefono: string | null;
   direccion: string | null;
+  ciudad: string | null;
+  codigo_postal: string | null;
   imagen: string | null;
   activo: boolean;
   rol_id?: number;
@@ -153,6 +165,8 @@ export default function PerfilPage() {
           nif: userData.nif ?? "",
           telefono: userData.telefono ?? "",
           direccion: userData.direccion ?? "",
+          ciudad: userData.ciudad ?? "",
+          codigo_postal: userData.codigo_postal ?? "",
           password: "",
           password_confirmation: "",
           rol_id: userData.rol?.id,
@@ -220,6 +234,8 @@ export default function PerfilPage() {
       nif: user?.nif ?? "",
       telefono: user?.telefono ?? "",
       direccion: user?.direccion ?? "",
+      ciudad: user?.ciudad ?? "",
+      codigo_postal: user?.codigo_postal ?? "",
       password: "",
       password_confirmation: "",
       rol_id: user?.rol?.id,
@@ -256,6 +272,8 @@ export default function PerfilPage() {
         nif: updated.nif ?? "",
         telefono: updated.telefono ?? "",
         direccion: updated.direccion ?? "",
+        ciudad: updated.ciudad ?? "",
+        codigo_postal: updated.codigo_postal ?? "",
         password: "",
         password_confirmation: "",
         rol_id: updated.rol?.id,
@@ -493,6 +511,34 @@ export default function PerfilPage() {
                       {errors.direccion.message}
                     </p>
                   )}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Ciudad</label>
+                    <Input
+                      type="text"
+                      {...register("ciudad")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} bg-transparent border-slate-200`}
+                    />
+                    {errors.ciudad && (
+                      <p className="text-red-500 text-xs font-medium">{errors.ciudad.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Código Postal</label>
+                    <Input
+                      type="text"
+                      {...register("codigo_postal")}
+                      readOnly={!isEditing}
+                      className={`${readOnlyClass} bg-transparent border-slate-200`}
+                    />
+                    {errors.codigo_postal && (
+                      <p className="text-red-500 text-xs font-medium">{errors.codigo_postal.message}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

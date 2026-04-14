@@ -35,6 +35,8 @@ interface Solicitud {
     nombre: string;
     apellidos: string;
     email: string;
+    ciudad: string | null;
+    codigo_postal: string | null;
     imagen: string | null;
   } | null;
   vehiculo: {
@@ -191,11 +193,16 @@ function SelectField({
   );
 }
 
-const MapCard = memo(({ direccion }: { direccion: string }) => {
-  // Añadimos "España" a la búsqueda para asegurar que Google Maps localice correctamente la calle.
-  const querySearch = direccion.toLowerCase().includes("españa") || direccion.toLowerCase().includes("spain")
-    ? direccion
-    : `${direccion}, España`;
+const MapCard = memo(({ direccion, ciudad, cp }: { direccion: string, ciudad?: string | null, cp?: string | null }) => {
+  // Construimos una query más precisa combinando dirección, CP y Ciudad.
+  let querySearch = direccion;
+  if (cp) querySearch += `, ${cp}`;
+  if (ciudad) querySearch += `, ${ciudad}`;
+
+  if (!querySearch.toLowerCase().includes("españa") && !querySearch.toLowerCase().includes("spain")) {
+    querySearch += ", España";
+  }
+
   const encoded = encodeURIComponent(querySearch);
 
   return (
@@ -296,7 +303,11 @@ const EmpleadoDetailView = memo(({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <div className="lg:col-span-7">
-         <MapCard direccion={solicitud.direccion} />
+         <MapCard 
+           direccion={solicitud.direccion} 
+           ciudad={solicitud.cliente?.ciudad} 
+           cp={solicitud.cliente?.codigo_postal} 
+         />
       </div>
       <div className="lg:col-span-5 space-y-6">
         <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
@@ -433,17 +444,20 @@ const EmpleadoDetailView = memo(({
                  <div className="space-y-3">
                    <Button 
                      onClick={handleAvanzarEstado}
+                     variant={(!solicitud.pago && !pagoMetodoId && esFinalizar) ? "destructive" : "default"}
                      disabled={
                        !puedeAvanzar ||
                        avanzando || 
                        (isBusy && siguiente?.slug === 'en_recogida')
                      }
-                     className="w-full py-6 text-md font-bold uppercase tracking-wider shadow-lg shadow-primary/20"
+                     className="w-full py-6 text-md font-bold uppercase tracking-wider shadow-lg"
                    >
                      {avanzando ? "Actualizando..." : 
-                      esFinalizar && esTransferencia && !solicitud.pago 
-                        ? "Finalizar con Transferencia" 
-                        : `Avanzar a ${siguiente?.nombre}`}
+                      (!solicitud.pago && !pagoMetodoId && esFinalizar) 
+                        ? "Finalizar sin pago"
+                        : esFinalizar && esTransferencia && !solicitud.pago 
+                          ? "Finalizar con Transferencia" 
+                          : `Avanzar a ${siguiente?.nombre}`}
                    </Button>
                    {!puedeAvanzar && solicitud.estado?.slug === 'en_itv' && !solicitud.resolucion && (
                      <p className="text-center text-warning font-medium text-xs italic">
@@ -583,55 +597,107 @@ const StandardDetailView = memo(({
   const esTransferencia = pagoMetodoId === 3;
 
   return (
-    <div className="w-full animate-in fade-in duration-500">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <CardSinBorde>
-          <CardContent className="space-y-6 pt-6">
-            <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <FileText className="text-primary" size={20} />
-              </div>
-              <h3 className="font-bold text-lg">Detalles del Servicio</h3>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="sm:col-span-2"><ReadOnlyField label="Dirección de Recogida" value={solicitud.direccion} icon={MapPin} /></div>
-              <ReadOnlyField label="Fecha Programada" value={fmt(solicitud.fecha_programada)} icon={Clock} />
-              <ReadOnlyField label="Estado Actual" value={solicitud.estado?.nombre} />
-              <ReadOnlyField label="Agente Asignado" value={solicitud.empleado ? `${solicitud.empleado.nombre} ${solicitud.empleado.apellidos}` : "No asignado"} />
-              <ReadOnlyField label="Resolución ITV" value={solicitud.resolucion?.nombre} icon={ShieldCheck} />
-              
-              {role === 'administrador' && solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
-                <div className="sm:col-span-2 p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                   <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-1 block text-center">Registro de Cobro</Label>
-                   <div className="grid grid-cols-2 gap-3">
-                      {pagoMetodoId !== 3 && (
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">Importe</Label>
-                          <Input type="number" value={pagoImporte} onChange={(e) => setPagoImporte(e.target.value)} className="h-9 text-sm" />
-                        </div>
-                      )}
-                      <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
-                        <Label className="text-[10px]">Método</Label>
-                        <select className="w-full h-9 border rounded-md px-2 text-xs" value={pagoMetodoId ?? ""} onChange={(e) => setPagoMetodoId(Number(e.target.value))}>
-                          <option value="">Seleccionar</option>
-                          <option value="1">Efectivo</option>
-                          <option value="2">Tarjeta</option>
-                          <option value="3">Transferencia</option>
-                        </select>
-                      </div>
-                   </div>
-                   {pagoMetodoId !== 3 && (
-                     <Button onClick={handleRegistrarPago} disabled={pagando || !pagoMetodoId || !pagoImporte} className="w-full h-10 bg-primary text-white font-bold">Cobrar ahora</Button>
-                   )}
+    <div className="w-full animate-in fade-in duration-500 space-y-8">
+      {/* SECCIÓN SUPERIOR: MAPA Y DETALLES */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="lg:col-span-7">
+           <MapCard 
+             direccion={solicitud.direccion} 
+             ciudad={solicitud.cliente?.ciudad} 
+             cp={solicitud.cliente?.codigo_postal} 
+           />
+        </div>
+        <div className="lg:col-span-5">
+          <CardSinBorde className="h-full">
+            <CardContent className="space-y-6 pt-6">
+              <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                <div className="bg-primary/10 p-2 rounded-lg">
+                  <FileText className="text-primary" size={20} />
                 </div>
-              )}
+                <h3 className="font-bold text-lg">Detalles del Servicio</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <ReadOnlyField label="Dirección de Recogida" value={solicitud.direccion} icon={MapPin} />
+                <div className="grid grid-cols-2 gap-4">
+                  <ReadOnlyField label="Fecha Programada" value={fmt(solicitud.fecha_programada)} icon={Clock} />
+                  <ReadOnlyField label="Estado Actual" value={solicitud.estado?.nombre} />
+                </div>
+                <ReadOnlyField label="Agente Asignado" value={solicitud.empleado ? `${solicitud.empleado.nombre} ${solicitud.empleado.apellidos}` : "No asignado"} />
+                <ReadOnlyField label="Resolución ITV" value={solicitud.resolucion?.nombre} icon={ShieldCheck} />
+                
+                {role === 'administrador' && solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                    <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-1 block text-center">Registro de Cobro</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                        {pagoMetodoId !== 3 && (
+                          <div className="space-y-1">
+                            <Label className="text-[10px]">Importe</Label>
+                            <Input type="number" value={pagoImporte} onChange={(e) => setPagoImporte(e.target.value)} className="h-9 text-sm" />
+                          </div>
+                        )}
+                        <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
+                          <Label className="text-[10px]">Método</Label>
+                          <select className="w-full h-9 border rounded-md px-2 text-xs" value={pagoMetodoId ?? ""} onChange={(e) => setPagoMetodoId(Number(e.target.value))}>
+                            <option value="">Seleccionar</option>
+                            <option value="1">Efectivo</option>
+                            <option value="2">Tarjeta</option>
+                            <option value="3">Transferencia</option>
+                          </select>
+                        </div>
+                    </div>
+                    {pagoMetodoId !== 3 && (
+                      <Button onClick={handleRegistrarPago} disabled={pagando || !pagoMetodoId || !pagoImporte} className="w-full h-10 bg-primary text-white font-bold">Cobrar ahora</Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </CardSinBorde>
+        </div>
+      </div>
 
+      {/* SECCIÓN MEDIA: CLIENTE, VEHÍCULO Y PAGOS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        <div className="lg:col-span-7 space-y-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {role !== "cliente" && (
+                <CardSinBorde className="border-l-2 border-l-primary">
+                  <CardContent className="pt-6 space-y-4">
+                    <h3 className="font-bold text-lg">Cliente</h3>
+                    <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
+                        <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </CardSinBorde>
+              )}
+              <CardSinBorde className="border-l-2 border-l-primary">
+                <CardContent className="pt-6 space-y-4">
+                  <h3 className="font-bold text-lg">Vehículo</h3>
+                  <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center">
+                      <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-lg">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
+                      <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </CardSinBorde>
+           </div>
+
+           {/* Información de Pago y Notas */}
+           <div className="space-y-6">
               {/* Importe fijado por el admin — el cliente solo lo ve como información */}
               {!solicitud.pago && solicitud.importe_cobro && (
-                <div className="sm:col-span-2 mt-4 px-4 py-4 rounded-xl border border-yellow-200 flex items-center justify-between gap-4" style={{ background: 'rgb(254 252 232)' }}>
+                <div className="px-6 py-4 rounded-xl border border-yellow-200 flex items-center justify-between gap-4" style={{ background: 'rgb(254 252 232)' }}>
                   <div>
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Importe del servicio</label>
-                    <div className="text-xl font-black text-slate-800">
+                    <div className="text-2xl font-black text-slate-800">
                       {Number(solicitud.importe_cobro).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </div>
                     <div className="text-xs text-yellow-700 mt-0.5 italic">Pendiente de cobro</div>
@@ -640,18 +706,18 @@ const StandardDetailView = memo(({
               )}
 
               {solicitud.pago && (
-                <div className="sm:col-span-2 mt-4 px-4 py-4 rounded-xl border flex items-center justify-between gap-4" style={{
+                <div className="px-6 py-4 rounded-xl border flex items-center justify-between gap-4" style={{
                   background: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(240 253 244)' : 'rgb(254 252 232)',
                   borderColor: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(187 247 208)' : 'rgb(253 224 71 / 0.4)',
                 }}>
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pago</label>
-                    <div className="text-xl font-black text-slate-800">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detalle del Pago</label>
+                    <div className="text-2xl font-black text-slate-800">
                       {Number(solicitud.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </div>
                     <div className="text-xs text-slate-500 mt-0.5">{solicitud.pago.metodo_pago?.nombre}</div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ring-1 ${
+                  <span className={`px-4 py-1.5 rounded-full text-xs font-bold ring-1 ${
                     solicitud.pago.estado_pago?.slug === 'pagado'
                       ? 'bg-success/10 text-success ring-success/20'
                       : 'bg-warning/10 text-warning ring-warning/20'
@@ -660,69 +726,41 @@ const StandardDetailView = memo(({
                   </span>
                 </div>
               )}
-              <div className="sm:col-span-2 font-medium">
-                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas</label>
-                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm italic text-slate-600 mt-1">{solicitud.notas || "-"}</div>
-              </div>
-            </div>
-          </CardContent>
-        </CardSinBorde>
 
-        <div className="flex flex-col gap-8 h-full">
-          {role !== "cliente" && (
-            <CardSinBorde className="border-l-2 border-l-primary flex-1">
+              <div className="font-medium">
+                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del servicio</label>
+                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm italic text-slate-600 mt-1">
+                   {solicitud.notas || "Sin observaciones adicionales."}
+                 </div>
+              </div>
+           </div>
+        </div>
+
+        <div className="lg:col-span-5 space-y-8">
+           <CardSinBorde>
+              <CardContent className="pt-6 flex flex-col items-center">
+                <div className="w-full flex items-center justify-start gap-3 border-b-2 border-primary pb-4 mb-4">
+                  <Activity className="text-primary" size={20} />
+                  <h3 className="font-bold text-lg">Progreso</h3>
+                </div>
+                <SolicitudCircularTracker estado={solicitud.estado} />
+              </CardContent>
+            </CardSinBorde>
+
+            <CardSinBorde>
               <CardContent className="pt-6 space-y-4">
-                <h3 className="font-bold text-lg">Cliente</h3>
-                <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm" />
-                  <div className="flex-1">
-                    <p className="font-bold text-lg">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
-                    <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
-                  </div>
+                <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
+                  <Clock className="text-primary" size={20} />
+                  <h3 className="font-bold text-lg">Historial</h3>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between p-3 rounded-lg bg-slate-50 text-sm"><span>Recogida</span><span className="font-bold">{fmt(solicitud.hora_recogida)}</span></div>
+                  <div className="flex justify-between p-3 rounded-lg bg-slate-50 text-sm"><span>Entrada ITV</span><span className="font-bold">{fmt(solicitud.hora_itv)}</span></div>
+                  <div className="flex justify-between p-3 rounded-lg bg-slate-50 text-sm"><span>Entrega Final</span><span className="font-bold">{fmt(solicitud.hora_entrega)}</span></div>
                 </div>
               </CardContent>
             </CardSinBorde>
-          )}
-          <CardSinBorde className="border-l-2 border-l-primary flex-1">
-            <CardContent className="pt-6 space-y-4">
-              <h3 className="font-bold text-lg">Vehículo</h3>
-              <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center">
-                  <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-lg">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
-                  <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
-                </div>
-              </div>
-            </CardContent>
-          </CardSinBorde>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <CardSinBorde className="h-full">
-          <CardContent className="pt-6 flex flex-col items-center">
-            <div className="w-full flex items-center justify-start gap-3 border-b-2 border-primary pb-4 mb-4">
-              <Activity className="text-primary" size={20} />
-              <h3 className="font-bold text-lg">Estado Circular</h3>
-            </div>
-            <SolicitudCircularTracker estado={solicitud.estado} />
-          </CardContent>
-        </CardSinBorde>
-        <CardSinBorde className="h-full">
-          <CardContent className="pt-6 space-y-4">
-            <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
-              <Clock className="text-primary" size={20} />
-              <h3 className="font-bold text-lg">Historial Horario</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between p-3 rounded-lg bg-slate-50"><span>Recogida</span><span className="font-bold">{fmt(solicitud.hora_recogida)}</span></div>
-              <div className="flex justify-between p-3 rounded-lg bg-slate-50"><span>ITV</span><span className="font-bold">{fmt(solicitud.hora_itv)}</span></div>
-              <div className="flex justify-between p-3 rounded-lg bg-slate-50"><span>Entrega</span><span className="font-bold">{fmt(solicitud.hora_entrega)}</span></div>
-            </div>
-          </CardContent>
-        </CardSinBorde>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
@@ -733,10 +771,16 @@ const StandardDetailView = memo(({
         {puedeAvanzar && (
           <Button
             className="w-50"
+            variant={(!solicitud.pago && !pagoMetodoId && esFinalizar) ? "destructive" : "default"}
             onClick={handleAvanzarEstado}
             disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
           >
-            {avanzando ? "..." : esFinalizar && esTransferencia && !solicitud.pago ? "Finalizar (Transferencia)" : `A "${siguiente?.nombre}"`}
+            {avanzando ? "..." : 
+             (!solicitud.pago && !pagoMetodoId && esFinalizar) 
+               ? "Finalizar sin pago"
+               : esFinalizar && esTransferencia && !solicitud.pago 
+                 ? "Finalizar (Transferencia)" 
+                 : `A "${siguiente?.nombre}"`}
           </Button>
          )}
         {solicitud.pago && solicitud.pago.estado_pago?.slug === 'pendiente' && (
@@ -956,8 +1000,7 @@ export default function SolicitudDetailPage() {
     role === "empleado" && 
     !!siguiente && 
     !["finalizado", "cancelado"].includes(solicitud.estado?.slug || "") &&
-    (!esEnItv || !!solicitud.resolucion) && // en ITV: requiere resultado
-    (!esFinalizar || !!solicitud.pago || !!pagoMetodoId); // al finalizar: requiere pago o método
+    (!esEnItv || !!solicitud.resolucion); // Quitamos la restricción de que deba haber pago para avanzar (ahora se permite finalizar sin pago)
 
   // A client can cancel if the solicitud isn't in a terminal state and
   // the scheduled date (if set) hasn't passed yet.

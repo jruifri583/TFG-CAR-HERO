@@ -57,7 +57,15 @@ interface SolicitudReciente {
   fecha_programada: string | null;
   created_at: string | null;
   updated_at: string | null;
-  cliente: { nombre: string; apellidos: string; imagen: string | null } | null;
+  cliente: { 
+    id: number;
+    nombre: string; 
+    apellidos: string; 
+    email: string;
+    ciudad: string | null;
+    codigo_postal: string | null;
+    imagen: string | null 
+  } | null;
   vehiculo: {
     marca: string;
     modelo: string;

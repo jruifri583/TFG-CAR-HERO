@@ -8,6 +8,8 @@ export interface User {
   imagen: string | null;
   telefono: string | null;
   direccion: string | null;
+  ciudad: string | null;
+  codigo_postal: string | null;
   activo: boolean;
   rol: { nombre: string; slug: string } | null;
 }
