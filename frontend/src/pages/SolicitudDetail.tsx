@@ -312,22 +312,22 @@ const EmpleadoDetailView = memo(({
       <div className="lg:col-span-5 space-y-6">
         <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
           <CardContent className="p-6 flex flex-col h-full space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Estado de Servicio</Label>
-                <h3 className="text-xl font-semibold leading-none">
-                  {solicitud.estado?.nombre}
-                </h3>
-              </div>
-              <div className="bg-muted p-3 rounded-xl">
-                 <Clock size={24} className="text-primary" />
-              </div>
+            <div className="space-y-2">
+              <Label className="text-primary flex items-center gap-2 uppercase font-bold text-[10px] tracking-widest">
+                <Clock size={14} /> Estado de Servicio
+              </Label>
+              <Input 
+                type="text" 
+                value={solicitud.estado?.nombre ?? "—"} 
+                readOnly 
+                className="bg-slate-50 border-slate-200 pointer-events-none font-bold text-slate-900" 
+              />
             </div>
             
             <div className="space-y-4">
               {(solicitud.estado?.slug === 'en_itv' || solicitud.resolucion) && (
                 <div className="space-y-2">
-                  <Label className="text-primary flex items-center gap-2">
+                  <Label className="text-primary flex items-center gap-2 uppercase font-bold text-[10px] tracking-widest">
                      <ShieldCheck size={14} /> Resultado ITV
                   </Label>
                   <select 
@@ -359,7 +359,7 @@ const EmpleadoDetailView = memo(({
               )}
 
               <div className="space-y-2">
-                <Label className="text-primary flex items-center gap-2">
+                <Label className="text-primary flex items-center gap-2 uppercase font-bold text-[10px] tracking-widest">
                    <FileText size={14} /> Notas Operativas
                 </Label>
                 <Textarea 
@@ -598,17 +598,10 @@ const StandardDetailView = memo(({
 
   return (
     <div className="w-full animate-in fade-in duration-500 space-y-8">
-      {/* SECCIÓN SUPERIOR: MAPA Y DETALLES */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-        <div className="lg:col-span-7">
-           <MapCard 
-             direccion={solicitud.direccion} 
-             ciudad={solicitud.cliente?.ciudad} 
-             cp={solicitud.cliente?.codigo_postal} 
-           />
-        </div>
-        <div className="lg:col-span-5">
-          <CardSinBorde className="h-full">
+      {/* SECCIÓN PRINCIPAL: DETALLES, CLIENTE, VEHÍCULO Y PAGOS */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+        <div className="lg:col-span-7 space-y-8">
+          <CardSinBorde>
             <CardContent className="space-y-6 pt-6">
               <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
                 <div className="bg-primary/10 p-2 rounded-lg">
@@ -653,12 +646,7 @@ const StandardDetailView = memo(({
               </div>
             </CardContent>
           </CardSinBorde>
-        </div>
-      </div>
 
-      {/* SECCIÓN MEDIA: CLIENTE, VEHÍCULO Y PAGOS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-        <div className="lg:col-span-7 space-y-8">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {role !== "cliente" && (
                 <CardSinBorde className="border-l-2 border-l-primary">
