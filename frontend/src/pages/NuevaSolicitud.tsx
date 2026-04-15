@@ -20,7 +20,14 @@ const schema = z.object({
     .string()
     .min(1, "La dirección es obligatoria")
     .max(255, "La dirección no puede exceder los 255 caracteres"),
-  fecha_programada: z.string().optional().or(z.literal("")),
+  fecha_programada: z
+    .string()
+    .optional()
+    .refine((val) => {
+      if (!val) return true;
+      return new Date(val) >= new Date();
+    }, "La fecha programada no puede ser anterior a hoy")
+    .or(z.literal("")),
   notas: z
     .string()
     .max(500, "Las notas no pueden exceder los 500 caracteres")
@@ -270,8 +277,14 @@ export default function NuevaSolicitudPage() {
                     <Input
                       type="datetime-local"
                       {...register("fecha_programada")}
+                      min={new Date().toLocaleString('sv').replace(' ', 'T').slice(0, 16)}
                       className="border-slate-200"
                     />
+                    {errors.fecha_programada && (
+                      <p className="text-red-500 text-xs font-medium">
+                        {errors.fecha_programada.message}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

@@ -57,6 +57,21 @@ export default function NuevoPagoPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setValue]);
 
+  const solicitudId = watch("solicitud_id");
+
+  useEffect(() => {
+    if (solicitudId) {
+      api.get(`/solicitudes/${solicitudId}`).then((res) => {
+        const sol = res.data.data;
+        if (sol.importe_cobro) {
+          setValue("importe", sol.importe_cobro);
+        }
+      });
+    } else {
+      setValue("importe", undefined as any);
+    }
+  }, [solicitudId, setValue]);
+
   const onSubmit = async (data: any) => {
     try {
       await api.post("/pagos", { ...data, estado_pago_id: 2 });

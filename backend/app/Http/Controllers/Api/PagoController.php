@@ -43,6 +43,13 @@ class PagoController extends Controller
     {
         $pago = Pago::create($request->validated());
         
+        // Vincular el pago a la solicitud
+        $solicitud = \App\Models\Solicitud::find($pago->solicitud_id);
+        if ($solicitud) {
+            $solicitud->pago_id = $pago->id;
+            $solicitud->save();
+        }
+        
         return response()->json([
             'success' => true,
             'message' => 'Pago registrado correctamente',

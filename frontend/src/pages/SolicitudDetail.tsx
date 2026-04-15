@@ -11,7 +11,7 @@ import {
   FileText,
   Clock, MapPin, ShieldCheck, ExternalLink, Activity
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuth } from "@/context/useAuth";
 import { useForm } from "react-hook-form";
@@ -97,7 +97,14 @@ const editSchema = z
       .string()
       .min(1, "La dirección es obligatoria")
       .max(255, "La dirección no puede exceder los 255 caracteres"),
-    fecha_programada: z.string().optional().or(z.literal("")),
+    fecha_programada: z
+      .string()
+      .optional()
+      .refine((val) => {
+        if (!val) return true;
+        return new Date(val) >= new Date();
+      }, "La fecha programada no puede ser anterior a hoy")
+      .or(z.literal("")),
     resolucion_id: z.number().nullable().optional(),
     user_empleado_id: z.number().nullable().optional(),
     notas: z
@@ -300,6 +307,11 @@ const EmpleadoDetailView = memo(({
   puedeAvanzar, handleAvanzarEstado, isBusy, siguiente,
   esFinalizar, esTransferencia
 }: EmpleadoDetailViewProps) => {
+  const esAsignado = solicitud.estado?.slug === 'asignado';
+  const scheduledDate = solicitud.fecha_programada ? new Date(solicitud.fecha_programada) : null;
+  const esHoy = !scheduledDate || isToday(scheduledDate);
+  const puedeGestionarAhora = !esAsignado || esHoy;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
       <div className="lg:col-span-7">
@@ -448,7 +460,8 @@ const EmpleadoDetailView = memo(({
                      disabled={
                        !puedeAvanzar ||
                        avanzando || 
-                       (isBusy && siguiente?.slug === 'en_recogida')
+                       (isBusy && siguiente?.slug === 'en_recogida') ||
+                       !puedeGestionarAhora
                      }
                      className="w-full py-6 text-md font-bold uppercase tracking-wider shadow-lg"
                    >
@@ -467,6 +480,11 @@ const EmpleadoDetailView = memo(({
                    {isBusy && siguiente?.slug === 'en_recogida' && (
                       <p className="text-center text-destructive font-medium animate-pulse text-xs">
                         * Tienes otro servicio activo pendiente de entrega.
+                      </p>
+                   )}
+                   {!puedeGestionarAhora && esAsignado && (
+                      <p className="text-center text-amber-600 font-medium text-xs italic">
+                        * El servicio está programado para el día {format(new Date(solicitud.fecha_programada!), "dd/MM/yyyy")}. Solo puede gestionarse su día.
                       </p>
                    )}
                  </div>
@@ -526,17 +544,29 @@ const StandardDetailView = memo(({
                   </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Fecha programada</label>
-                    <Input type="datetime-local" {...register("fecha_programada")} className="border-slate-200" />
-                  </div>
-                  <div className="space-y-1">
-                     <SelectField 
-                      label="Resolución ITV" 
-                      value={watch("resolucion_id")} 
-                      onChange={(v) => setValue("resolucion_id", v)} 
-                      options={resoluciones} 
-                      placeholder="Pendiente de determinar" 
+                    <Input 
+                      type="datetime-local" 
+                      {...register("fecha_programada")} 
+                      min={new Date().toLocaleString('sv').replace(' ', 'T').slice(0, 16)}
+                      className="border-slate-200" 
                     />
+                    {errors.fecha_programada && (
+                      <p className="text-red-500 text-xs font-medium">
+                        {errors.fecha_programada.message}
+                      </p>
+                    )}
                   </div>
+                  {role !== "administrador" && (
+                    <div className="space-y-1">
+                       <SelectField 
+                        label="Resolución ITV" 
+                        value={watch("resolucion_id")} 
+                        onChange={(v) => setValue("resolucion_id", v)} 
+                        options={resoluciones} 
+                        placeholder="Pendiente de determinar" 
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 border-b-2 border-primary pb-4 mb-4">
@@ -753,7 +783,7 @@ const StandardDetailView = memo(({
 
       <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
         <Button variant="outline" onClick={() => navigate(-1)} className="w-50">Volver</Button>
-        {role === "administrador" && !["cancelado"].includes(solicitud.estado?.slug || "") && (
+        {role === "administrador" && ["pendiente", "asignado"].includes(solicitud.estado?.slug || "") && (
           <Button onClick={() => setEditando(true)} variant={puedeAvanzar ? "outline" : "default"} className="w-50">Editar</Button>
         )}
         {puedeAvanzar && (

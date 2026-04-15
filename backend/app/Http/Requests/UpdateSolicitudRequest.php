@@ -52,7 +52,7 @@ class UpdateSolicitudRequest extends SolicitudRequest
         }
 
         // 3. Ajuste de fecha programada:
-        if ($user->isAdmin() && $solicitud->fecha_programada === null) {
+        if ($user->isAdmin()) {
             $rules['fecha_programada'] = [
                 'nullable',
                 'date',

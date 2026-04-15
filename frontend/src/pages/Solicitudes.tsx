@@ -52,7 +52,7 @@ interface Solicitud {
   } | null;
   estado: { slug: string; nombre: string };
   resolucion?: { nombre: string } | null;
-  empleado: { nombre: string; apellidos: string; imagen: string | null } | null;
+  empleado: { nombre: string; apellidos: string; imagen: string | null} | null;
   updated_at?: string;
 }
 

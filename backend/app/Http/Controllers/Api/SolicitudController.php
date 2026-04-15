@@ -32,7 +32,13 @@ class SolicitudController extends Controller
     $solicitudes = Solicitud::visibleFor($user)
         ->withBaseRelations()
         ->with(['empleado'])
-        ->whereHas('estado', fn($q) => $q->whereNotIn('slug', ['finalizado', 'cancelado']))
+        ->when($request->get('sin_pago'), function ($q) {
+            // Si buscamos por sin_pago, permitimos ver las finalizadas
+            $q->whereHas('estado', fn($q2) => $q2->where('slug', '!=', 'cancelado'));
+        }, function ($q) {
+            // Comportamiento por defecto: solo estados activos
+            $q->whereHas('estado', fn($q2) => $q2->whereNotIn('slug', ['finalizado', 'cancelado']));
+        })
         ->when($request->get('sin_pago'), fn($q) => $q->whereNull('pago_id'))
         ->when($request->get('search'), function ($q, $v) {
             $q->where(function ($q2) use ($v) {
