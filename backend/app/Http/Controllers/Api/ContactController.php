@@ -18,7 +18,25 @@ class ContactController extends Controller
             'nombre'  => 'required|string|max:100',
             'email'   => 'required|email|max:100',
             'mensaje' => 'required|string|min:10',
+            'cf_turnstile_response' => 'required|string'
         ]);
+
+        // Verificar Turnstile con Cloudflare
+        $turnstileSecret = env('TURNSTILE_SECRET_KEY');
+        if ($turnstileSecret) {
+            $response = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+                'secret'   => $turnstileSecret,
+                'response' => $request->input('cf_turnstile_response'),
+                'remoteip' => $request->ip(),
+            ]);
+
+            if (!$response->json('success')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validación anti-spam (Turnstile) fallida. Por favor, inténtalo de nuevo.'
+                ], 422);
+            }
+        }
 
         try {
             // Guardar en la base de datos

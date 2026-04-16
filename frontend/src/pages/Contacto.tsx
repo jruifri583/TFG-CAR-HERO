@@ -12,14 +12,15 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { useState } from "react";
 import api from "@/lib/axios";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const schema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio"),
   email: z.string().email("Email inválido"),
   mensaje: z.string().min(10, "El mensaje debe tener al menos 10 caracteres"),
+  cf_turnstile_response: z.string().min(1, "La validación anti-spam es obligatoria"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -32,6 +33,7 @@ export default function ContactoPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({ 
     resolver: zodResolver(schema),
@@ -39,6 +41,7 @@ export default function ContactoPage() {
       nombre: "",
       email: "",
       mensaje: "",
+      cf_turnstile_response: "",
     }
   });
 
@@ -125,6 +128,26 @@ export default function ContactoPage() {
                       {errors.mensaje.message}
                     </p>
                   )}
+                </div>
+
+                <div className="flex justify-center mt-2 overflow-hidden">
+                   <Turnstile 
+                      siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"} 
+                      onSuccess={(token) => {
+                        setValue("cf_turnstile_response", token, { shouldValidate: true });
+                      }}
+                      onExpire={() => {
+                        setValue("cf_turnstile_response", "", { shouldValidate: true });
+                      }}
+                      onError={() => {
+                        setValue("cf_turnstile_response", "", { shouldValidate: true });
+                      }}
+                   />
+                   {errors.cf_turnstile_response && (
+                      <p className="text-red-500 text-[10px] absolute mt-16">
+                        Por favor, completa la verificación.
+                      </p>
+                   )}
                 </div>
 
                 <div className="flex flex-col gap-3 mt-2">

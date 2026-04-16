@@ -25,9 +25,8 @@ class SolicitudesSeeder extends Seeder
         $resoluciones  = Resolucion::all()->keyBy('slug');
         $empleados     = User::whereIn('rol_id', \App\Models\Rol::where('slug', 'empleado')->select('id'))->pluck('id')->toArray();
         $clientes      = User::whereIn('rol_id', \App\Models\Rol::where('slug', 'cliente')->select('id'))->pluck('id')->toArray();
-        $metodosPago   = MetodoPago::pluck('id')->toArray();
-        $estadosPagados = EstadoPago::where('nombre', 'pagado')->pluck('id')->first()
-                        ?? EstadoPago::first()->id;
+        $estadosPagados = EstadoPago::where('slug', 'pagado')->first()->id;
+        $estadosPendientes = EstadoPago::where('slug', 'pendiente')->first()->id;
 
         if (empty($clientes)) {
             $this->command->warn('No hay clientes suficientes para crear solicitudes.');
@@ -109,6 +108,8 @@ class SolicitudesSeeder extends Seeder
                     ? $fechaProgramada->copy()->setTime(fake()->numberBetween(14, 18), 0)
                     : null;
 
+                $importeCobro = $necesitaEmpleado ? fake()->randomFloat(2, 45, 250) : null;
+
                 $solicitudId = DB::table('solicitudes')->insertGetId([
                     'user_cliente_id'  => $clienteId,
                     'vehiculo_id'      => $vehiculoId,
@@ -116,6 +117,7 @@ class SolicitudesSeeder extends Seeder
                     'direccion'        => fake()->address(),
                     'estado_id'        => $estadoId,
                     'resolucion_id'    => $resolucionId,
+                    'importe_cobro'    => $importeCobro,
                     'fecha_programada' => $fechaProgramada->toDateString(),
                     'hora_recogida'    => $horaRecogida,
                     'hora_itv'         => $horaItv,
@@ -127,11 +129,16 @@ class SolicitudesSeeder extends Seeder
                 ]);
 
                 if ($grupo['pago']) {
+                    $metodoId = fake()->randomElement(MetodoPago::pluck('id')->toArray());
+                    // Si el estado es finalizado y el método es transferencia, el pago nace pendiente
+                    $esTransferencia = MetodoPago::find($metodoId)->slug === 'transferencia';
+                    $estadoPagoId = $esTransferencia ? $estadosPendientes : $estadosPagados;
+
                     $pagoId = DB::table('pagos')->insertGetId([
                         'solicitud_id'   => $solicitudId,
-                        'importe'        => fake()->randomFloat(2, 50, 300),
-                        'metodo_pago_id' => fake()->randomElement($metodosPago),
-                        'estado_pago_id' => $estadosPagados,
+                        'importe'        => $importeCobro ?? fake()->randomFloat(2, 50, 300),
+                        'metodo_pago_id' => $metodoId,
+                        'estado_pago_id' => $estadoPagoId,
                         'created_at'     => $horaEntrega ?? $createdAt,
                         'updated_at'     => $horaEntrega ?? $createdAt,
                     ]);

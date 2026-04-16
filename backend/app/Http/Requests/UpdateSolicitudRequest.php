@@ -32,49 +32,21 @@ class UpdateSolicitudRequest extends SolicitudRequest
 
         // 2. Ajuste de empleado:
         if ($user->isAdmin()) {
-            $rules['user_empleado_id'] = [
-                'nullable', 
-                'exists:users,id',
-                function ($attribute, $value, $fail) use ($solicitud) {
-                    if ($value) {
-                        $fecha = $this->has('fecha_programada') 
-                            ? $this->input('fecha_programada') 
-                            : $solicitud->fecha_programada;
-
-                        if (empty($fecha)) {
-                            $fail('No se puede asignar un empleado si no hay una fecha programada.');
-                        }
-                    }
-                }
-            ];
+            $rules['user_empleado_id'] = ['required', 'exists:users,id'];
         } else {
             $rules['user_empleado_id'] = ['nullable'];
         }
 
         // 3. Ajuste de fecha programada:
         if ($user->isAdmin()) {
-            $rules['fecha_programada'] = [
-                'nullable',
-                'date',
-                function ($attribute, $value, $fail) use ($solicitud) {
-                    if (empty($value)) {
-                        $empleado = $this->has('user_empleado_id') 
-                            ? $this->input('user_empleado_id') 
-                            : $solicitud->user_empleado_id;
-
-                        if ($empleado) {
-                            $fail('La fecha programada es obligatoria si hay un empleado asignado.');
-                        }
-                    }
-                }
-            ];
+            $rules['fecha_programada'] = ['required', 'date'];
         } else {
             unset($rules['fecha_programada']);
         }
 
         // 4. Importe de cobro: sólo el admin puede definirlo
         if ($user->isAdmin()) {
-            $rules['importe_cobro'] = ['nullable', 'numeric', 'min:0', 'max:99999.99'];
+            $rules['importe_cobro'] = ['required', 'numeric', 'min:0', 'max:99999.99'];
         }
 
         return $rules;

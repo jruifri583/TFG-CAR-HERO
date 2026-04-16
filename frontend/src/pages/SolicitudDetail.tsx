@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useHeader } from "@/context/HeaderContext";
+import { toast } from "sonner";
 
 // ─── Interfaces ────────────────────────────────────────────────────────────────
 
@@ -89,42 +90,20 @@ const ORDEN_ESTADOS = [
   "finalizado",
 ];
 
+
 // ─── Schema de edición ─────────────────────────────────────────────────────────
 
-const editSchema = z
-  .object({
-    direccion: z
-      .string()
-      .min(1, "La dirección es obligatoria")
-      .max(255, "La dirección no puede exceder los 255 caracteres"),
-    fecha_programada: z
-      .string()
-      .optional()
-      .refine((val) => {
-        if (!val) return true;
-        return new Date(val) >= new Date();
-      }, "La fecha programada no puede ser anterior a hoy")
-      .or(z.literal("")),
-    resolucion_id: z.number().nullable().optional(),
-    user_empleado_id: z.number().nullable().optional(),
-    notas: z
-      .string()
-      .max(500, "Las notas no pueden exceder los 500 caracteres")
-      .optional()
-      .or(z.literal("")),
-  })
-  .refine(
-    (data) => {
-      if (data.user_empleado_id && !data.fecha_programada) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Se requiere fecha programada para asignar un empleado.",
-      path: ["user_empleado_id"],
-    }
-  );
+const editSchema = z.object({
+  direccion: z.string().min(1, "La dirección de recogida es obligatoria").max(255),
+  fecha_programada: z.string().min(1, "La fecha programada es obligatoria").refine((val) => {
+    if (!val) return true;
+    return new Date(val) >= new Date();
+  }, "La fecha programada no puede ser anterior a hoy"),
+  resolucion_id: z.any().optional(),
+  user_empleado_id: z.any().refine((val) => val !== "" && val !== null && val !== undefined, "El empleado es obligatorio"),
+  importe_cobro: z.string().min(1, "El importe del servicio es obligatorio"),
+  notas: z.string().max(500).optional().or(z.literal("")),
+});
 
 type EditFormData = z.infer<typeof editSchema>;
 
@@ -289,6 +268,7 @@ interface StandardDetailViewProps extends CommonViewProps {
   errors: any;
   isSubmitting: boolean;
   onSubmit: (data: any) => Promise<void>;
+  onError: (errors: any) => void;
   navigate: any;
   // Pago props (para Admin)
   pagoImporte: string;
@@ -403,18 +383,16 @@ const EmpleadoDetailView = memo(({
                   Cobro del servicio
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
-                  {pagoMetodoId !== 3 && (
-                    <div className="space-y-1">
-                      <Label className="text-[10px] text-muted-foreground">Importe</Label>
-                      <Input
-                        type="number"
-                        value={pagoImporte !== "" ? pagoImporte : (solicitud.importe_cobro ? String(solicitud.importe_cobro) : "")}
-                        onChange={(e) => setPagoImporte(e.target.value)}
-                        className="h-9 text-sm"
-                      />
-                    </div>
-                  )}
-                  <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Importe</Label>
+                    <Input
+                      type="number"
+                      value={pagoImporte !== "" ? pagoImporte : (solicitud.importe_cobro ? String(solicitud.importe_cobro) : "")}
+                      onChange={(e) => setPagoImporte(e.target.value)}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1">
                     <Label className="text-[10px] text-muted-foreground">Método de pago</Label>
                     <select
                       className="w-full h-9 border rounded-md px-2 text-xs"
@@ -428,13 +406,6 @@ const EmpleadoDetailView = memo(({
                     </select>
                   </div>
                 </div>
-                {pagoMetodoId === 3 && (
-                  <div className="text-center p-2 bg-blue-50 rounded-lg border border-blue-100">
-                    <p className="text-[10px] text-blue-700 font-bold italic">
-                      Transferencia: el pago quedará pendiente hasta confirmar recepción.
-                    </p>
-                  </div>
-                )}
               </div>
             )}
 
@@ -468,8 +439,8 @@ const EmpleadoDetailView = memo(({
                      {avanzando ? "Actualizando..." : 
                       (!solicitud.pago && !pagoMetodoId && esFinalizar) 
                         ? "Finalizar sin pago"
-                        : esFinalizar && esTransferencia && !solicitud.pago 
-                          ? "Finalizar con Transferencia" 
+                        : esFinalizar && pagoMetodoId && !solicitud.pago
+                          ? `Finalizar con ${pagoMetodoId === 1 ? 'Efectivo' : pagoMetodoId === 2 ? 'Tarjeta' : 'Transferencia'}` 
                           : `Avanzar a ${siguiente?.nombre}`}
                    </Button>
                    {!puedeAvanzar && solicitud.estado?.slug === 'en_itv' && !solicitud.resolucion && (
@@ -519,14 +490,14 @@ const StandardDetailView = memo(({
   avanzando, setAvanzando,
   resoluciones, empleados, pagando, handlePagar, puedeAvanzar, handleAvanzarEstado,
   siguiente, isBusy, register, handleSubmit, setValue, watch, errors, 
-  isSubmitting, onSubmit, navigate, 
+  isSubmitting, onSubmit, onError, navigate, 
   pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago,
   cancelando, handleCancelar, puedeCancelar
 }: StandardDetailViewProps) => {
   if (editando) {
     return (
       <div className="w-full">
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
           <CardSinBorde className="w-full">
             <CardContent className="flex flex-col gap-6 pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -539,22 +510,16 @@ const StandardDetailView = memo(({
                   </div>
                   <div className="space-y-1">
                     <label className="text-sm font-medium">Dirección de recogida *</label>
-                    <Input type="text" {...register("direccion")} className="border-slate-200" />
-                    {errors.direccion && <p className="text-red-500 text-xs font-medium">{errors.direccion.message}</p>}
+                    <Input type="text" {...register("direccion")} className={`border-slate-200 ${errors.direccion ? 'border-red-500' : ''}`} />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-sm font-medium">Fecha programada</label>
+                    <label className="text-sm font-medium">Fecha programada *</label>
                     <Input 
                       type="datetime-local" 
                       {...register("fecha_programada")} 
                       min={new Date().toLocaleString('sv').replace(' ', 'T').slice(0, 16)}
-                      className="border-slate-200" 
+                      className={`border-slate-200 ${errors.fecha_programada ? 'border-red-500' : ''}`} 
                     />
-                    {errors.fecha_programada && (
-                      <p className="text-red-500 text-xs font-medium">
-                        {errors.fecha_programada.message}
-                      </p>
-                    )}
                   </div>
                   {role !== "administrador" && (
                     <div className="space-y-1">
@@ -578,29 +543,28 @@ const StandardDetailView = memo(({
                   {role === "administrador" && (
                     <div className="space-y-4">
                       <div className="space-y-1">
+                        <label className="text-sm font-medium">Empleado Asignado *</label>
                         <SelectField 
-                          label="Empleado Asignado" 
+                          label="" 
                           value={watch("user_empleado_id")} 
                           onChange={(v) => setValue("user_empleado_id", v)} 
                           options={empleados.map((e: Empleado) => ({ 
                             id: e.id, 
                             nombre: `${e.nombre} ${e.apellidos}` 
                           }))} 
-                          placeholder="Sin asignar" 
+                          placeholder="Seleccionar empleado" 
                         />
-                        {errors.user_empleado_id && <p className="text-red-500 text-xs font-medium">{errors.user_empleado_id.message}</p>}
                       </div>
                       {/* Importe del servicio: el admin lo fija en la solicitud */}
                       <div className="space-y-1">
-                        <label className="text-sm font-medium">Importe del Servicio (€)</label>
+                        <label className="text-sm font-medium">Importe del Servicio (€) *</label>
                         <Input
                           type="number"
                           step="0.01"
                           min="0"
                           placeholder="0.00"
-                          value={pagoImporte !== "" ? pagoImporte : (solicitud.importe_cobro ? String(solicitud.importe_cobro) : "")}
-                          onChange={(e) => setPagoImporte(e.target.value)}
-                          className="border-slate-200"
+                          {...register("importe_cobro")}
+                          className={`border-slate-200 ${errors.importe_cobro ? 'border-red-500' : ''}`}
                         />
                       </div>
                     </div>
@@ -614,7 +578,13 @@ const StandardDetailView = memo(({
               {serverError && <p className="text-red-500 text-sm font-bold italic text-center p-3 bg-red-50 rounded-lg">{serverError}</p>}
               <div className="flex justify-end gap-3 pt-6 border-t-2 border-primary font-bold">
                 <Button type="button" variant="outline" className="w-50" onClick={() => { setEditando(false); setServerError(null); }}>Cancelar</Button>
-                <Button type="submit" className="w-50" disabled={isSubmitting}>{isSubmitting ? "Guardando..." : "Guardar cambios"}</Button>
+                <Button 
+                  type="submit" 
+                  className="w-50" 
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Guardando..." : "Guardar cambios"}
+                </Button>
               </div>
             </CardContent>
           </CardSinBorde>
@@ -877,8 +847,9 @@ export default function SolicitudDetailPage() {
         direccion: solicitud.direccion ?? "",
         fecha_programada: solicitud.fecha_programada?.slice(0, 16) ?? "",
         resolucion_id: solicitud.resolucion?.id ?? null,
-        user_empleado_id: solicitud.empleado?.id ?? null,
+        user_empleado_id: solicitud.empleado?.id ?? undefined, // undefined for zod required check
         notas: solicitud.notas ?? "",
+        importe_cobro: solicitud.importe_cobro ? String(solicitud.importe_cobro) : "",
       });
     }
   }, [editando, solicitud, reset]);
@@ -983,12 +954,9 @@ export default function SolicitudDetailPage() {
         user_empleado_id: data.user_empleado_id ?? null,
         fecha_programada: data.fecha_programada || null,
         notas: data.notas || null,
-        // El admin fija el importe directamente en la solicitud (no crea un pago)
-        importe_cobro: pagoImporte !== "" ? Number(pagoImporte) : (solicitud?.importe_cobro ?? null),
+        importe_cobro: Number(data.importe_cobro),
       });
       await cargarSolicitud();
-      setPagoImporte("");
-      setPagoMetodoId(null);
       setEditando(false);
     } catch (err: any) { setServerError(err?.response?.data?.message || "Error update."); }
   };
@@ -1046,9 +1014,25 @@ export default function SolicitudDetailPage() {
     handleRegistrarPago, handlePagar, pagando, esFinalizar, esTransferencia
   };
 
+  const onError = (errs: any) => {
+    const messages = new Set<string>();
+    const collectErrors = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return;
+      if (typeof obj.message === 'string') {
+        if (!obj.message.toLowerCase().includes("invalid input")) {
+          messages.add(obj.message);
+        }
+      } else {
+        Object.values(obj).forEach(collectErrors);
+      }
+    };
+    collectErrors(errs);
+    messages.forEach(msg => toast.error(msg));
+  };
+
   const standardProps: StandardDetailViewProps = {
     ...viewProps, setServerError, resoluciones, empleados, pagando, handlePagar,
-    register, handleSubmit, setValue, watch, errors, isSubmitting, onSubmit, navigate,
+    register, handleSubmit, setValue, watch, errors, isSubmitting, onSubmit, onError, navigate,
     setEditando, editando, pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago
   };
 
