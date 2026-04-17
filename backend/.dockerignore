@@ -1,1 +1,14 @@
 public/storage
+node_modules
+vendor
+storage/logs/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/cache/*
+.env
+.env.example
+.git
+.gitignore
+tests
+phpunit.xml
+README.md

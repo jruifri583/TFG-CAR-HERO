@@ -43,7 +43,7 @@ class ContactController extends Controller
             \App\Models\MensajeContacto::create($validated);
 
             // Se envía a un correo de ejemplo de la empresa
-            Mail::to('contacto@carhero.com')->send(new ContactMessageMailable($validated));
+            Mail::to(config('mail.from.address', 'contacto@carhero.com'))->send(new ContactMessageMailable($validated));
 
             return response()->json([
                 'success' => true,

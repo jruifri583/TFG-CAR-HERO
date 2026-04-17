@@ -61,6 +61,28 @@ services:
       timeout: 5s
       retries: 5
 
+  # Worker de colas — procesa emails asíncronos (ShouldQueue)
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ${PROJECT_NAME}_queue
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    command: ["php", "artisan", "queue:work", "database", "--sleep=3", "--tries=3"]
+    restart: always
+
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: ${PROJECT_NAME}_phpmyadmin

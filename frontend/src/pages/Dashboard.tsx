@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardSinBorde } from "@/compon
 import { 
   Users, Car, FileText, CreditCard, AlertTriangle,
   Clock, UserCheck, Truck, Search, RotateCcw, CheckCircle, XCircle,
-  ShieldCheck, Calendar
+  ShieldCheck, Calendar, BarChart2, PieChart as PieChartIcon, Activity
 } from "lucide-react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
@@ -24,6 +24,15 @@ import {
 import { format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableCell,
+  TableHead,
+} from "@/components/ui/table";
+
 
 interface Contadores {
   usuarios: number;
@@ -122,95 +131,164 @@ function fmt(iso: string | null) {
   return format(new Date(iso), "dd MMM yyyy", { locale: es });
 }
 
+const renderPieLabel = ({ cx, cy, midAngle, outerRadius, percent, name, fill }: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = outerRadius * 1.15;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  let y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  // Pequeño ajuste manual para evitar solapamiento si es "Cancelado"
+  if (name.toLowerCase().includes('cancelado')) {
+    y -= 8;
+  }
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill={fill}
+      textAnchor={x > cx ? 'start' : 'end'}
+      dominantBaseline="central"
+      className="text-[10px] font-black uppercase italic tracking-tight"
+    >
+      {`${name} ${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
+
 function NuevaRow({ s }: { s: SolicitudReciente }) {
   const navigate = useNavigate();
   return (
-    <tr
-      className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
+    <TableRow
+      className="cursor-pointer transition-colors h-14 hover:bg-muted/50"
       onClick={() => navigate(`/solicitudes/${s.id}`)}
     >
-      <td className="py-2">
-        <div className="flex items-center gap-2">
+      <TableCell className="text-center font-black text-slate-600 text-xs w-[50px]">
+        {s.id}
+      </TableCell>
+
+      <TableCell className="text-center">
+        <div className="flex items-center justify-center gap-2">
           <img
-            src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-            className="w-8 h-8 rounded object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "/avatars/default_car.png";
-            }}
-          />
-          <span>
-            {s.vehiculo?.marca} {s.vehiculo?.modelo}
-          </span>
-        </div>
-      </td>
-      <td className="py-2">
-        <div className="flex items-center gap-2">
-          <img
-            src={s.cliente?.imagen ?? "/avatars/default_user.png"}
-            className="w-8 h-8 rounded-full object-cover"
+            src={s.cliente?.imagen || "/avatars/default_user.png"}
+            className="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm"
             onError={(e) => {
               (e.target as HTMLImageElement).src = "/avatars/default_user.png";
             }}
           />
-          <span>
+          <span className="text-xs font-bold text-slate-700">
             {s.cliente?.nombre} {s.cliente?.apellidos}
           </span>
         </div>
-      </td>
-      <td className="py-2 hidden md:table-cell max-w-[200px] truncate">{s.direccion}</td>
-    </tr>
+      </TableCell>
+
+      <TableCell className="hidden lg:table-cell text-center">
+        <span className="text-[11px] font-medium text-slate-500 truncate max-w-[150px] inline-block">
+          {s.direccion}
+        </span>
+      </TableCell>
+
+      <TableCell className="text-center">
+        <div className="flex items-center justify-center gap-2">
+          <img
+            src={s.vehiculo?.imagen || "/avatars/default_car.png"}
+            className="w-10 h-10 rounded-full shadow-sm object-cover border-2 border-white"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/avatars/default_car.png";
+            }}
+          />
+          <span className="font-black uppercase italic text-sm truncate">
+            {s.vehiculo?.marca} {s.vehiculo?.modelo}
+          </span>
+        </div>
+      </TableCell>
+
+      <TableCell className="hidden sm:table-cell text-center">
+        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-slate-100 px-2 py-1 rounded">
+          {s.vehiculo?.matricula || "-"}
+        </span>
+      </TableCell>
+
+      <TableCell className="text-center">
+        <span className="text-[9px] bg-primary text-white px-2 py-0.5 rounded-full font-black uppercase italic">
+          Nueva
+        </span>
+      </TableCell>
+    </TableRow>
   );
 }
 
 function ActualizadaRow({ s }: { s: SolicitudReciente }) {
   const navigate = useNavigate();
   return (
-    <tr
-      className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
+    <TableRow
+      className="cursor-pointer transition-colors h-14 hover:bg-muted/50"
       onClick={() => navigate(`/solicitudes/${s.id}`)}
     >
-      <td className="py-2">
-        <div className="flex items-center gap-2">
+      <TableCell className="text-center font-black text-slate-600 text-xs w-[50px]">
+        {s.id}
+      </TableCell>
+
+      <TableCell className="hidden sm:table-cell text-center">
+        {s.empleado ? (
+          <div className="flex items-center justify-center gap-2">
+            <img
+              src={s.empleado.imagen || "/avatars/default_user.png"}
+              className="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/avatars/default_user.png";
+              }}
+            />
+            <span className="text-xs font-bold text-slate-700 truncate max-w-[100px]">
+              {s.empleado.nombre}
+            </span>
+          </div>
+        ) : (
+          <span className="text-[10px] text-muted-foreground italic font-medium">Asignando...</span>
+        )}
+      </TableCell>
+
+      <TableCell className="text-center">
+        <div className="flex items-center justify-center gap-2">
           <img
-            src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
-            className="w-8 h-8 rounded object-cover"
+            src={s.vehiculo?.imagen || "/avatars/default_car.png"}
+            className="w-10 h-10 rounded-full shadow-sm object-cover border-2 border-white"
             onError={(e) => {
               (e.target as HTMLImageElement).src = "/avatars/default_car.png";
             }}
           />
-          <span>
+          <span className="font-black uppercase italic text-sm truncate">
             {s.vehiculo?.marca} {s.vehiculo?.modelo}
           </span>
         </div>
-      </td>
-      <td className="py-2">
-        <div className="flex items-center gap-2">
+      </TableCell>
+      <TableCell className="text-center">
+        <span
+          className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase italic ${ESTADO_COLORS[s.estado?.slug ?? ""] ?? "bg-gray-100 text-gray-800"}`}
+        >
+          {s.estado?.nombre}
+        </span>
+      </TableCell>
+      <TableCell className="hidden sm:table-cell text-center">
+        <span className="text-[10px] text-muted-foreground font-bold italic">
+          {s.updated_at ? fmt(s.updated_at) : "-"}
+        </span>
+      </TableCell>
+      <TableCell className="hidden md:table-cell text-center">
+        <div className="flex items-center justify-center gap-2">
           <img
-            src={s.cliente?.imagen ?? "/avatars/default_user.png"}
-            className="w-8 h-8 rounded-full object-cover"
+            src={s.cliente?.imagen || "/avatars/default_user.png"}
+            className="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm"
             onError={(e) => {
               (e.target as HTMLImageElement).src = "/avatars/default_user.png";
             }}
           />
-          <span>
+          <span className="text-xs font-bold text-slate-600 truncate max-w-[120px] inline-block">
             {s.cliente?.nombre} {s.cliente?.apellidos}
           </span>
         </div>
-      </td>
-      <td className="py-2">
-        <span
-          className={`text-xs px-2 py-1 rounded-full font-medium capitalize ${ESTADO_COLORS[s.estado?.slug ?? ""] ?? "bg-gray-100 text-gray-800"}`}
-        >
-          {s.estado?.nombre ?? "-"}
-        </span>
-      </td>
-      <td className="py-2 hidden sm:table-cell">
-        {s.updated_at
-          ? format(new Date(s.updated_at), "dd MMM yyyy", { locale: es })
-          : "-"}
-      </td>
-      <td className="py-2 hidden md:table-cell max-w-[200px] truncate">{s.direccion}</td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 // mapping de iconos por slug
@@ -454,107 +532,139 @@ export default function DashboardPage() {
         </div>
 
         {/* Actividad reciente */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Actividad reciente de solicitudes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div className="space-y-8">
+          <div className="flex items-center gap-2 px-1">
+            <Clock size={20} className="text-primary" />
+            <h2 className="text-xl font-black uppercase italic tracking-tight text-slate-800">
+              Actividad Reciente
+            </h2>
+          </div>
+
+          <div className="space-y-8">
             {/* Nuevas */}
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground mb-2">
-                Nuevas solicitudes
-              </p>
+            <Card className="border-0 shadow-md overflow-hidden">
+              <CardHeader className="bg-slate-50/50 border-b pb-4">
+                <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center justify-between">
+                  Nuevas solicitudes
+                  <span className="bg-primary text-white text-[10px] px-2 py-0.5 rounded-full font-black ring-4 ring-primary/10">
+                    {solicitudesRecientes.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-muted-foreground border-b italic uppercase text-[10px] tracking-widest">
-                        <th className="text-left py-2">Vehículo</th>
-                        <th className="text-left py-2">Cliente</th>
-                        <th className="text-left py-2 hidden md:table-cell">Dirección</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader className="bg-slate-50/30">
+                      <TableRow>
+                        <TableHead className="w-[50px] text-center text-[10px] font-black uppercase italic tracking-widest">ID</TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Cliente</TableHead>
+                        <TableHead className="hidden lg:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Dirección</TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Vehículo</TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Matrícula</TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest w-[100px]">Estado</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {solicitudesRecientes.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={3}
-                            className="py-4 text-center text-muted-foreground"
-                          >
-                            No hay nuevas solicitudes
-                          </td>
-                        </tr>
+                        <TableRow>
+                          <TableCell colSpan={5} className="py-12 text-center text-muted-foreground italic font-bold">
+                            No hay nuevas solicitudes en este momento
+                          </TableCell>
+                        </TableRow>
                       ) : (
                         solicitudesRecientes.map((s) => (
                           <NuevaRow key={s.id} s={s} />
                         ))
                       )}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Actualizadas */}
-            <div className="border-t pt-4">
-              <p className="text-sm font-semibold text-muted-foreground mb-2">
-                Actualizadas recientemente
-              </p>
+            <Card className="border-0 shadow-md overflow-hidden">
+              <CardHeader className="bg-slate-50/50 border-b pb-4">
+                <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center justify-between">
+                  Últimas actualizaciones
+                  <RotateCcw size={14} className="text-muted-foreground/30" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="text-muted-foreground border-b italic uppercase text-[10px] tracking-widest">
-                        <th className="text-left py-2">Vehículo</th>
-                        <th className="text-left py-2">Cliente</th>
-                        <th className="text-left py-2">Estado</th>
-                        <th className="text-left py-2 hidden sm:table-cell">Última actualización</th>
-                        <th className="text-left py-2 hidden md:table-cell">Dirección</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader className="bg-slate-50/30">
+                      <TableRow>
+                        <TableHead className="w-[50px] text-center text-[10px] font-black uppercase italic tracking-widest">ID</TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Empleado</TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Vehículo</TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest w-[130px]">Estado</TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Fecha</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Cliente</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {solicitudesActualizadas.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={5}
-                            className="py-4 text-center text-muted-foreground"
-                          >
-                            Sin actualizaciones recientes
-                          </td>
-                        </tr>
+                        <TableRow>
+                          <TableCell colSpan={5} className="py-12 text-center text-muted-foreground italic font-bold">
+                            Sin actualizaciones recientes para mostrar
+                          </TableCell>
+                        </TableRow>
                       ) : (
                         solicitudesActualizadas.map((s) => (
                           <ActualizadaRow key={s.id} s={s} />
                         ))
                       )}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         {/* Gráficas */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes por mes</CardTitle>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b pb-4">
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center justify-between">
+                Solicitudes por mes
+                <BarChart2 size={16} className="text-muted-foreground/30" />
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={mesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="mes" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="total" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={30} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes por estado</CardTitle>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b pb-4">
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center justify-between">
+                Distribución por estado
+                <PieChartIcon size={16} className="text-muted-foreground/30" />
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
@@ -563,18 +673,20 @@ export default function DashboardPage() {
                     nameKey="estado"
                     cx="50%"
                     cy="50%"
+                    innerRadius={60}
                     outerRadius={80}
-                    isAnimationActive={false}
-                    label={({ name, percent = 0 }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
+                    paddingAngle={5}
+                    isAnimationActive={true}
+                    label={renderPieLabel}
+                    labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                   >
                     {porEstado.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />
                     ))}
                   </Pie>
-                  <Legend />
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>

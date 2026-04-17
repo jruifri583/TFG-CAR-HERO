@@ -1,0 +1,124 @@
+# =============================================================================
+#  CAR-HERO — Docker Compose de PRODUCCIÓN (AWS EC2)
+# =============================================================================
+#
+#  Uso:
+#    docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+#
+#  Requiere el fichero .env.prod con las variables de producción.
+# =============================================================================
+
+services:
+
+  # ─────────────────────────────────────────────
+  # FRONTEND — Nginx sirviendo el build de React
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ""
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
+    container_name: carhero_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - carhero_network
+
+  # ─────────────────────────────────────────────
+  # BACKEND — PHP-FPM + Nginx + Queue Worker
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: carhero_backend
+    restart: always
+    expose:
+      - "8000"
+    environment:
+      APP_NAME: CAR-HERO
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL}
+
+      LOG_CHANNEL: stack
+
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: database
+
+      FRONTEND_URL: ${FRONTEND_URL}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS}
+
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+
+      MAIL_MAILER: resend
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
+    volumes:
+      - backend_storage:/var/www/html/storage/app/public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - carhero_network
+
+  # ─────────────────────────────────────────────
+  # BASE DE DATOS — MySQL 8.0
+  # ─────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: carhero_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - carhero_network
+
+# ─────────────────────────────────────────────
+# VOLÚMENES PERSISTENTES
+# ─────────────────────────────────────────────
+volumes:
+  db_data:
+    driver: local
+  backend_storage:
+    driver: local
+
+# ─────────────────────────────────────────────
+# RED INTERNA
+# ─────────────────────────────────────────────
+networks:
+  carhero_network:
+    driver: bridge

@@ -15,11 +15,7 @@ return [
     |
     */
 
-    'stateful' => [
-        'localhost',
-        'localhost:5173',
-        'app.carhero.com',
-    ],
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,localhost:5173,localhost:8000')),
 
     /*
     |--------------------------------------------------------------------------
