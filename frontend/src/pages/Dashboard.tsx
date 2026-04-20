@@ -780,28 +780,46 @@ export default function DashboardPage() {
 
         {/* Gráficas duplicadas del Admin */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes por mes</CardTitle>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b pb-4">
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center justify-between">
+                Solicitudes por mes
+                <BarChart2 size={16} className="text-muted-foreground/30" />
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={mesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mes" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="mes" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="total" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={30} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Solicitudes por estado</CardTitle>
+          <Card className="border-0 shadow-md overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b pb-4">
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-slate-600 flex items-center justify-between">
+                Distribución por estado
+                <PieChartIcon size={16} className="text-muted-foreground/30" />
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
@@ -810,18 +828,20 @@ export default function DashboardPage() {
                     nameKey="estado"
                     cx="50%"
                     cy="50%"
+                    innerRadius={60}
                     outerRadius={80}
-                    isAnimationActive={false}
-                    label={({ name, percent = 0 }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
-                    }
+                    paddingAngle={5}
+                    isAnimationActive={true}
+                    label={renderPieLabel}
+                    labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                   >
                     {porEstado.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />
                     ))}
                   </Pie>
-                  <Legend />
-                  <Tooltip />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
