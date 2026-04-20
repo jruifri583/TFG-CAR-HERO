@@ -342,18 +342,190 @@ erDiagram
         datetime respondido_at
     }
 
-    ROLES ||--o{ USERS : "tipifica"
-    USERS ||--o{ VEHICULOS : "posee"
-    USERS ||--o{ SOLICITUDES : "crea (como cliente)"
-    USERS ||--o{ SOLICITUDES : "atiende (como empleado)"
-    VEHICULOS ||--o{ SOLICITUDES : "está asociado a"
-    ESTADOS ||--o{ SOLICITUDES : "define estado"
-    RESOLUCIONES ||--o{ SOLICITUDES : "define resultado"
-    SOLICITUDES ||--|| PAGOS : "genera pago (1:1)"
-    SOLICITUDES ||--|| HISTORIALES : "genera registro (1:1)"
-    METODOS_PAGO ||--o{ PAGOS : "define método"
-    ESTADOS_PAGO ||--o{ PAGOS : "define estado"
-    RESOLUCIONES ||--o{ HISTORIALES : "define resultado"
+    %% --- Relaciones ---
+    ROLES ||--o{ USERS : "define permisos de"
+    USERS ||--o{ VEHICULOS : "es propietario de"
+    
+    USERS ||--o{ SOLICITUDES : "cliente solicita"
+    USERS ||--o{ SOLICITUDES : "empleado gestiona"
+    VEHICULOS ||--o{ SOLICITUDES : "es objeto de"
+    
+    ESTADOS ||--o{ SOLICITUDES : "estado actual de"
+    RESOLUCIONES ||--o{ SOLICITUDES : "resultado global de"
+    
+    SOLICITUDES ||--|| HISTORIALES : "genera detalle técnico (1:1)"
+    RESOLUCIONES ||--o{ HISTORIALES : "resultado técnico en"
+    
+    SOLICITUDES ||--|| PAGOS : "genera cobro (1:1)"
+    METODOS_PAGO ||--o{ PAGOS : "utilizado en"
+    ESTADOS_PAGO ||--o{ PAGOS : "situación del"
+```
+
+### 6.3 Esquema SQL Real (Migraciones Laravel)
+
+> Las migraciones de Laravel generan el siguiente esquema. Se refleja la estructura **real** del proyecto, que difiere del anteproyecto inicial en varios puntos: nombres de columnas normalizados, campos adicionales (`slug`, `ciudad`, `codigo_postal`), tablas nuevas (`mensajes_contacto`, `personal_access_tokens`) y eliminación del campo `orden` de estados (gestionado en el Enum PHP).
+
+```sql
+-- TABLA: roles
+-- Diferencia: añadido 'slug' usado en Policies y Middleware (antes solo 'nombre')
+CREATE TABLE roles (
+    id      INT AUTO_INCREMENT PRIMARY KEY,
+    slug    VARCHAR(50) UNIQUE NOT NULL,   -- 'administrador', 'empleado', 'cliente'
+    nombre  VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
+
+-- TABLA: users (antes 'usuarios')
+-- Diferencias: añadidos 'ciudad' y 'codigo_postal' para geolocalización del cliente
+CREATE TABLE users (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    email         VARCHAR(150) UNIQUE NOT NULL,
+    password      VARCHAR(255) NOT NULL,
+    nombre        VARCHAR(150) NULL,
+    apellidos     VARCHAR(250) NULL,
+    nif           VARCHAR(20)  NULL,
+    telefono      VARCHAR(50)  NULL,
+    direccion     VARCHAR(255) NULL,
+    ciudad        VARCHAR(100) NULL,
+    codigo_postal VARCHAR(10)  NULL,
+    imagen        VARCHAR(255) NULL,
+    rol_id        INT NOT NULL DEFAULT 3,
+    activo        BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP, updated_at TIMESTAMP,
+    FOREIGN KEY (rol_id) REFERENCES roles(id)
+);
+
+-- TABLA: vehiculos
+-- Diferencias: 'user_id' (antes 'usuario_id'), 'año INT' (antes 'antiguedad YEAR')
+CREATE TABLE vehiculos (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    user_id          INT NOT NULL,
+    matricula        VARCHAR(20) UNIQUE NOT NULL,
+    vin              VARCHAR(20) UNIQUE NOT NULL,
+    marca            VARCHAR(100) NULL,
+    modelo           VARCHAR(100) NULL,
+    año              INT NULL,
+    kilometros       INT NULL,
+    fecha_ultima_itv DATE NULL,
+    imagen           VARCHAR(255) NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- TABLA: estados
+-- Diferencias: 'slug' en lugar de 'codigo'; el orden lo gestiona EstadoSlug::orden() en PHP
+-- Valores: pendiente · asignado · en_recogida · en_itv · retornando · finalizado · cancelado
+CREATE TABLE estados (
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    slug   VARCHAR(50) UNIQUE NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
+
+-- TABLA: resoluciones
+-- Diferencias: 'slug' en lugar de 'codigo'. Valores: pendiente · favorable · desfavorable
+CREATE TABLE resoluciones (
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    slug   VARCHAR(50) UNIQUE NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
+
+-- TABLA: solicitudes
+-- Diferencias: 'user_cliente_id'/'user_empleado_id' (antes 'cliente_id'/'empleado_id'),
+--              'direccion' (antes 'direccion_recogida'), 'importe_cobro' (antes 'precio'),
+--              'fecha_programada DATE' (antes DATETIME)
+CREATE TABLE solicitudes (
+    id                INT AUTO_INCREMENT PRIMARY KEY,
+    user_cliente_id   INT NULL,
+    user_empleado_id  INT NULL,
+    vehiculo_id       INT NOT NULL,
+    estado_id         INT NOT NULL,
+    resolucion_id     INT NOT NULL,
+    direccion         VARCHAR(255) NOT NULL,
+    latitud           DECIMAL(10,7) NULL,
+    longitud          DECIMAL(10,7) NULL,
+    fecha_programada  DATE NULL,
+    hora_recogida     DATETIME NULL,
+    hora_itv          DATETIME NULL,
+    hora_entrega      DATETIME NULL,
+    importe_cobro     DECIMAL(10,2) NULL,
+    notas             TEXT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP,
+    FOREIGN KEY (user_cliente_id)  REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_empleado_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (vehiculo_id)      REFERENCES vehiculos(id) ON DELETE CASCADE,
+    FOREIGN KEY (estado_id)        REFERENCES estados(id),
+    FOREIGN KEY (resolucion_id)    REFERENCES resoluciones(id)
+);
+
+-- TABLA: metodos_pago
+-- Diferencias: añadido 'slug'. Valores: efectivo · tarjeta · transferencia
+CREATE TABLE metodos_pago (
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    slug   VARCHAR(50) UNIQUE NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
+
+-- TABLA: estados_pago
+-- Diferencias: añadido 'slug'. Valores: pendiente · pagado
+CREATE TABLE estados_pago (
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    slug   VARCHAR(50) UNIQUE NOT NULL,
+    nombre VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
+
+-- TABLA: pagos (relación 1:1 con solicitudes)
+CREATE TABLE pagos (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    solicitud_id    INT UNIQUE NOT NULL,
+    importe         DECIMAL(10,2) NOT NULL,
+    metodo_pago_id  INT NULL,
+    estado_pago_id  INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMP, updated_at TIMESTAMP,
+    FOREIGN KEY (solicitud_id)   REFERENCES solicitudes(id) ON DELETE CASCADE,
+    FOREIGN KEY (metodo_pago_id) REFERENCES metodos_pago(id),
+    FOREIGN KEY (estado_pago_id) REFERENCES estados_pago(id)
+);
+
+-- TABLA: historiales (relación 1:1 con solicitudes — se genera automáticamente al finalizar)
+CREATE TABLE historiales (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    solicitud_id  INT UNIQUE NOT NULL,
+    resolucion_id INT NOT NULL,
+    fecha_itv     DATE NULL,
+    notas         TEXT NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP,
+    FOREIGN KEY (solicitud_id)  REFERENCES solicitudes(id) ON DELETE CASCADE,
+    FOREIGN KEY (resolucion_id) REFERENCES resoluciones(id)
+);
+
+-- TABLA: mensajes_contacto (nueva — no existía en el anteproyecto)
+CREATE TABLE mensajes_contacto (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    nombre        VARCHAR(150) NOT NULL,
+    email         VARCHAR(150) NOT NULL,
+    mensaje       TEXT NOT NULL,
+    respuesta     TEXT NULL,
+    leido_at      DATETIME NULL,
+    respondido_at DATETIME NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
+
+-- TABLA: personal_access_tokens (gestionada automáticamente por Laravel Sanctum)
+CREATE TABLE personal_access_tokens (
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    tokenable_type VARCHAR(255) NOT NULL,
+    tokenable_id   BIGINT NOT NULL,
+    name           VARCHAR(255) NOT NULL,
+    token          VARCHAR(64) UNIQUE NOT NULL,
+    abilities      TEXT NULL,
+    last_used_at   TIMESTAMP NULL,
+    expires_at     TIMESTAMP NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP
+);
 ```
 
 ---
@@ -895,6 +1067,34 @@ Las imágenes de usuarios y vehículos se procesan con la siguiente lógica:
    - Si es un nombre de archivo → construye la URL completa con `APP_URL`
 4. **Reemplazo**: Al subir una nueva imagen, se elimina la anterior del disco (excepto URLs de Google).
 
+### 11.4 Validaciones y Seguridad
+
+#### Validaciones implementadas
+
+| Campo | Capa | Regla aplicada |
+|---|---|---|
+| **Email** | Backend (Laravel) + Frontend (Zod) | Formato RFC válido · Unicidad en tabla `users` (`unique:users,email`) |
+| **Contraseña** | Backend (`UpdatePerfilRequest`) + Frontend (Zod) | Mínimo **8 caracteres**, al menos una mayúscula, una minúscula, un número y un símbolo |
+| **Matrícula del vehículo** | Backend (`StoreVehiculoRequest`) | Unicidad en tabla `vehiculos` · Longitud máxima controlada |
+| **VIN del vehículo** | Backend (`StoreVehiculoRequest`) | Unicidad en tabla `vehiculos` |
+| **Coordenadas GPS** | Backend (`StoreSolicitudRequest`) | `latitud` y `longitud` como `numeric` con rangos válidos (`-90/90` y `-180/180`) |
+| **Transiciones de estado** | Backend (`SolicitudService`) | Solo se permiten avances al estado siguiente en orden definido por `EstadoSlug::orden()`; se bloquean saltos y retrocesos |
+| **Formularios generales** | Backend (Form Requests) | Todos los endpoints de escritura pasan por clases `StoreXRequest` / `UpdateXRequest` con reglas estrictas y mensajes de error localizados |
+
+#### Mecanismos de seguridad activos
+
+| Mecanismo | Implementación real en el proyecto |
+|---|---|
+| **Autenticación por token** | **Laravel Sanctum** — Personal Access Tokens con expiración a **720 minutos (12h)** configurada en `config/sanctum.php`. No se usa JWT. |
+| **HTTPS obligatorio en producción** | Certificados **Let's Encrypt** gestionados y renovados automáticamente por **Certbot** en el entorno AWS EC2 |
+| **Protección anti-spam** | **Cloudflare Turnstile** con verificación server-side del token en el endpoint público `/api/contacto`. Desactivado automáticamente si no hay claves reales (entorno de desarrollo) |
+| **Sanitización de inputs** | **Eloquent ORM** usa *prepared statements* internamente, eliminando el riesgo de SQL Injection en todas las consultas |
+| **Cifrado de contraseñas** | `Hash::make()` de Laravel (bcrypt por defecto) en el registro y actualización de contraseña. El campo `password` está en `$hidden` del modelo `User` y nunca se serializa en JSON |
+| **Autorización por recurso** | **Laravel Policies** (`SolicitudPolicy`, `VehiculoPolicy`, `PagoPolicy`, `UserPolicy`, `HistorialPolicy`) con método `before()` que concede acceso total al administrador |
+| **Autorización de rutas** | `RolAdminMiddleware` verifica el slug del rol antes de pasar la petición al controlador |
+| **Protección CORS** | `config/cors.php` limita los orígenes a `FRONTEND_URL`; `supports_credentials: true` para tokens en cabecera |
+| **Ocultación de campos sensibles** | `$hidden = ['password', 'remember_token']` en el modelo `User` |
+
 ---
 
 ## 12. Escalabilidad / Reusabilidad
@@ -938,18 +1138,81 @@ El modelo `Solicitud` implementa scopes como `withBaseRelations()` que pre-carga
 
 ---
 
-## 14. Bitácora del TFG
+## 14. Planificación y Bitácora del TFG
 
-El proceso ha sido documentado adoptando metodología estructurada, dejando constancia de múltiples incidencias y bloqueos técnicos:
+El desarrollo del proyecto se ha organizado en **5 fases** con sprints de dos semanas, siguiendo una metodología iterativa e incremental. A continuación se detalla el planning oficial y las incidencias técnicas más relevantes registradas durante el proceso.
 
-- **Caducidad del Token**: Se analizó la persistencia indefinida que concedía Sanctum por defecto y se tomó la decisión técnica de modificar `config/sanctum.php` fijando expiración a 720 minutos (12h). Protege ante extravíos pero mantiene usabilidad dentro del turno.
-- **Conflictos de Políticas CORS**: La arquitectura desacoplada bajo Docker generaba bloqueos del navegador. Se resolvió configurando los dominios `stateful` de Sanctum y los orígenes permitidos en el middleware CORS del servidor.
-- **Control de Flujo por Roles (Full-Stack)**: Se implementó una defensa en profundidad: Guards en React Router DOM bloquean vistas si no se posee el rol necesario, y `FormRequests` + `Policies` en Laravel validan estrictamente en el servidor para impedir burlas de red.
-- **Optimización de Formularios Asíncronos**: Formularios masivos como `SolicitudDetail` y `NuevoVehiculo` presentaban cuellos de botella por exceso de renderizaciones. La refactorización incluyó el uso integral de **React Hook Form + Zod**, mejorando drásticamente la UX con feedback sincrónico.
-- **Concurrencia de Empleados**: Se detectó que un empleado podía iniciar la recogida de un segundo vehículo sin haber entregado el primero. Se implementó una validación de concurrencia en el evento `updating` del modelo `Solicitud`.
-- **Unicidad de Vehículo Activo**: Se implementó una validación en el evento `creating` que impide crear una solicitud para un vehículo que ya tiene otra solicitud activa (no finalizada ni cancelada).
-- **Gestión Inteligente de Anti-spam (Turnstile)**: Se detectó que las claves de prueba de Cloudflare generaban un mensaje de aviso intrusivo ("Solo para pruebas"). Se refactorizó la lógica en frontend y backend para que el sistema detecte automáticamente si las claves son reales o de prueba, desactivando el widget dinámicamente en entornos de desarrollo sin comprometer el despliegue final.
-- **Orquestación de SSL en Contenedores**: Se resolvió el desafío de la renovación de certificados SSL en una arquitectura microservicios mediante la integración de un contenedor de **Certbot** compartiendo volúmenes con **Nginx**, automatizando la renovación cada 12 horas sin intervención manual.
+### 14.1 Planificación por Fases
+
+#### 🔍 Fase 1 — Análisis y Anteproyecto
+
+| Sprint | Fechas | Tareas |
+|---|---|---|
+| **Sprint 1** | 12/12/2025 – 26/12/2025 | Definición del proyecto · Análisis del problema · Definición de objetivos generales y específicos · Identificación de usuarios (Cliente, Administrador, Empleado) |
+| **Sprint 2** | 27/12/2025 – 10/01/2026 | Creación del anteproyecto · Análisis y elección del stack tecnológico · Definición de requisitos funcionales y no funcionales · Finalización del anteproyecto |
+
+> El principal reto fue delimitar correctamente el alcance de cada rol (especialmente empleado vs. administrador) y evaluar el stack tecnológico, valorando alternativas como **Next.js** o **Symfony** antes de decantarse por **React + Vite** y **Laravel**.
+
+---
+
+#### 🎨 Fase 2 — Diseño del Sistema
+
+| Sprint | Fechas | Tareas |
+|---|---|---|
+| **Sprint 3** | 11/01/2026 – 25/01/2026 | Diseño UI/UX en alta fidelidad en **Figma**: wireframes, vistas, prototipos interactivos y flujo de navegación |
+| **Sprint 4** | 26/01/2026 – 09/02/2026 | Diseño de la arquitectura del sistema · Diseño del modelo de base de datos · Definición de endpoints REST |
+
+> El mayor reto fue diseñar vistas útiles para tres perfiles distintos sin multiplicar pantallas, optando por **vistas condicionales por rol**. En base de datos, se modelaron los estados como tabla desacoplada en lugar de `ENUM` para facilitar extensiones futuras sin migraciones.
+
+---
+
+#### ⚙️ Fase 3 — Desarrollo Backend
+
+| Sprint | Fechas | Tareas |
+|---|---|---|
+| **Sprint 5** | 10/02/2026 – 24/02/2026 | Preparación del entorno backend en local · Configuración de **Laravel** · Orquestación con **Docker Compose** (Laravel + MySQL) · Estructura base del proyecto |
+| **Sprint 6** | 25/02/2026 – 10/03/2026 | Autenticación y roles · Implementación de **Laravel Sanctum** · Gestión de usuarios y roles · Endpoints de autenticación y Google OAuth |
+| **Sprint 7** | 11/03/2026 – 25/03/2026 | Lógica principal del negocio · Gestión de solicitudes · Máquina de estados · Asignación de empleados · Servicios de dominio |
+
+> El Sprint 5 requirió configurar CORS desde el primer día para la comunicación entre contenedores Docker. El Sprint 6 abordó la unificación de cuentas en el flujo de **Google OAuth** (mismo email, distinto método). El Sprint 7 fue el más exigente: implementar la **máquina de estados** con precondiciones y resolver dos bugs críticos de concurrencia (empleado con doble servicio activo y vehículo con dos solicitudes simultáneas) mediante eventos Eloquent.
+
+---
+
+#### 🖥️ Fase 4 — Desarrollo Frontend
+
+| Sprint | Fechas | Tareas |
+|---|---|---|
+| **Sprint 8** | 26/03/2026 – 09/04/2026 | Preparación del entorno frontend · Configuración de **React + Vite + TypeScript** · Routing y estructura base · Integración con la API backend |
+| **Sprint 9** | 10/04/2026 – 24/04/2026 | Implementación de vistas principales · Vistas de Cliente y Administrador · Formularios y validaciones con **React Hook Form + Zod** |
+| **Sprint 10** | 25/04/2026 – 09/05/2026 | Refinamiento UI y experiencia de usuario · Aplicación del diseño de Figma · Manejo de errores · Optimización de la experiencia de usuario |
+
+> Se implementó `ProtectedRoute` como guardia de doble nivel (autenticación + rol). En el Sprint 9 se resolvió el comportamiento intrusivo del widget de **Turnstile** en desarrollo mediante detección automática de entorno. El Sprint 10 corrigió inconsistencias responsive detectadas al aplicar el diseño de Figma sobre los componentes reales.
+
+---
+
+#### ✅ Fase 5 — Pruebas y Cierre
+
+| Sprint | Fechas | Tareas |
+|---|---|---|
+| **Sprint 11** | 10/05/2026 – 24/05/2026 | Pruebas funcionales · Corrección de errores · Ajustes finales y despliegue en producción (AWS EC2) |
+| **Sprint 12** | 25/05/2026 – 29/05/2026 | Redacción de conclusiones · Preparación de la memoria final · Preparación de la defensa |
+
+> El despliegue en **AWS EC2** fue la mayor complejidad operativa: configurar **PHP-FPM + Nginx + Queue Worker** bajo Supervisor en un único contenedor y coordinar los volúmenes compartidos de **Certbot** con Nginx para la gestión autónoma de certificados SSL.
+
+---
+
+### 14.2 Incidencias y Decisiones Técnicas Registradas
+
+El proceso ha dejado constancia de múltiples bloqueos técnicos y las soluciones adoptadas:
+
+- **Caducidad del Token** *(Fase 3 – Sprint 6)*: Se analizó la persistencia indefinida que concedía Sanctum por defecto y se tomó la decisión técnica de modificar `config/sanctum.php` fijando expiración a 720 minutos (12h). Protege ante extravíos pero mantiene usabilidad dentro del turno laboral.
+- **Conflictos de Políticas CORS** *(Fase 3 – Sprint 5)*: La arquitectura desacoplada bajo Docker generaba bloqueos del navegador. Se resolvió configurando los dominios `stateful` de Sanctum y los orígenes permitidos en el middleware CORS del servidor.
+- **Control de Flujo por Roles (Full-Stack)** *(Fase 3–4 – Sprints 6 y 8)*: Se implementó una defensa en profundidad: Guards en React Router DOM bloquean vistas si no se posee el rol necesario, y `FormRequests` + `Policies` en Laravel validan estrictamente en el servidor para impedir burlas de red.
+- **Optimización de Formularios Asíncronos** *(Fase 4 – Sprint 10)*: Formularios masivos como `SolicitudDetail` y `NuevoVehiculo` presentaban cuellos de botella por exceso de renderizaciones. La refactorización incluyó el uso integral de **React Hook Form + Zod**, mejorando drásticamente la UX con feedback sincrónico.
+- **Concurrencia de Empleados** *(Fase 3 – Sprint 7)*: Se detectó que un empleado podía iniciar la recogida de un segundo vehículo sin haber entregado el primero. Se implementó una validación de concurrencia en el evento `updating` del modelo `Solicitud`.
+- **Unicidad de Vehículo Activo** *(Fase 3 – Sprint 7)*: Se implementó una validación en el evento `creating` que impide crear una solicitud para un vehículo que ya tiene otra solicitud activa (no finalizada ni cancelada).
+- **Gestión Inteligente de Anti-spam (Turnstile)** *(Fase 4 – Sprint 9)*: Se detectó que las claves de prueba de Cloudflare generaban un mensaje de aviso intrusivo ("Solo para pruebas"). Se refactorizó la lógica en frontend y backend para que el sistema detecte automáticamente si las claves son reales o de prueba, desactivando el widget dinámicamente en desarrollo sin comprometer el despliegue final.
+- **Orquestación de SSL en Contenedores** *(Fase 5 – Sprint 11)*: Se resolvió el desafío de la renovación de certificados SSL en una arquitectura microservicios mediante la integración de un contenedor de **Certbot** compartiendo volúmenes con **Nginx**, automatizando la renovación cada 12 horas sin intervención manual.
 
 ---
 
@@ -957,9 +1220,17 @@ El proceso ha sido documentado adoptando metodología estructurada, dejando cons
 
 - **WebSockets / Notificaciones Push**: Integrar herramientas como **Laravel Reverb** o **Pusher** para transmitir notificaciones y ubicaciones GPS en tiempo real sobre el viaje del vehículo directamente a la pantalla del cliente.
 - **Pasarela de Pago Bancaria**: Evolucionar la validación manual de pagos a una integración automatizada con pasarelas como **Stripe** o **Redsys** mediante webhooks.
-- **Soporte PWA y Modo Offline**: Transformar el frontend instalando *Service Workers* para que los empleados puedan seguir operando en zonas de mala cobertura y sincronizar asíncronamente al recuperar conexión.
-- **Emisión Automática de Facturas PDF**: Configurar **DomPDF** en el backend para generar documentos imprimibles y despacharlos en segundo plano al correo del cliente mediante Resend.
-- **Internacionalización (i18n)**: Implementar `react-i18next` para escalar el producto a distintos idiomas sin duplicar componentes.
+- **Firma Digital de Entrega/Recogida**: Implementar la captura de firmas en pantalla táctil para generar albaranes de entrega y devolución digitales con validez legal, asegurando la conformidad del cliente de forma digital.
+- **Inspección Visual con Multimedia**: Permitir a los empleados subir fotografías del estado del vehículo antes de iniciar el servicio para documentar posibles daños previos y evitar reclamaciones.
+- **Soporte PWA y Modo Offline**: Transformar el frontend instalando *Service Workers* para que los empleados puedan seguir operando en zonas de mala cobertura (párkings, sótanos) y sincronizar los datos al recuperar conexión.
+- **Emisión Automática de Facturas PDF**: Configurar **DomPDF** en el backend para generar documentos imprimibles y despacharlos en segundo plano al correo del cliente mediante Resend tras completar el pago.
+- **Chat Interno en Tiempo Real**: Sistema de mensajería directa entre el cliente y el empleado asignado para coordinar detalles técnicos o logísticos durante el servicio de recogida y entrega.
+- **Optimización de Rutas**: Integración con **Google Maps Routes API** para sugerir los trayectos más eficientes a los empleados y reducir los tiempos de desplazamiento en entornos urbanos.
+- **Módulo de Mantenimiento Adicional**: Permitir a los usuarios contratar servicios extra (revisión de niveles, cambio de aceite, presión de neumáticos) que el taller pueda realizar aprovechando que el vehículo está bajo su custodia.
+- **Gestión de Resoluciones Desfavorables**: Implementar un flujo de trabajo específico para resultados de ITV "Desfavorable", facilitando la gestión del traslado directo del vehículo a un taller colaborador para su subsanación y la posterior programación de una segunda inspección de forma automatizada.
+- **Sincronización con Calendarios**: Integración para exportar las fechas de las citas programadas a Google Calendar, Apple Calendar u Outlook de forma automática para clientes y personal.
+- **Seguridad Avanzada (2FA)**: Implementar autenticación de doble factor para roles críticos (Administrador y Empleado) mediante **Laravel Fortify** o códigos de acceso temporales (TOTP).
+- **Internacionalización (i18n)**: Implementar `react-i18next` para escalar el producto a distintos idiomas (Inglés, Alemán, etc.) sin duplicar componentes ni lógica de interfaz.
 
 ---
 
