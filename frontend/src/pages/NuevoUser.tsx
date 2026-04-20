@@ -22,7 +22,13 @@ const schema = z
       .string()
       .email("Dirección de email inválida")
       .max(150, "El email no puede exceder los 150 caracteres"),
-    password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").max(20, "La contraseña no puede exceder los 20 caracteres"),
+    password: z
+      .string()
+      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+      .regex(/[a-z]/, "Debe contener al menos una minúscula")
+      .regex(/[0-9]/, "Debe contener al menos un número")
+      .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial"),
     password_confirmation: z.string().min(1, "Confirma la contraseña"),
     nombre: z
       .string()

@@ -82,8 +82,11 @@ const schema = z.object({
     .or(z.literal("")),
     password: z
       .string()
-      .min(6, "Mínimo 6 caracteres")
-      .max(20, "Máximo 20 caracteres")
+      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+      .regex(/[a-z]/, "Debe contener al menos una minúscula")
+      .regex(/[0-9]/, "Debe contener al menos un número")
+      .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial")
       .optional()
       .or(z.literal("")),
     password_confirmation: z

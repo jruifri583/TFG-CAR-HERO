@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -18,7 +19,15 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
         ]);
 
         $user = User::create([
@@ -77,7 +86,16 @@ class AuthController extends Controller
         'ciudad'    => 'sometimes|string|max:100|nullable',
         'codigo_postal' => 'sometimes|string|max:10|nullable',
         'email'     => 'sometimes|email|unique:users,email,' . $user->id,
-        'password'  => 'sometimes|string|min:8|nullable',
+        'password'  => [
+            'sometimes',
+            'nullable',
+            'string',
+            Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols(),
+        ],
     ]);
 
     if (!empty($validated['password'])) {

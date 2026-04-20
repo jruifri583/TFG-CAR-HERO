@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 use App\Models\User;
 
 class UpdateUserRequest extends FormRequest
@@ -36,7 +37,16 @@ class UpdateUserRequest extends FormRequest
                 'exists:roles,id',
             ],
             'activo'    => 'sometimes|boolean',
-            'password'  => 'nullable|string|min:6|max:20|confirmed',
+            'password'  => [
+                'nullable',
+                'string',
+                'confirmed',
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
             'telefono'  => 'nullable|string|max:50',
             'direccion' => 'nullable|string|max:255',
             'ciudad' => 'nullable|string|max:100',
@@ -51,8 +61,11 @@ class UpdateUserRequest extends FormRequest
             'email.email' => 'El correo electrónico no tiene un formato válido.',
             'email.max' => 'El correo electrónico no puede exceder los 150 caracteres.',
             'email.unique' => 'El correo electrónico ya está registrado.',
-            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
-            'password.max' => 'La contraseña no puede exceder los 20 caracteres.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.letters' => 'La contraseña debe contener al menos una letra.',
+            'password.mixed' => 'La contraseña debe contener mayúsculas y minúsculas.',
+            'password.numbers' => 'La contraseña debe contener al menos un número.',
+            'password.symbols' => 'La contraseña debe contener al menos un carácter especial.',
             'password.confirmed' => 'La confirmación de la contraseña no coincide.',
             'nif.max' => 'El NIF no puede exceder los 20 caracteres.',
             'telefono.max' => 'El teléfono no puede exceder los 50 caracteres.',

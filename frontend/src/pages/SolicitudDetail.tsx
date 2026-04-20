@@ -305,8 +305,8 @@ const EmpleadoDetailView = memo(({
         <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
           <CardContent className="p-6 flex flex-col h-full space-y-6">
             <div className="space-y-2">
-              <Label className="text-primary flex items-center gap-2 uppercase font-bold text-[10px] tracking-widest">
-                <Clock size={14} /> Estado de Servicio
+              <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
+                <Clock size={16} /> Estado de Servicio
               </Label>
               <Input 
                 type="text" 
@@ -319,8 +319,8 @@ const EmpleadoDetailView = memo(({
             <div className="space-y-4">
               {(solicitud.estado?.slug === 'en_itv' || solicitud.resolucion) && (
                 <div className="space-y-2">
-                  <Label className="text-primary flex items-center gap-2 uppercase font-bold text-[10px] tracking-widest">
-                     <ShieldCheck size={14} /> Resultado ITV
+                  <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
+                     <ShieldCheck size={16} /> Resultado ITV
                   </Label>
                   <select 
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -351,8 +351,8 @@ const EmpleadoDetailView = memo(({
               )}
 
               <div className="space-y-2">
-                <Label className="text-primary flex items-center gap-2 uppercase font-bold text-[10px] tracking-widest">
-                   <FileText size={14} /> Notas Operativas
+                <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
+                   <FileText size={16} /> Notas Operativas
                 </Label>
                 <Textarea 
                   className="min-h-[80px] resize-none"
@@ -379,12 +379,12 @@ const EmpleadoDetailView = memo(({
             {/* GESTIÓN DE COBRO */}
             {solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-                <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-2 block">
+                <Label className="text-xs uppercase tracking-widest text-primary font-black mb-2 block">
                   Cobro del servicio
                 </Label>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Importe</Label>
+                    <Label className="text-xs font-bold text-muted-foreground">Importe</Label>
                     <Input
                       type="number"
                       value={pagoImporte !== "" ? pagoImporte : (solicitud.importe_cobro ? String(solicitud.importe_cobro) : "")}
@@ -393,7 +393,7 @@ const EmpleadoDetailView = memo(({
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[10px] text-muted-foreground">Método de pago</Label>
+                    <Label className="text-xs font-bold text-muted-foreground">Método de pago</Label>
                     <select
                       className="w-full h-9 border rounded-md px-2 text-xs"
                       value={pagoMetodoId ?? ""}

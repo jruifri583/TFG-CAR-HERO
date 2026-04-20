@@ -191,6 +191,7 @@ sequenceDiagram
 | Capa | Mecanismo | Implementación |
 |---|---|---|
 | **Autenticación** | Tokens de acceso personal | **Laravel Sanctum** con expiración a **720 min (12h)** configurada en `config/sanctum.php` |
+| **Política de Contraseñas** | Validación de robustez | Enmascaramiento de complejidad (mín. 8 caracteres, mayúsculas, minúsculas, números y símbolos) tanto en **Zod (Frontend)** como en **Laravel Rules (Backend)** |
 | **Autorización de rutas API** | Middleware de rol | `RolAdminMiddleware` verifica el slug del rol del usuario antes de pasar la petición al controlador |
 | **Autorización de recursos** | Policies | `SolicitudPolicy`, `VehiculoPolicy`, `PagoPolicy`, `UserPolicy`, `HistorialPolicy` con método `before()` que concede acceso total al administrador |
 | **Protección de vistas** | Route Guards | Componente `ProtectedRoute` en React que verifica rol en el contexto de autenticación y redirige a `/login` o `/dashboard` según corresponda |
