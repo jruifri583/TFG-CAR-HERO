@@ -226,24 +226,25 @@ Se ha configurado deliberadamente la caducidad del token a **720 minutos (12 hor
 
 ## 6. Esquema Entidad-Relación (Base de Datos)
 
-### 6.1 Descripción de las Entidades
+### 6.1 Descripción Técnica de las Entidades
 
-La arquitectura de datos relacional se sostiene bajo las siguientes entidades, cada una implementada con un **Model Eloquent** y su correspondiente **Migración**:
+La arquitectura de datos se ha diseñado siguiendo la **Tercera Forma Normal (3NF)** para garantizar la integridad y evitar redundancias. Cada entidad está implementada mediante un modelo Eloquent y su correspondiente migración, con las siguientes responsabilidades:
 
-| Entidad | Tabla | Descripción |
-|---|---|---|
-| **Users** | `users` | Usuarios del sistema. Contiene credenciales (`email`, `password` hasheado), datos personales (`nombre`, `apellidos`, `nif`, `telefono`, `direccion`, `ciudad`, `codigo_postal`), imagen de perfil y referencia al rol. Campo `activo` para desactivación lógica |
-| **Roles** | `roles` | Tabla de referencia con tres valores: `administrador`, `empleado`, `cliente`. Cada rol posee un `slug` único utilizado programáticamente en Policies y Middleware |
-| **Vehiculos** | `vehiculos` | Garaje del cliente. Relación `N:1` con Users. Contiene `matricula` (unique), `vin` (unique), `marca`, `modelo`, `año`, `kilometros`, `fecha_ultima_itv` e `imagen` |
-| **Solicitudes** | `solicitudes` | Entidad núcleo del sistema. Referencia a `user_cliente_id`, `user_empleado_id`, `vehiculo_id`, `estado_id` y `resolucion_id`. Almacena `direccion`, coordenadas geográficas (`latitud`, `longitud`), `fecha_programada`, timestamps automáticos de cada fase (`hora_recogida`, `hora_itv`, `hora_entrega`), `importe_cobro` y `notas` |
-| **Estados** | `estados` | Máquina de estados de la solicitud: `pendiente` → `asignado` → `en_recogida` → `en_itv` → `retornando` → `finalizado` · `cancelado` |
-| **Resoluciones** | `resoluciones` | Resultado de la inspección ITV: `pendiente`, `favorable`, `desfavorable` |
-| **Pagos** | `pagos` | Registro financiero `1:1` con Solicitud. Almacena `importe`, `metodo_pago_id` y `estado_pago_id` |
-| **MetodosPago** | `metodos_pago` | Catálogo: `efectivo`, `tarjeta`, `transferencia` |
-| **EstadosPago** | `estados_pago` | Catálogo: `pendiente`, `pagado` |
-| **Historiales** | `historiales` | Bitácora de auditoría `1:1` con Solicitud. Almacena `fecha_itv`, `resolucion_id` y `notas`. Se genera automáticamente al finalizar una solicitud |
-| **MensajesContacto** | `mensajes_contacto` | Buzón de contacto público. Almacena `nombre`, `email`, `mensaje`, `respuesta`, `leido_at` y `respondido_at` |
-| **PersonalAccessTokens** | `personal_access_tokens` | Tabla gestionada por Sanctum para los tokens de autenticación |
+*   **Roles**: Define los niveles de acceso al sistema (Administrador, Empleado, Cliente) mediante un campo `slug` único. Es la base del sistema de autorización basado en Policies y Middlewares.
+*   **Users** (Usuarios): Almacena la identidad y datos de contacto. Incluye campos de geolocalización personalizada (`ciudad`, `codigo_postal`) y mantiene una relación obligatoria con la tabla de roles.
+*   **Vehículos**: Representa el garaje digital del cliente. Almacena datos técnicos (`matricula`, `vin`, `marca`, `modelo`, `año`) y la fecha de la última inspección para facilitar el seguimiento preventivo.
+*   **Solicitudes**: Entidad central que coordina el servicio. Relaciona a clientes, empleados y vehículos, gestionando el ciclo de vida mediante una **máquina de estados** y capturando coordenadas geográficas detalladas.
+*   **Estados**: Tabla catálogo que rige el flujo operativo (Pendiente, En Recogida, En ITV, etc.). Los cambios de estado disparan eventos automáticos en el backend (ej. registro de horas o actualización de vehículo).
+*   **Resoluciones**: Contiene los veredictos oficiales de la inspección (Favorable, Desfavorable, Pendiente). Su valor es determinante para el cierre de la solicitud y la generación del historial técnico.
+*   **Historiales** (Registros ITV): Bitácora de auditoría con relación **1:1** con la solicitud. Se genera de forma automatizada al finalizar el proceso para preservar la "foto fija" del resultado técnico y las observaciones.
+*   **Pagos**: Gestión financiera con relación **1:1** con la solicitud. Almacena el `importe_cobro` final y los métodos aplicados, garantizando la trazabilidad económica del servicio.
+*   **Métodos y Estados de Pago**: Catálogos que normalizan las opciones de cobro (Efectivo, Tarjeta, Transferencia) y su situación administrativa (Pendiente, Pagado).
+*   **Mensajes de Contacto**: Gestiona las comunicaciones de la landing page. Permite al administrador leer, marcar como leído y almacenar la respuesta enviada al remitente.
+*   **Personal Access Tokens**: Tabla técnica requerida por **Laravel Sanctum** para la gestión de sesiones seguras y persistencia del estado de autenticación.
+
+#### Notas sobre Integridad y Automatismos
+1.  **Integridad Referencial**: Se aplica política de **borrado en cascada (CASCADE)** en entidades dependientes (Vehículos, Solicitudes) para evitar registros huérfanos si se elimina un usuario del sistema.
+2.  **Generación de Registros**: Los Historiales y Pagos se generan automáticamente mediante `SolicitudService` al cumplirse ciertas precondiciones del flujo, garantizando que nunca exista una solicitud finalizada sin su registro financiero y técnico asociado.
 
 ### 6.2 Diagrama Entidad-Relación
 
