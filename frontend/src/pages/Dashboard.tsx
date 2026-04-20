@@ -746,30 +746,38 @@ export default function DashboardPage() {
                       </h3>
                       <p className="text-xs text-yellow-700/80 dark:text-yellow-300/60 font-medium">
                         Cliente: {s.cliente?.nombre} {s.cliente?.apellidos} • {s.direccion}
-                        {s.fecha_programada && ` • Programado: ${format(new Date(s.fecha_programada), "dd/MM")}`}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 mt-4 md:mt-0">
-                      {(!s.fecha_programada || isToday(new Date(s.fecha_programada))) ? (
-                        <Button 
-                          asChild
-                          className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 px-6 rounded-xl group-hover:scale-105 active:scale-95"
-                        >
-                          <NavLink to={`/solicitudes/${s.id}`}>
-                            <FileText size={18} className="mr-2" />
-                            Gestionar ahora
-                          </NavLink>
-                        </Button>
-                      ) : (
-                        <Button 
-                          disabled
-                          className="bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-none font-bold h-11 px-6 rounded-xl cursor-not-allowed opacity-70"
-                        >
-                          <Clock size={18} className="mr-2" />
-                          {format(new Date(s.fecha_programada), "dd/MM")}
-                        </Button>
-                      )}
+                      {(() => {
+                        const isForToday = !s.fecha_programada || isToday(new Date(s.fecha_programada));
+                        const isBusy = contadores?.has_active_request;
+
+                        if (isForToday && !isBusy) {
+                          return (
+                            <Button 
+                              asChild
+                              className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 w-52 rounded-xl group-hover:scale-105 active:scale-95 flex items-center justify-center p-0"
+                            >
+                              <NavLink to={`/solicitudes/${s.id}`}>
+                                <FileText size={18} className="mr-2" />
+                                Gestionar ahora
+                              </NavLink>
+                            </Button>
+                          );
+                        }
+
+                        return (
+                          <Button 
+                            disabled
+                            className="bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-none font-bold h-11 w-52 rounded-xl cursor-not-allowed opacity-70 flex items-center justify-center p-0"
+                          >
+                            <Clock size={16} className="mr-2" />
+                            {isBusy && isForToday ? "Servicio en curso" : `Programado: ${format(new Date(s.fecha_programada), "dd/MM")}`}
+                          </Button>
+                        );
+                      })()}
                     </div>
                   </CardContent>
                 </CardSinBorde>

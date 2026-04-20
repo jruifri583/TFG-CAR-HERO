@@ -40,6 +40,17 @@ export default function Header() {
   const isPerfilPage = location.pathname === "/perfil";
   const isDashboard = location.pathname === "/dashboard";
 
+  const getAvatarFontSize = (text?: string) => {
+    if (!text) return "text-3xl md:text-8xl";
+    const len = text.length;
+    if (len <= 2) return "text-3xl md:text-8xl";
+    if (len === 3) return "text-2xl md:text-6xl font-black italic";
+    return "text-xl md:text-4xl font-black italic";
+  };
+
+  const avatarText = headerData?.avatar || headerData?.nombre?.charAt(0) || "";
+  const dynamicFontSize = getAvatarFontSize(avatarText);
+
   const routeConfig = Object.entries(ROUTE_CONFIG).find(([path]) =>
     location.pathname.startsWith(path),
   )?.[1];
@@ -114,13 +125,13 @@ export default function Header() {
                   src={headerData.imagen.startsWith("/avatars/") ? dominio + headerData.imagen : headerData.imagen} 
                   className="object-cover" 
                 />
-                <AvatarFallback className="bg-slate-100 text-blue-900 text-3xl md:text-8xl font-black">
-                  {headerData.avatar || headerData.nombre.charAt(0)}
+                <AvatarFallback className={`bg-slate-100 text-blue-900 ${dynamicFontSize} font-black`}>
+                  {avatarText}
                 </AvatarFallback>
               </Avatar>
             ) : (
-              <div className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 text-3xl md:text-8xl font-black shrink-0 shadow-md">
-                {headerData.avatar || headerData.nombre.charAt(0)}
+              <div className={`size-24 md:size-40 border-2 md:border-4 border-white rounded-full bg-slate-100 flex items-center justify-center text-blue-900 ${dynamicFontSize} font-black shrink-0 shadow-md`}>
+                {avatarText}
               </div>
             )}
           </div>
