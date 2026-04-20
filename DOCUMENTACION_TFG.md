@@ -1012,3 +1012,6 @@ Todo el desarrollo, manuales y justificaciones de diseño están permanentemente
 | Axios (HTTP Client) | https://axios-http.com/ |
 | Sonner (Toast Notifications) | https://sonner.emilkowal.dev/ |
 | date-fns (Date Utilities) | https://date-fns.org/ |
+| Certbot (SSL Client) | https://certbot.eff.org/docs/ |
+| Let's Encrypt (CA) | https://letsencrypt.org/docs/ |
+| Supervisor (Process Manager) | http://supervisord.org/ |
