@@ -14,16 +14,21 @@ class ContactController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $turnstileSecret = env('TURNSTILE_SECRET_KEY');
+        $isConfigured = $turnstileSecret && !str_starts_with($turnstileSecret, '1x00000');
+
+        $rules = [
             'nombre'  => 'required|string|max:100',
             'email'   => 'required|email|max:100',
             'mensaje' => 'required|string|min:10',
-            'cf_turnstile_response' => 'required|string'
-        ]);
+        ];
 
-        // Verificar Turnstile con Cloudflare
-        $turnstileSecret = env('TURNSTILE_SECRET_KEY');
-        if ($turnstileSecret) {
+        if ($isConfigured) {
+            $rules['cf_turnstile_response'] = 'required|string';
+        }
+
+        $validated = $request->validate($rules);
+        if ($isConfigured) {
             $response = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret'   => $turnstileSecret,
                 'response' => $request->input('cf_turnstile_response'),

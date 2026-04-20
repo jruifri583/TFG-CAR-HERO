@@ -29,6 +29,8 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
+import { getPaginationRange } from "@/lib/pagination-utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Pago {
   id: number;
@@ -50,6 +52,7 @@ export default function PagosPage() {
   const [search, setSearch] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchPagos = async (searchValue = search) => {
     try {
@@ -183,36 +186,57 @@ export default function PagosPage() {
         </TableHeader>
 
         <TableBody>
-          {pagos.map((pago) => (
-            <TableRow
-              key={pago.id}
-              className="cursor-pointer hover:bg-muted/50 h-14"
-              onClick={() => navigate(`/solicitudes/${pago.solicitud}`)}
-            >
-              <TableCell className="text-center">
-                <span className="font-semibold text-slate-700">{pago.solicitud ?? "-"}</span>
-              </TableCell>
-              <TableCell className="text-center font-bold text-slate-800">
-                {pago.importe != null
-                  ? Number(pago.importe) % 1 === 0
-                    ? Number(pago.importe).toLocaleString("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 0 })
-                    : Number(pago.importe).toLocaleString("es-ES", { style: "currency", currency: "EUR" })
-                  : "-"}
-              </TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
-                <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold ring-1 ring-primary/20">
-                  {pago.metodo_pago?.nombre || "-"}
-                </span>
-              </TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
-                <span className="text-xs font-semibold text-slate-500">
-                  {pago.created_at
-                    ? new Date(pago.created_at).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
-                    : "-"}
-                </span>
+          {pagos.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center py-12 text-muted-foreground italic">
+                No se han encontrado pagos.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            pagos.map((pago) => (
+              <TableRow
+                key={pago.id}
+                className="cursor-pointer hover:bg-muted/50 h-14"
+                onClick={() => navigate(`/solicitudes/${pago.solicitud}`)}
+              >
+                <TableCell className="text-center">
+                  <span className="font-semibold text-slate-700">
+                    {pago.solicitud ?? "-"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center font-bold text-slate-800">
+                  {pago.importe != null
+                    ? Number(pago.importe) % 1 === 0
+                      ? Number(pago.importe).toLocaleString("es-ES", {
+                          style: "currency",
+                          currency: "EUR",
+                          minimumFractionDigits: 0,
+                        })
+                      : Number(pago.importe).toLocaleString("es-ES", {
+                          style: "currency",
+                          currency: "EUR",
+                        })
+                    : "-"}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-center">
+                  <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold ring-1 ring-primary/20">
+                    {pago.metodo_pago?.nombre || "-"}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-center">
+                  <span className="text-xs font-semibold text-slate-500">
+                    {pago.created_at
+                      ? new Date(pago.created_at).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -229,8 +253,14 @@ export default function PagosPage() {
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
+            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <PaginationItem key={`dots-${index}`}>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                );
+              }
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -238,7 +268,7 @@ export default function PagosPage() {
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page);
+                      goToPage(Number(page));
                     }}
                   >
                     {page}

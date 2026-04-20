@@ -29,6 +29,8 @@ import {
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { ButtonGroup } from "@/components/ui/button-group";
+import { getPaginationRange } from "@/lib/pagination-utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface User {
   id: number;
@@ -72,6 +74,7 @@ export default function UsersPage({
   const [search, setSearch] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchUsers = async (searchValue = search) => {
     try {
@@ -215,63 +218,75 @@ export default function UsersPage({
         </TableHeader>
 
         <TableBody>
-          {users.map((user) => (
-            <TableRow
-              key={user.id}
-              className={`cursor-pointer transition-colors h-14 ${
-                isSelector && selectedId === user.id
-                  ? "bg-primary/10"
-                  : "hover:bg-muted/50"
-              }`}
-              onClick={() =>
-                isSelector && onSelect
-                  ? onSelect(user.id)
-                  : navigate(`/perfil/${user.id}`)
-              }
-            >
-              <TableCell className="text-center">
-                <img
-                  src={user.imagen ?? dominio + "/avatars/default_user.png"}
-                  alt="Imagen de usuario"
-                  className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      dominio + "/avatars/default_user.png";
-                  }}
-                />
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-center">
-                <span className="text-sm text-slate-500 font-medium truncate inline-block max-w-[150px]">
-                  {user.email}
-                </span>
-              </TableCell>
-              <TableCell className="text-left pl-4 md:text-center md:pl-2 font-medium truncate">
-                {[user.nombre, user.apellidos].filter(Boolean).join(" ")}
-              </TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
-                {user.telefono || "-"}
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-center">
-                <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold">
-                   {user.rol?.nombre || "-"}
-                </span>
-              </TableCell>
-              <TableCell className="text-center">
-                {user.activo ? (
-                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block"/>
-                ) : (
-                    <span className="w-2 h-2 rounded-full bg-red-500 inline-block"/>
-                )}
-              </TableCell>
-              <TableCell className="hidden sm:table-cell text-center">
-                <span className="text-xs font-semibold text-slate-500 lowercase">
-                  {user.created_at
-                    ? new Date(user.created_at).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
-                    : "-"}
-                </span>
+          {users.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-12 text-muted-foreground italic">
+                No se han encontrado usuarios.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            users.map((user) => (
+              <TableRow
+                key={user.id}
+                className={`cursor-pointer transition-colors h-14 ${
+                  isSelector && selectedId === user.id
+                    ? "bg-primary/10"
+                    : "hover:bg-muted/50"
+                }`}
+                onClick={() =>
+                  isSelector && onSelect
+                    ? onSelect(user.id)
+                    : navigate(`/perfil/${user.id}`)
+                }
+              >
+                <TableCell className="text-center">
+                  <img
+                    src={user.imagen ?? dominio + "/avatars/default_user.png"}
+                    alt="Imagen de usuario"
+                    className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        dominio + "/avatars/default_user.png";
+                    }}
+                  />
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-center">
+                  <span className="text-sm text-slate-500 font-medium truncate inline-block max-w-[150px]">
+                    {user.email}
+                  </span>
+                </TableCell>
+                <TableCell className="text-left pl-4 md:text-center md:pl-2 font-medium truncate">
+                  {[user.nombre, user.apellidos].filter(Boolean).join(" ")}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-center">
+                  {user.telefono || "-"}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-center">
+                  <span className="px-2 py-1 bg-slate-100 rounded-lg text-xs font-bold">
+                    {user.rol?.nombre || "-"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  {user.activo ? (
+                    <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
+                  ) : (
+                    <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
+                  )}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-center">
+                  <span className="text-xs font-semibold text-slate-500 lowercase">
+                    {user.created_at
+                      ? new Date(user.created_at).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -288,8 +303,14 @@ export default function UsersPage({
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
+            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <PaginationItem key={`dots-${index}`}>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                );
+              }
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -297,7 +318,7 @@ export default function UsersPage({
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page);
+                      goToPage(Number(page));
                     }}
                   >
                     {page}

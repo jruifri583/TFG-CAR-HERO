@@ -26,6 +26,10 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - certbot_etc:/etc/letsencrypt:ro
+      - certbot_var:/var/www/certbot:ro
     depends_on:
       - backend
     networks:
@@ -84,6 +88,19 @@ services:
       - carhero_network
 
   # ─────────────────────────────────────────────
+  # CERTBOT — Gestión automática de SSL
+  # ─────────────────────────────────────────────
+  certbot:
+    image: certbot/certbot
+    container_name: carhero_certbot
+    volumes:
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - carhero_network
+
+  # ─────────────────────────────────────────────
   # BASE DE DATOS — MySQL 8.0
   # ─────────────────────────────────────────────
   db:
@@ -114,6 +131,10 @@ volumes:
   db_data:
     driver: local
   backend_storage:
+    driver: local
+  certbot_etc:
+    driver: local
+  certbot_var:
     driver: local
 
 # ─────────────────────────────────────────────

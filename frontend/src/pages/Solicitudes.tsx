@@ -26,6 +26,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { getPaginationRange } from "@/lib/pagination-utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Solicitud {
   id: number;
@@ -112,6 +114,7 @@ export default function SolicitudesPage({
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const role = user?.rol?.slug;
 
   const fetchSolicitudes = async (searchValue = search) => {
@@ -479,8 +482,14 @@ export default function SolicitudesPage({
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
+            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <PaginationItem key={`dots-${index}`}>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                );
+              }
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -488,7 +497,7 @@ export default function SolicitudesPage({
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page);
+                      goToPage(Number(page));
                     }}
                   >
                     {page}

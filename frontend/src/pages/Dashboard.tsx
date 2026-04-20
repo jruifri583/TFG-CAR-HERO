@@ -567,7 +567,7 @@ export default function DashboardPage() {
                     <TableBody>
                       {solicitudesRecientes.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="py-12 text-center text-muted-foreground italic font-bold">
+                          <TableCell colSpan={6} className="py-12 text-center text-muted-foreground italic font-bold">
                             No hay nuevas solicitudes en este momento
                           </TableCell>
                         </TableRow>
@@ -606,7 +606,7 @@ export default function DashboardPage() {
                     <TableBody>
                       {solicitudesActualizadas.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="py-12 text-center text-muted-foreground italic font-bold">
+                          <TableCell colSpan={6} className="py-12 text-center text-muted-foreground italic font-bold">
                             Sin actualizaciones recientes para mostrar
                           </TableCell>
                         </TableRow>

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, MailOpen } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, MailOpen, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useDebouncedCallback } from "use-debounce";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Table,
   TableHeader,
@@ -20,6 +23,8 @@ import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CardSinBorde, CardContent } from "@/components/ui/card";
+import { getPaginationRange } from "@/lib/pagination-utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Mensaje {
   id: number;
@@ -41,13 +46,16 @@ export default function MensajesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const isMobile = useIsMobile();
 
   // Accordion row state
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const [replying, setReplying] = useState(false);
+  const [search, setSearch] = useState("");
+  const [inputFocused, setInputFocused] = useState(false);
 
-  const fetchMensajes = async () => {
+  const fetchMensajes = async (searchValue = search) => {
     try {
       const params = new URLSearchParams();
       params.append("page", currentPage.toString());
@@ -55,9 +63,10 @@ export default function MensajesPage() {
         params.append("sort", sortField);
         params.append("order", sortOrder);
       }
+      if (searchValue) params.append("search", searchValue);
       const res = await api.get(`/mensajes?${params.toString()}`);
       setMensajes(res.data.data);
-      setTotalPages(res.data.last_page || 1);
+      setTotalPages(res.data.meta?.last_page || res.data.last_page || 1);
     } catch (error) {
       console.error("Error cargando mensajes:", error);
     } finally {
@@ -68,6 +77,11 @@ export default function MensajesPage() {
   useEffect(() => {
     fetchMensajes();
   }, [currentPage, sortField, sortOrder]);
+
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    setCurrentPage(1);
+    fetchMensajes(value);
+  }, 300);
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -155,6 +169,44 @@ export default function MensajesPage() {
 
   return (
     <>
+      <div className="flex justify-end mb-4 items-center w-full overflow-x-auto pb-2">
+        <ButtonGroup>
+          <div className="relative flex items-center">
+            {!search && (
+              <Search
+                size={14}
+                className="absolute left-2.5 text-muted-foreground pointer-events-none"
+              />
+            )}
+            <Input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              className={`border-black rounded-md py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+                ${search ? "pl-3" : "pl-8"}
+                ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
+                focus-visible:ring-0`}
+            />
+            {search && (
+              <button
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setSearch("");
+                  debouncedSearch("");
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        </ButtonGroup>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -295,8 +347,14 @@ export default function MensajesPage() {
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
+            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <PaginationItem key={`dots-${index}`}>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                );
+              }
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -304,7 +362,7 @@ export default function MensajesPage() {
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page);
+                      goToPage(Number(page));
                     }}
                   >
                     {page}

@@ -27,7 +27,7 @@ function PaginationContent({
   return (
     <ul
       data-slot="pagination-content"
-      className={cn("flex flex-row flex-nowrap overflow-x-auto items-center justify-start sm:justify-center gap-1 pb-2 w-full max-w-full", className)}
+      className={cn("flex flex-row flex-nowrap items-center justify-center gap-0.5 sm:gap-1 w-full", className)}
       {...props}
     />
   );

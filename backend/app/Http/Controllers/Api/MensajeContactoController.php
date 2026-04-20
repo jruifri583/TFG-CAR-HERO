@@ -19,12 +19,28 @@ class MensajeContactoController extends Controller
         $allowedSorts = ['nombre', 'email', 'created_at', 'leido_at'];
 
         $query = MensajeContacto::query();
+        $search = $request->query("search");
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                if (is_numeric($search)) {
+                    // Si es número, buscamos por año, mes o día de la fecha de creación
+                    $q->whereYear("created_at", $search)
+                      ->orWhereMonth("created_at", $search)
+                      ->orWhereDay("created_at", $search);
+                } else {
+                    // Si es texto, buscamos por nombre o email
+                    $q->where("nombre", "like", "%" . $search . "%")
+                      ->orWhere("email", "like", "%" . $search . "%");
+                }
+            });
+        }
 
         if (in_array($sort, $allowedSorts)) {
             $query->orderBy($sort, $order);
         }
 
-        return response()->json($query->paginate(10));
+        return response()->json($query->paginate(6));
     }
 
     /**

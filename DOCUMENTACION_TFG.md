@@ -196,7 +196,8 @@ sequenceDiagram
 | **Protección de vistas** | Route Guards | Componente `ProtectedRoute` en React que verifica rol en el contexto de autenticación y redirige a `/login` o `/dashboard` según corresponda |
 | **Validación de datos** | Form Requests | `StoreSolicitudRequest`, `StoreUserRequest`, `StoreVehiculoRequest`, etc. con reglas de validación estrictas en el servidor |
 | **Protección CORS** | Configuración explícita | `config/cors.php` limita los orígenes permitidos a `FRONTEND_URL` con `supports_credentials: true` |
-| **Anti-spam** | Cloudflare Turnstile | Verificación server-side del token CAPTCHA en el endpoint público de contacto |
+| **Anti-spam** | Cloudflare Turnstile | Verificación server-side del token CAPTCHA en el endpoint público de contacto con **detección inteligente de configuración** (desactivado automáticamente si no hay claves reales para facilitar el desarrollo) |
+| **Cifrado** | SSL / TLS | Certificados gratuitos de **Let's Encrypt** gestionados y renovados automáticamente mediante **Certbot** en el entorno de producción |
 | **OAuth externo** | Google API Client | Verificación del `id_token` de Google directamente contra los servidores de Google en el backend |
 | **Ocultación de datos** | Hidden attributes | El campo `password` se excluye automáticamente de toda serialización JSON del modelo `User` |
 | **Interceptor HTTP** | Axios interceptor | Inyección automática del `Bearer Token` en cada petición saliente del frontend |
@@ -755,6 +756,7 @@ Para el entorno de producción se han creado **ficheros optimizados independient
 | **MySQL** | Puerto 3306 expuesto al host | Puerto 3306 solo interno (no expuesto) |
 | **Proxy API** | El frontend llama directamente a `localhost:8000` | Nginx del frontend hace reverse proxy a `/api/` → backend |
 | **OPcache** | Desactivado | Habilitado y optimizado |
+| **Cifrado SSL** | ❌ Ninguno (HTTP) | ✅ **Full SSL (HTTPS)** gestionado por Certbot |
 | **APP_DEBUG** | `true` | `false` |
 | **Compresión** | Ninguna | Gzip habilitado en Nginx |
 | **Cache de assets** | Sin cache | Cache `1 año` con header `immutable` |
@@ -782,12 +784,8 @@ graph LR
 
 | Fichero | Descripción |
 |---|---|
-| `docker-compose.prod.yml` | Compose de producción: 3 servicios, red bridge, volúmenes persistentes |
-| `frontend/Dockerfile.prod` | Multi-stage: Node 20 (build) → Nginx 1.27 Alpine (serve) |
-| `frontend/nginx.conf` | SPA fallback + reverse proxy `/api/` + gzip + cache de assets |
-| `backend/Dockerfile.prod` | Multi-stage: Composer 2 (deps) → PHP 8.2-FPM Alpine + Nginx + Supervisor |
-| `backend/docker/nginx-backend.conf` | Nginx interno que sirve Laravel via FastCGI a PHP-FPM |
 | `backend/docker/supervisord.conf` | Gestiona PHP-FPM + Nginx + Queue Worker en un solo contenedor |
+| `docker-compose.prod.yml` | Orquestación completa con soporte para **Certbot** y volúmenes persistentes |
 | `.env.prod.example` | Plantilla de variables de entorno para producción |
 | `deploy.sh` | Script de despliegue automatizado |
 
@@ -841,7 +839,17 @@ El script automáticamente:
 - Ejecuta las migraciones
 - Cachea configuración, rutas y vistas de Laravel
 
-**5. Poblar datos iniciales (solo la primera vez)**
+**5. Configurar SSL con Certbot (Solo tras tener dominio)**
+
+Una vez que el dominio apunte a la IP de la instancia, ejecutar:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm certbot certonly --webroot --webroot-path /var/www/certbot -d tu-dominio.com
+```
+
+Tras generar los certificados, descomentar el bloque SSL en `frontend/nginx.conf` y reiniciar el contenedor de frontend.
+
+**6. Poblar datos iniciales (solo la primera vez)**
 
 ```bash
 docker exec carhero_backend php artisan db:seed --force
@@ -939,6 +947,8 @@ El proceso ha sido documentado adoptando metodología estructurada, dejando cons
 - **Optimización de Formularios Asíncronos**: Formularios masivos como `SolicitudDetail` y `NuevoVehiculo` presentaban cuellos de botella por exceso de renderizaciones. La refactorización incluyó el uso integral de **React Hook Form + Zod**, mejorando drásticamente la UX con feedback sincrónico.
 - **Concurrencia de Empleados**: Se detectó que un empleado podía iniciar la recogida de un segundo vehículo sin haber entregado el primero. Se implementó una validación de concurrencia en el evento `updating` del modelo `Solicitud`.
 - **Unicidad de Vehículo Activo**: Se implementó una validación en el evento `creating` que impide crear una solicitud para un vehículo que ya tiene otra solicitud activa (no finalizada ni cancelada).
+- **Gestión Inteligente de Anti-spam (Turnstile)**: Se detectó que las claves de prueba de Cloudflare generaban un mensaje de aviso intrusivo ("Solo para pruebas"). Se refactorizó la lógica en frontend y backend para que el sistema detecte automáticamente si las claves son reales o de prueba, desactivando el widget dinámicamente en entornos de desarrollo sin comprometer el despliegue final.
+- **Orquestación de SSL en Contenedores**: Se resolvió el desafío de la renovación de certificados SSL en una arquitectura microservicios mediante la integración de un contenedor de **Certbot** compartiendo volúmenes con **Nginx**, automatizando la renovación cada 12 horas sin intervención manual.
 
 ---
 

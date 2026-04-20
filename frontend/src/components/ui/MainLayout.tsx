@@ -10,7 +10,7 @@ export default function MainLayout() {
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex flex-col flex-1 h-full overflow-y-auto overflow-x-hidden">
+      <div className="flex flex-col flex-1 h-full overflow-y-scroll overflow-x-hidden">
         <Header />
         <main className="p-4 md:p-6 w-full">
           <Outlet />

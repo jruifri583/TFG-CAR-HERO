@@ -32,6 +32,8 @@ import {
 
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
+import { getPaginationRange } from "@/lib/pagination-utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Vehiculo {
   id: number;
@@ -48,6 +50,8 @@ const dominio = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function VehiculosPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const role = user?.rol?.slug ?? "";
   const [loading, setLoading] = useState(true);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
@@ -57,7 +61,6 @@ export default function VehiculosPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [search, setSearch] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
-  const navigate = useNavigate();
 
   const fetchVehiculos = async (searchValue = search) => {
     try {
@@ -143,6 +146,7 @@ export default function VehiculosPage() {
           currentPage={currentPage}
           goToPage={goToPage}
           navigate={navigate}
+          isMobile={isMobile}
         />
       )}
       {role === "cliente" && (
@@ -174,6 +178,7 @@ interface AdminListProps {
   currentPage: number;
   goToPage: (page: number) => void;
   navigate: (path: string) => void;
+  isMobile: boolean;
 }
 
 function AdminList({
@@ -189,6 +194,7 @@ function AdminList({
   currentPage,
   goToPage,
   navigate,
+  isMobile,
 }: AdminListProps) {
   return (
     <>
@@ -245,7 +251,7 @@ function AdminList({
               Matrícula{renderSortArrow("matricula")}
             </TableHead>
             <TableHead
-              className="cursor-pointer text-left pl-4 md:text-center md:pl-2 min-w-0 md:w-[220px]"
+              className="cursor-pointer text-center min-w-0 md:w-[220px]"
               onClick={() => handleSort("marca")}
             >
               Marca y Modelo{renderSortArrow("marca")}
@@ -263,53 +269,61 @@ function AdminList({
         </TableHeader>
 
         <TableBody>
-          {vehiculos.map((vehiculo) => (
-            <TableRow
-              key={vehiculo.id}
-              className="cursor-pointer hover:bg-muted/50 h-14"
-              onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
-            >
-              <TableCell className="text-center">
-                <img
-                  src={vehiculo.imagen ?? dominio + "/avatars/default_car.png"}
-                  className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      dominio + "/avatars/default_car.png";
-                  }}
-                />
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-center truncate">
-                <span className="inline-flex items-center border-2 border-black bg-white text-black rounded overflow-hidden text-[13px] font-black tracking-widest shadow-md h-8">
-                  <span className="w-5 h-full bg-blue-700 shrink-0 flex flex-col items-center justify-between py-[4px]">
-                    <div className="grid grid-cols-2 gap-[1.5px] opacity-80">
-                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
-                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
-                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
-                      <div className="w-[2px] h-[2px] bg-white rounded-full" />
-                    </div>
-                    <span className="text-[8px] text-white font-black translate-y-[1px]">
-                      E
-                    </span>
-                  </span>
-                  <span className="px-3">{vehiculo.matricula}</span>
-                </span>
-              </TableCell>
-              <TableCell className="text-left pl-4 md:text-center md:pl-2 truncate font-medium">
-                {[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" ")}
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-center text-slate-500 font-bold">
-                {vehiculo.año ?? "-"}
-              </TableCell>
-              <TableCell className="hidden md:table-cell text-center">
-                <span className="text-sm font-bold text-slate-700">
-                  {vehiculo.kilometros != null
-                    ? vehiculo.kilometros.toLocaleString("es-ES") + " km"
-                    : "-"}
-                </span>
+          {vehiculos.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="text-center py-12 text-muted-foreground italic">
+                No se han encontrado vehículos.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            vehiculos.map((vehiculo) => (
+              <TableRow
+                key={vehiculo.id}
+                className="cursor-pointer hover:bg-muted/50 h-14"
+                onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
+              >
+                <TableCell className="text-center">
+                  <img
+                    src={vehiculo.imagen ?? dominio + "/avatars/default_car.png"}
+                    className="w-10 h-10 rounded-full shadow-sm object-cover mx-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        dominio + "/avatars/default_car.png";
+                    }}
+                  />
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-center truncate">
+                  <span className="inline-flex items-center border-2 border-black bg-white text-black rounded overflow-hidden text-[13px] font-black tracking-widest shadow-md h-8">
+                    <span className="w-5 h-full bg-blue-700 shrink-0 flex flex-col items-center justify-between py-[4px]">
+                      <div className="grid grid-cols-2 gap-[1.5px] opacity-80">
+                        <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                        <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                        <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                        <div className="w-[2px] h-[2px] bg-white rounded-full" />
+                      </div>
+                      <span className="text-[8px] text-white font-black translate-y-[1px]">
+                        E
+                      </span>
+                    </span>
+                    <span className="px-3">{vehiculo.matricula}</span>
+                  </span>
+                </TableCell>
+                <TableCell className="text-center truncate font-medium">
+                  {[vehiculo.marca, vehiculo.modelo].filter(Boolean).join(" ")}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-center text-slate-500 font-bold">
+                  {vehiculo.año ?? "-"}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-center">
+                  <span className="text-sm font-bold text-slate-700">
+                    {vehiculo.kilometros != null
+                      ? vehiculo.kilometros.toLocaleString("es-ES") + " km"
+                      : "-"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
       {totalPages > 1 && (
@@ -325,8 +339,14 @@ function AdminList({
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
+            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <PaginationItem key={`dots-${index}`}>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                );
+              }
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -334,7 +354,7 @@ function AdminList({
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page);
+                      goToPage(Number(page));
                     }}
                   >
                     {page}
@@ -427,37 +447,43 @@ function ClienteList({
           </Button>
         </ButtonGroup>
       </div>
-      <div className="flex flex-wrap gap-6 justify-center md:justify-start">
-        {vehiculos.map((vehiculo) => (
-          <CardSinBorde
-            key={vehiculo.id}
-            className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full sm:w-52 p-0 rounded-lg sm:h-72"
-            onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
-          >
-            {/* Imagen a pantalla completa */}
-            <div className="w-full aspect-square overflow-hidden">
-              <img
-                src={vehiculo.imagen ?? dominio + "/avatars/default_car.png"}
-                className="object-cover w-full h-full"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    dominio + "/avatars/default_car.png";
-                }}
-              />
-            </div>
+      {vehiculos.length === 0 ? (
+        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl w-full">
+          <p className="text-slate-500 font-medium italic">No se han encontrado vehículos.</p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-6 justify-center md:justify-start">
+          {vehiculos.map((vehiculo) => (
+            <CardSinBorde
+              key={vehiculo.id}
+              className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full sm:w-52 p-0 rounded-lg sm:h-72"
+              onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
+            >
+              {/* Imagen a pantalla completa */}
+              <div className="w-full aspect-square overflow-hidden">
+                <img
+                  src={vehiculo.imagen ?? dominio + "/avatars/default_car.png"}
+                  className="object-cover w-full h-full"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      dominio + "/avatars/default_car.png";
+                  }}
+                />
+              </div>
 
-            <CardContent className="p-4 space-y-1">
-              <h2 className="text-lg font-semibold">
-                {vehiculo.marca} {vehiculo.modelo}
-              </h2>
+              <CardContent className="p-4 space-y-1">
+                <h2 className="text-lg font-semibold">
+                  {vehiculo.marca} {vehiculo.modelo}
+                </h2>
 
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">{vehiculo.matricula}</span>
-              </p>
-            </CardContent>
-          </CardSinBorde>
-        ))}
-      </div>
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-medium">{vehiculo.matricula}</span>
+                </p>
+              </CardContent>
+            </CardSinBorde>
+          ))}
+        </div>
+      )}
     </>
   );
 }

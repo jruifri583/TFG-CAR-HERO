@@ -20,6 +20,8 @@ import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
+import { getPaginationRange } from "@/lib/pagination-utils";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Historial {
   solicitud_id: number;
@@ -44,6 +46,7 @@ export default function HistorialPage() {
   const [search, setSearch] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const fetchHistoriales = async (searchValue = search) => {
     try {
@@ -163,31 +166,47 @@ export default function HistorialPage() {
         </TableHeader>
 
         <TableBody>
-          {historiales.map((h) => (
-            <TableRow
-              key={h.solicitud_id}
-              className="cursor-pointer hover:bg-muted/50 h-14"
-              onClick={() => navigate(`/solicitudes/${h.solicitud_id}`)}
-            >
-              <TableCell className="text-center">
-                <span className="font-semibold text-slate-700">{h.solicitud_id}</span>
-              </TableCell>
-              <TableCell className="text-center font-medium">
-                <span className="text-xs font-semibold text-slate-500">
-                  {h.fecha_itv
-                    ? new Date(h.fecha_itv.replace(/-/g, '/')).toLocaleDateString("es-ES", { day: '2-digit', month: 'long', year: 'numeric' })
-                    : "-"}
-                </span>
-              </TableCell>
-              <TableCell className="text-center">
-                <span
-                  className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre?.toLowerCase()] ?? "bg-gray-100 text-gray-800"}`}
-                >
-                  {h.resolucion?.nombre ?? "-"}
-                </span>
+          {historiales.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={3} className="text-center py-12 text-muted-foreground italic">
+                No se han encontrado registros en el historial.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            historiales.map((h) => (
+              <TableRow
+                key={h.solicitud_id}
+                className="cursor-pointer hover:bg-muted/50 h-14"
+                onClick={() => navigate(`/solicitudes/${h.solicitud_id}`)}
+              >
+                <TableCell className="text-center">
+                  <span className="font-semibold text-slate-700">
+                    {h.solicitud_id}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center font-medium">
+                  <span className="text-xs font-semibold text-slate-500">
+                    {h.fecha_itv
+                      ? new Date(
+                          h.fecha_itv.replace(/-/g, "/")
+                        ).toLocaleDateString("es-ES", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                      : "-"}
+                  </span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <span
+                    className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre?.toLowerCase()] ?? "bg-gray-100 text-gray-800"}`}
+                  >
+                    {h.resolucion?.nombre ?? "-"}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -204,8 +223,14 @@ export default function HistorialPage() {
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }).map((_, index) => {
-              const page = index + 1;
+            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+              if (page === "...") {
+                return (
+                  <PaginationItem key={`dots-${index}`}>
+                    <span className="px-2">...</span>
+                  </PaginationItem>
+                );
+              }
               return (
                 <PaginationItem key={page}>
                   <PaginationLink
@@ -213,7 +238,7 @@ export default function HistorialPage() {
                     isActive={currentPage === page}
                     onClick={(e) => {
                       e.preventDefault();
-                      goToPage(page);
+                      goToPage(Number(page));
                     }}
                   >
                     {page}
