@@ -1,0 +1,119 @@
+# =============================================================================
+#  CAR-HERO — Docker Compose para DOKPLOY
+# =============================================================================
+#
+#  Este archivo está optimizado para ser desplegado mediante Dokploy.
+#  Dokploy gestiona automáticamente:
+#    - El Reverse Proxy (Traefik)
+#    - Certificados SSL (Let's Encrypt)
+#    - Networking interno entre contenedores
+#
+#  IMPORTANTE: No es necesario mapear puertos 80/443 aquí.
+# =============================================================================
+
+services:
+
+  # ─────────────────────────────────────────────
+  # FRONTEND — Nginx sirviendo el build de React
+  # ─────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_TURNSTILE_SITE_KEY: ${VITE_TURNSTILE_SITE_KEY}
+    container_name: carhero_frontend
+    restart: always
+    # Los puertos los gestiona Dokploy desde su panel (ej: 80 interno -> Dominio)
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - carhero_dokploy_network
+
+  # ─────────────────────────────────────────────
+  # BACKEND — PHP-FPM + Nginx
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: carhero_backend
+    restart: always
+    expose:
+      - "8000"
+    environment:
+      APP_NAME: CAR-HERO
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
+      APP_URL: ${APP_URL}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      CACHE_DRIVER: file
+      SESSION_DRIVER: file
+      QUEUE_CONNECTION: database
+      FRONTEND_URL: ${FRONTEND_URL}
+      SANCTUM_STATEFUL_DOMAINS: ${SANCTUM_STATEFUL_DOMAINS}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      MAIL_MAILER: resend
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY}
+    volumes:
+      - backend_storage:/var/www/html/storage/app/public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - carhero_dokploy_network
+
+  # ─────────────────────────────────────────────
+  # BASE DE DATOS — MySQL 8.0
+  # ─────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: carhero_mysql_dokploy
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data_dokploy:/var/lib/mysql
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - carhero_dokploy_network
+
+# ─────────────────────────────────────────────
+# VOLÚMENES PERSISTENTES
+# ─────────────────────────────────────────────
+volumes:
+  db_data_dokploy:
+    driver: local
+  backend_storage:
+    driver: local
+
+# ─────────────────────────────────────────────
+# RED INTERNA
+# ─────────────────────────────────────────────
+networks:
+  carhero_dokploy_network:
+    driver: bridge
