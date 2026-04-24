@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Lock, User as UserIcon } from "lucide-react";
+import { Lock, User as UserIcon, MapPin, Trash2, Plus } from "lucide-react";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CardContent, CardSinBorde } from "@/components/ui/card";
+import { Card, CardContent, CardSinBorde } from "@/components/ui/card";
 import { useAuth } from "@/context/useAuth";
 import { useHeader } from "@/context/HeaderContext";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -80,6 +80,16 @@ const schema = z.object({
     .max(10, "Máximo 10 caracteres")
     .optional()
     .or(z.literal("")),
+  direcciones: z.array(z.object({
+    alias: z.string().max(100, "Máximo 100 caracteres").optional().or(z.literal("")),
+    direccion: z.string().min(1, "La dirección es obligatoria").max(255, "Máximo 255 caracteres"),
+    ciudad: z.string().min(1, "La ciudad es obligatoria").max(100, "Máximo 100 caracteres"),
+    codigo_postal: z.string().min(1, "El C.P. es obligatorio").max(10, "Máximo 10 caracteres"),
+  })).optional(),
+    current_password: z
+      .string()
+      .optional()
+      .or(z.literal("")),
     password: z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres")
@@ -117,6 +127,13 @@ interface User {
   activo: boolean;
   rol_id?: number;
   rol: { id: number; nombre: string; slug: string } | null;
+  direcciones?: Array<{
+    id?: number;
+    alias: string | null;
+    direccion: string;
+    ciudad: string | null;
+    codigo_postal: string | null;
+  }>;
 }
 
 export default function PerfilPage() {
@@ -141,10 +158,17 @@ export default function PerfilPage() {
     reset,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+
+  const { fields: direccionesFields, append: appendDireccion, remove: removeDireccion } = useFieldArray({
+    control,
+    name: "direcciones",
+  });
+
   useEffect(() => {
     // Resetea estado de edición global
     setIsEditing(false);
@@ -170,10 +194,18 @@ export default function PerfilPage() {
           direccion: userData.direccion ?? "",
           ciudad: userData.ciudad ?? "",
           codigo_postal: userData.codigo_postal ?? "",
+          direcciones: (userData.direcciones || []).map((d: any) => ({
+            id: d.id,
+            alias: d.alias ?? "",
+            direccion: d.direccion ?? "",
+            ciudad: d.ciudad ?? "",
+            codigo_postal: d.codigo_postal ?? ""
+          })),
+          current_password: "",
           password: "",
           password_confirmation: "",
           rol_id: userData.rol?.id,
-          activo: userData.activo,
+          activo: !!userData.activo,
         });
 
         // Actualizar header con datos reales
@@ -239,10 +271,18 @@ export default function PerfilPage() {
       direccion: user?.direccion ?? "",
       ciudad: user?.ciudad ?? "",
       codigo_postal: user?.codigo_postal ?? "",
+      direcciones: (user?.direcciones || []).map((d: any) => ({
+        id: d.id,
+        alias: d.alias ?? "",
+        direccion: d.direccion ?? "",
+        ciudad: d.ciudad ?? "",
+        codigo_postal: d.codigo_postal ?? ""
+      })),
+      current_password: "",
       password: "",
       password_confirmation: "",
       rol_id: user?.rol?.id,
-      activo: user?.activo,
+      activo: !!user?.activo,
     });
     setIsEditing(false);
   };
@@ -257,6 +297,7 @@ export default function PerfilPage() {
       if (!payload.password) {
         delete payload.password;
         delete payload.password_confirmation;
+        delete payload.current_password;
       }
 
       const res = isOwnProfile
@@ -277,25 +318,34 @@ export default function PerfilPage() {
         direccion: updated.direccion ?? "",
         ciudad: updated.ciudad ?? "",
         codigo_postal: updated.codigo_postal ?? "",
+        direcciones: (updated.direcciones || []).map((d: any) => ({
+          id: d.id,
+          alias: d.alias ?? "",
+          direccion: d.direccion ?? "",
+          ciudad: d.ciudad ?? "",
+          codigo_postal: d.codigo_postal ?? ""
+        })),
+        current_password: "",
         password: "",
         password_confirmation: "",
         rol_id: updated.rol?.id,
-        activo: updated.activo,
+        activo: !!updated.activo,
       });
 
       setIsEditing(false);
       toast.success("¡Perfil actualizado con éxito!");
     } catch (error: any) {
       console.error("Error actualizando perfil:", error);
-      const msg = error.response?.data?.message || "Ocurrió un error al guardar los cambios";
-      toast.error(msg);
+      if (error.response?.status === 422 && error.response?.data?.errors?.current_password) {
+        toast.error(error.response.data.errors.current_password[0]);
+      } else {
+        const msg = error.response?.data?.message || "Ocurrió un error al guardar los cambios";
+        toast.error(msg);
+      }
     }
   };
 
-  const onValidationError = (errors: any) => {
-    console.error("Errores de validación:", errors);
-    toast.error("Por favor, revisa los campos del formulario");
-  };
+
 
   if (!user) return <p>Cargando...</p>;
 
@@ -307,30 +357,9 @@ export default function PerfilPage() {
     <div className="w-full">
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-6 pt-6">
-          {((isStaff || isOwnProfile) && user?.rol?.slug === 'cliente') && !isEditing && (
-            <div className="flex justify-end pb-2">
-              <ButtonGroup>
-                <Button
-                  className="h-9 px-4"
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(`/perfil/${id}/nuevo-vehiculo`)}
-                >
-                  Añadir vehículo
-                </Button>
-                <Button
-                  className="h-9 px-4"
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(`/perfil/${id}/nueva-solicitud`)}
-                >
-                  Crear solicitud
-                </Button>
-              </ButtonGroup>
-            </div>
-          )}
 
-          <form onSubmit={handleSubmit(onSubmit, onValidationError)} noValidate>
+
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {/* Bloque 1: Credenciales */}
               <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
@@ -354,32 +383,50 @@ export default function PerfilPage() {
                   )}
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Rol de usuario</label>
-                  {isEditing && isAdmin && !isOwnProfile ? (
-                    <select
-                      className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary outline-none transition-all"
-                      value={watch("rol_id") ?? ""}
-                      onChange={(e) => setValue("rol_id", Number(e.target.value))}
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={user.rol?.nombre ?? "Sin rol"}
-                      readOnly
-                      className="pointer-events-none bg-slate-50 border-slate-200"
-                    />
-                  )}
-                </div>
+                {isAdmin && (
+                  <div className="space-y-1">
+                    <label className="text-sm font-medium">Rol de usuario</label>
+                    {isEditing && isAdmin && !isOwnProfile ? (
+                      <select
+                        className="w-full border border-slate-200 rounded-md px-3 py-2 text-sm bg-background focus:ring-2 focus:ring-primary outline-none transition-all"
+                        value={watch("rol_id") ?? ""}
+                        onChange={(e) => setValue("rol_id", Number(e.target.value))}
+                      >
+                        {ROLES.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.nombre}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={user.rol?.nombre ?? "Sin rol"}
+                        readOnly
+                        className="pointer-events-none bg-slate-50 border-slate-200"
+                      />
+                    )}
+                  </div>
+                )}
 
                 {isEditing && (
                   <div className="space-y-4 pt-2 border-t-2 border-primary mt-4">
+                    {isOwnProfile && (
+                      <div className="space-y-1">
+                        <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Contraseña Actual</label>
+                        <Input
+                          type="password"
+                          {...register("current_password")}
+                          placeholder="Requerido para cambiar la contraseña"
+                          className="bg-white border-slate-200"
+                        />
+                        {errors.current_password && (
+                          <p className="text-red-500 text-xs font-medium">
+                            {errors.current_password.message}
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Nueva Contraseña</label>
                       <Input
@@ -544,6 +591,93 @@ export default function PerfilPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Bloque 3: Direcciones Adicionales */}
+              {(direccionesFields.length > 0 || isEditing) && (
+                <div className="space-y-4 pt-6 border-t-2 border-primary col-span-1 sm:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-primary/10 p-2 rounded-lg">
+                      <MapPin className="text-primary" size={20} />
+                    </div>
+                    <h3 className="font-bold text-lg">Direcciones Adicionales</h3>
+                  </div>
+                  {isEditing && (
+                    <Button 
+                      type="button" 
+                      onClick={() => appendDireccion({ alias: "", direccion: "", ciudad: "", codigo_postal: "" })}
+                      className="w-50 gap-2 font-bold"
+                    >
+                      <Plus size={16} /> Añadir dirección
+                    </Button>
+                  )}
+                </div>
+
+                {direccionesFields.length === 0 && !isEditing ? (
+                  <p className="text-sm text-muted-foreground italic">No hay direcciones adicionales registradas.</p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {direccionesFields.map((field, index) => (
+                      <Card key={field.id} className="relative overflow-hidden shadow-sm transition-all p-0 bg-blue-50/30 border-blue-100/50">
+                        <CardContent className="p-6 space-y-4">
+                          {isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => removeDireccion(index)}
+                              className="absolute top-3 right-3 p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-full transition-all z-10"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-medium">Dirección</label>
+                            <Input
+                              {...register(`direcciones.${index}.direccion` as const)}
+                              readOnly={!isEditing}
+                              placeholder="Calle, número, piso..."
+                              className={`h-10 text-sm ${readOnlyClass} bg-transparent border-slate-200`}
+                            />
+                            {errors.direcciones?.[index]?.direccion && (
+                              <p className="text-red-500 text-xs font-medium mt-1">
+                                {errors.direcciones[index]?.direccion?.message}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">Ciudad</label>
+                              <Input
+                                {...register(`direcciones.${index}.ciudad` as const)}
+                                readOnly={!isEditing}
+                                className={`h-10 text-sm ${readOnlyClass} bg-transparent border-slate-200`}
+                              />
+                              {errors.direcciones?.[index]?.ciudad && (
+                                <p className="text-red-500 text-xs font-medium mt-1">
+                                  {errors.direcciones[index]?.ciudad?.message}
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-1.5">
+                              <label className="text-sm font-medium">C.P.</label>
+                              <Input
+                                {...register(`direcciones.${index}.codigo_postal` as const)}
+                                readOnly={!isEditing}
+                                className={`h-10 text-sm ${readOnlyClass} bg-transparent border-slate-200`}
+                              />
+                              {errors.direcciones?.[index]?.codigo_postal && (
+                                <p className="text-red-500 text-xs font-medium mt-1">
+                                  {errors.direcciones[index]?.codigo_postal?.message}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">

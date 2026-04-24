@@ -752,7 +752,6 @@ const StandardDetailView = memo(({
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
-        <Button variant="outline" onClick={() => navigate(-1)} className="w-50">Volver</Button>
         {role === "administrador" && ["pendiente", "asignado"].includes(solicitud.estado?.slug || "") && (
           <Button onClick={() => setEditando(true)} variant={puedeAvanzar ? "outline" : "default"} className="w-50">Editar</Button>
         )}

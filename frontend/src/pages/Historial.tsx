@@ -141,39 +141,37 @@ export default function HistorialPage() {
           )}
         </div>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead
-              className="cursor-pointer text-center w-[150px]"
-              onClick={() => handleSort("solicitud_id")}
-            >
-              Solicitud{renderSortArrow("solicitud_id")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer text-center w-[200px]"
-              onClick={() => handleSort("fecha_itv")}
-            >
-              Fecha ITV{renderSortArrow("fecha_itv")}
-            </TableHead>
-            <TableHead
-              className="cursor-pointer text-center w-[200px]"
-              onClick={() => handleSort("resolucion_id")}
-            >
-              Resolución{renderSortArrow("resolucion_id")}
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {historiales.length === 0 ? (
+      {historiales.length === 0 ? (
+        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl w-full">
+          <p className="text-slate-500 font-medium italic">No se han encontrado registros en el historial.</p>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={3} className="text-center py-12 text-muted-foreground italic">
-                No se han encontrado registros en el historial.
-              </TableCell>
+              <TableHead
+                className="cursor-pointer text-center w-[150px]"
+                onClick={() => handleSort("solicitud_id")}
+              >
+                Solicitud{renderSortArrow("solicitud_id")}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer text-center w-[200px]"
+                onClick={() => handleSort("fecha_itv")}
+              >
+                Fecha ITV{renderSortArrow("fecha_itv")}
+              </TableHead>
+              <TableHead
+                className="cursor-pointer text-center w-[200px]"
+                onClick={() => handleSort("resolucion_id")}
+              >
+                Resolución{renderSortArrow("resolucion_id")}
+              </TableHead>
             </TableRow>
-          ) : (
-            historiales.map((h) => (
+          </TableHeader>
+
+          <TableBody>
+            {historiales.map((h) => (
               <TableRow
                 key={h.solicitud_id}
                 className="cursor-pointer hover:bg-muted/50 h-14"
@@ -205,10 +203,10 @@ export default function HistorialPage() {
                   </span>
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       {totalPages > 1 && (
         <Pagination className="mt-6">

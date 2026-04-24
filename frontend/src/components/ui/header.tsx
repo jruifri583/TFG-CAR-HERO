@@ -80,12 +80,12 @@ export default function Header() {
 
   if (headerData) {
     return (
-      <header className="min-h-[180px] md:h-56 flex flex-col relative overflow-hidden shrink-0">
+      <header className="h-40 md:h-56 flex flex-col relative overflow-hidden shrink-0">
         <div className="h-1/2 w-full bg-gradiente" />
         <div className="h-1/2 w-full bg-background" />
         <div className="absolute inset-0 flex items-center justify-end px-4 md:px-12">
-          <div className="flex gap-4 md:gap-6 items-center -translate-y-4 md:-translate-y-6">
-            <div className="flex flex-col gap-1 md:gap-2 text-right items-end">
+          <div className="flex gap-4 md:gap-6 items-center group">
+            <div className="flex flex-col gap-1 md:gap-2 text-right items-end -translate-y-4 md:-translate-y-6 relative">
               <span className="text-xl sm:text-2xl md:text-4xl text-foreground font-bold">
                 {headerData.nombre}
               </span>
@@ -99,8 +99,10 @@ export default function Header() {
                   {headerData.subtitulo}
                 </span>
               )}
+
+              {/* Botón absoluto para no desplazar el título */}
               {headerData.isEditing && (
-                <>
+                <div className="absolute top-full right-0 mt-3">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -110,13 +112,12 @@ export default function Header() {
                   />
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="h-7 md:h-9 text-[10px] md:text-sm mt-1"
+                    className="transition-opacity duration-300 whitespace-nowrap"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Cambiar imagen
                   </Button>
-                </>
+                </div>
               )}
             </div>
             {headerData.imagen ? (
@@ -147,13 +148,13 @@ export default function Header() {
         <div className="h-1/2 w-full bg-gradiente" />
         <div className="h-1/2 w-full bg-background" />
         <div className="absolute inset-0 flex items-center justify-end px-4 md:px-12">
-          <div className="flex gap-4 md:gap-6 items-center -translate-y-4 md:-translate-y-6">
-            <div className="flex flex-col gap-1 md:gap-2 text-right items-end">
+          <div className="flex gap-4 md:gap-6 items-center">
+            <div className="flex flex-col gap-1 md:gap-2 text-right items-end -translate-y-4 md:-translate-y-6">
               <span className="text-xl sm:text-2xl md:text-4xl text-foreground font-bold">
                 {routeConfig.titulo}
               </span>
             </div>
-            <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full shadow-md shrink-0">
+            <Avatar className={`size-24 md:size-40 border-white rounded-full shadow-md shrink-0 ${routeConfig.titulo === 'Mensajes' ? 'border' : 'border-2 md:border-4'}`}>
               <AvatarImage src={routeConfig.imagen} className="object-cover" />
               <AvatarFallback>--</AvatarFallback>
             </Avatar>
@@ -169,33 +170,36 @@ export default function Header() {
       <div className="h-1/2 w-full bg-gradiente" />
       <div className="h-1/2 w-full bg-background" />
       <div className="absolute inset-0 flex items-center justify-end px-4 md:px-12">
-        <div className="flex gap-4 md:gap-6 items-center">
-          <div className="flex flex-col gap-1 md:gap-2 text-right items-end">
+        <div className="flex gap-4 md:gap-6 items-center group">
+          <div className="flex flex-col gap-1 md:gap-2 text-right items-end -translate-y-4 md:-translate-y-6 relative">
             <span className="text-xl sm:text-2xl md:text-4xl text-foreground">
               Hola <strong>{user ? user.nombre || user.email.split("@")[0] : ""}</strong>
             </span>
-            {!isPerfilPage ? (
-              <Button asChild className="w-full md:w-50 h-8 md:h-10 text-[10px] md:text-sm">
-                <NavLink to="/perfil">Ver perfil</NavLink>
-              </Button>
-            ) : isEditing ? (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-                <Button
-                  variant="outline"
-                  className="w-full md:w-50 h-8 md:h-10 text-[10px] md:text-sm mt-1"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Cambiar imagen
+
+            <div className="absolute top-full right-0 mt-3">
+              {!isPerfilPage ? (
+                <Button asChild className="w-full md:w-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                  <NavLink to="/perfil">Ver perfil</NavLink>
                 </Button>
-              </>
-            ) : null}
+              ) : isEditing ? (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageChange}
+                  />
+                  <Button
+                    variant="outline"
+                    className="w-full md:w-50 transition-opacity duration-300 whitespace-nowrap"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Cambiar imagen
+                  </Button>
+                </>
+              ) : null}
+            </div>
           </div>
           <Avatar className="size-24 md:size-40 border-2 md:border-4 border-white rounded-full shadow-md shrink-0">
             <AvatarImage

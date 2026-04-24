@@ -231,7 +231,8 @@ Se ha configurado deliberadamente la caducidad del token a **720 minutos (12 hor
 La arquitectura de datos se ha diseñado siguiendo la **Tercera Forma Normal (3NF)** para garantizar la integridad y evitar redundancias. Cada entidad está implementada mediante un modelo Eloquent y su correspondiente migración, con las siguientes responsabilidades:
 
 *   **Roles**: Define los niveles de acceso al sistema (Administrador, Empleado, Cliente) mediante un campo `slug` único. Es la base del sistema de autorización basado en Policies y Middlewares.
-*   **Users** (Usuarios): Almacena la identidad y datos de contacto. Incluye campos de geolocalización personalizada (`ciudad`, `codigo_postal`) y mantiene una relación obligatoria con la tabla de roles.
+*   **Users** (Usuarios): Almacena la identidad y datos de contacto principal. Incluye campos de geolocalización personalizada (`ciudad`, `codigo_postal`) y mantiene una relación obligatoria con la tabla de roles.
+*   **Direcciones**: Entidad relacional 1:N asociada a cada usuario que les permite gestionar y almacenar un repertorio ilimitado de ubicaciones extra (alias, calle, ciudad) para su posterior despliegue restrictivo.
 *   **Vehículos**: Representa el garaje digital del cliente. Almacena datos técnicos (`matricula`, `vin`, `marca`, `modelo`, `año`) y la fecha de la última inspección para facilitar el seguimiento preventivo.
 *   **Solicitudes**: Entidad central que coordina el servicio. Relaciona a clientes, empleados y vehículos, gestionando el ciclo de vida mediante una **máquina de estados** y capturando coordenadas geográficas detalladas.
 *   **Estados**: Tabla catálogo que rige el flujo operativo (Pendiente, En Recogida, En ITV, etc.). Los cambios de estado disparan eventos automáticos en el backend (ej. registro de horas o actualización de vehículo).
@@ -269,6 +270,14 @@ erDiagram
         string imagen
         int rol_id FK
         boolean activo
+    }
+    DIRECCIONES {
+        int id PK
+        int user_id FK
+        string alias
+        string direccion
+        string ciudad
+        string codigo_postal
     }
     VEHICULOS {
         int id PK
@@ -345,6 +354,7 @@ erDiagram
 
     %% --- Relaciones ---
     ROLES ||--o{ USERS : "define permisos de"
+    USERS ||--o{ DIRECCIONES : "gestiona múltiples"
     USERS ||--o{ VEHICULOS : "es propietario de"
     
     USERS ||--o{ SOLICITUDES : "cliente solicita"
@@ -394,6 +404,18 @@ CREATE TABLE users (
     activo        BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP, updated_at TIMESTAMP,
     FOREIGN KEY (rol_id) REFERENCES roles(id)
+);
+
+-- TABLA: direcciones (nueva entidad extraida para evitar introducir N direcciones en un campo libre)
+CREATE TABLE direcciones (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    user_id       INT NOT NULL,
+    alias         VARCHAR(100) NULL,
+    direccion     VARCHAR(255) NOT NULL,
+    ciudad        VARCHAR(100) NULL,
+    codigo_postal VARCHAR(10)  NULL,
+    created_at TIMESTAMP, updated_at TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- TABLA: vehiculos

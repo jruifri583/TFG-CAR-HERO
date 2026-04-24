@@ -100,33 +100,29 @@ export default function NuevaSolicitudPage() {
       };
       if (vId) initialValues.vehiculo_id = Number(vId);
 
-      // 1. Datos del usuario (Priorizamos sesión actual)
-      if (authUser && String(authUser.id) === String(actualUserId)) {
-        const fullDir = [authUser.direccion, authUser.codigo_postal, authUser.ciudad]
+      const buildAddressOptions = (userData: any) => {
+        const main = [userData.direccion, userData.codigo_postal, userData.ciudad]
           .filter(Boolean)
           .join(", ");
-        
-        initialValues.direccion = fullDir;
-        
-        // Direcciones sugeridas
-        const previous = (authUser as any).direcciones_anteriores || [];
-        const unique = Array.from(new Set([fullDir, ...previous])).filter(Boolean) as string[];
-        setDirecciones(unique);
+        const secundarias = userData.direcciones?.map((d: any) => 
+           (d.alias ? `${d.alias} — ` : "") + [d.direccion, d.codigo_postal, d.ciudad].filter(Boolean).join(", ")
+        ) || [];
+        return Array.from(new Set([main, ...secundarias])).filter(Boolean) as string[];
+      };
+
+      // 1. Datos del usuario (Priorizamos sesión actual)
+      if (authUser && String(authUser.id) === String(actualUserId)) {
+        const options = buildAddressOptions(authUser);
+        if (options.length > 0) initialValues.direccion = options[0];
+        setDirecciones(options);
       } else if (actualUserId) {
         try {
           const res = await api.get(`/users/${actualUserId}`);
           const u = res.data.data ?? res.data;
           
-          const fullDir = [u.direccion, u.codigo_postal, u.ciudad]
-            .filter(Boolean)
-            .join(", ");
-
-          initialValues.direccion = fullDir;
-          
-          // Direcciones sugeridas del cliente seleccionado
-          const previous = u.direcciones_anteriores || [];
-          const unique = Array.from(new Set([fullDir, ...previous])).filter(Boolean) as string[];
-          setDirecciones(unique);
+          const options = buildAddressOptions(u);
+          if (options.length > 0) initialValues.direccion = options[0];
+          setDirecciones(options);
         } catch (error) {
           console.error("Error cargando usuario:", error);
         }
@@ -243,27 +239,23 @@ export default function NuevaSolicitudPage() {
                 <div className="space-y-1">
                   <label className="text-sm font-medium">Dirección de recogida *</label>
                   <div className="relative">
-                    <Input
-                      type="text"
-                      {...register("direccion")}
-                      placeholder="Calle, número, ciudad"
-                      list={direcciones.length > 1 ? "direcciones-sugeridas" : undefined}
-                      className="border-slate-200"
-                    />
-                    {direcciones.length > 1 && (
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                      />
-                    )}
-                  </div>
-                  {direcciones.length > 1 && (
-                    <datalist id="direcciones-sugeridas">
+                    <select
+                      className={`w-full h-9 border-input rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] bg-background appearance-none transition-all ${errors.direccion ? "border-red-500 aria-invalid:border-destructive aria-invalid:ring-destructive/20" : ""}`}
+                      value={watch("direccion") ?? ""}
+                      onChange={(e) => setValue("direccion", e.target.value)}
+                    >
+                      {direcciones.length === 0 && <option value="">Sin direcciones disponibles</option>}
                       {direcciones.map((d) => (
-                        <option key={d} value={d} />
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
                       ))}
-                    </datalist>
-                  )}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                    />
+                  </div>
                   {errors.direccion && (
                     <p className="text-red-500 text-xs font-medium">
                       {errors.direccion.message}

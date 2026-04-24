@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { getPaginationRange } from "@/lib/pagination-utils";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { toast } from "sonner";
 
 interface Solicitud {
   id: number;
@@ -116,6 +117,33 @@ export default function SolicitudesPage({
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const role = user?.rol?.slug;
+
+  const isProfileComplete = () => {
+    return !!(user?.apellidos && user?.telefono && user?.direccion && user?.ciudad && user?.codigo_postal);
+  };
+
+  const handleNuevaSolicitud = async () => {
+    if (role === "cliente") {
+      if (!isProfileComplete()) {
+        toast.error("Por favor, completa tus datos personales en el perfil antes de solicitar servicio.");
+        return;
+      }
+      try {
+        const res = await api.get('/vehiculos');
+        const vehiculos = res.data?.data ?? res.data ?? [];
+        if (vehiculos.length === 0) {
+          toast.error("Añade al menos un vehículo a tu perfil para poder solicitar un servicio.");
+          return;
+        }
+        navigate(`/perfil/${user?.id}/nueva-solicitud`);
+      } catch (error) {
+         console.error(error);
+         toast.error("Ocurrió un error al verificar tus vehículos.");
+      }
+    } else {
+      navigate("/solicitudes/nuevo");
+    }
+  };
 
   const fetchSolicitudes = async (searchValue = search) => {
     try {
@@ -213,7 +241,7 @@ export default function SolicitudesPage({
           )}
         </div>
         {!sinPago && (
-            <Button className="w-50" onClick={() => navigate("/solicitudes/nuevo")}>
+            <Button className="w-50" onClick={handleNuevaSolicitud}>
               <PlusIcon className="mr-2 h-4 w-4" />
               Añadir
             </Button>
@@ -348,7 +376,7 @@ export default function SolicitudesPage({
           )}
         </div>
       ) : (
-        <Table>
+        <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow>
               <TableHead className="text-center w-[70px]">ID</TableHead>

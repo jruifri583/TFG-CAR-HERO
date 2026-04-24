@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Http\Resources\UserResource;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
@@ -81,7 +82,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return response()->json($user->load('rol'));
+        return response()->json(new UserResource($user->load('rol', 'direcciones')));
     }
 
     /**
@@ -100,9 +101,22 @@ class UserController extends Controller
 
         $user->update($data);
 
+        if ($request->has('direcciones')) {
+            $user->direcciones()->delete();
+            $direcciones = $request->input('direcciones') ?: [];
+            foreach ($direcciones as $dir) {
+                $user->direcciones()->create([
+                    'alias' => $dir['alias'] ?? null,
+                    'direccion' => $dir['direccion'],
+                    'ciudad' => $dir['ciudad'] ?? null,
+                    'codigo_postal' => $dir['codigo_postal'] ?? null,
+                ]);
+            }
+        }
+
         return response()->json([
             'message' => 'Usuario actualizado.',
-            'user' => $user
+            'user' => new UserResource($user->fresh()->load('rol', 'direcciones'))
         ]);
     }
 

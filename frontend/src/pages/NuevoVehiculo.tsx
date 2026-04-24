@@ -169,8 +169,32 @@ export default function NuevoVehiculoPage() {
                   <Input
                     type="text"
                     {...register("matricula")}
-                    placeholder="1234-ABC"
+                    placeholder="1234 ABC"
                     className="border-slate-200"
+                    onChange={(e) => {
+                      let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                      let formatted = val;
+
+                      // Patron moderno: 1234 ABC
+                      if (/^\d/.test(val)) {
+                        if (val.length > 4) {
+                          formatted = val.slice(0, 4) + " " + val.slice(4, 7);
+                        }
+                      } 
+                      // Patron provincial Cordoba/Madrid: MA 1234 AB
+                      else {
+                        const matches = val.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,2})$/);
+                        if (matches) {
+                          const [, prov, nums, suffix] = matches;
+                          formatted = prov;
+                          if (nums) formatted += " " + nums;
+                          if (suffix) formatted += " " + suffix;
+                        }
+                      }
+                      
+                      e.target.value = formatted;
+                      register("matricula").onChange(e);
+                    }}
                   />
                   {errors.matricula && (
                     <p className="text-red-500 text-xs font-medium">{errors.matricula.message}</p>

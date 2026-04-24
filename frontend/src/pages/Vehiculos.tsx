@@ -449,7 +449,7 @@ function ClienteList({
       </div>
       {vehiculos.length === 0 ? (
         <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl w-full">
-          <p className="text-slate-500 font-medium italic">No se han encontrado vehículos.</p>
+          <p className="text-slate-500 font-medium italic">Añade tus vehículos aquí</p>
         </div>
       ) : (
         <div className="flex flex-wrap gap-6 justify-center md:justify-start">

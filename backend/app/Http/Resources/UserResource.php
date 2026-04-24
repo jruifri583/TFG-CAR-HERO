@@ -29,17 +29,23 @@ class UserResource extends JsonResource
             'imagen' => $this->imagen,
             'activo' => (bool) $this->activo,
             'created_at' => $this->created_at?->toDateTimeString(),
+            'direcciones' => $this->direcciones ? $this->direcciones->map(function ($dir) {
+                return [
+                    'id' => $dir->id,
+                    'alias' => $dir->alias,
+                    'direccion' => $dir->direccion,
+                    'ciudad' => $dir->ciudad,
+                    'codigo_postal' => $dir->codigo_postal,
+                ];
+            }) : [],
             'direcciones_anteriores' => $this->when(
-                $request->is('api/users/*') || $request->is('api/me'),
-                fn() => $this->solicitudesComoCliente()
-                    ->distinct()
-                    ->pluck('direccion')
-                    ->filter()
-                    ->values()
-                    ->toArray()
+                str_contains($request->url(), 'api/users') || str_contains($request->url(), 'api/me'),
+                fn() => collect([$this->direccion]) // fallback
             ),
             'rol' => [
+                'id' => $this->rol?->id,
                 'nombre' => $this->rol?->nombre,
+                'slug' => $this->rol?->slug,
             ],
         ];
     }

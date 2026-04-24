@@ -9,6 +9,7 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Vehiculo;
 use App\Models\Solicitud;
 use App\Models\Rol;
+use App\Models\Direccion;
 use App\Enums\RolSlug;
 
 
@@ -63,6 +64,12 @@ class User extends Authenticatable
     public function solicitudesComoEmpleado()
     {
         return $this->hasMany(Solicitud::class, 'user_empleado_id');
+    }
+
+    // Direcciones adicionales
+    public function direcciones()
+    {
+        return $this->hasMany(Direccion::class, 'user_id');
     }
 
     // Rol del usuario

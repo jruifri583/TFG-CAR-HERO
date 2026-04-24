@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -209,7 +210,7 @@ function NuevaRow({ s }: { s: SolicitudReciente }) {
         </span>
       </TableCell>
 
-      <TableCell className="text-center">
+      <TableCell className="hidden md:table-cell text-center">
         <span className="text-[9px] bg-primary text-white px-2 py-0.5 rounded-full font-black uppercase italic">
           Nueva
         </span>
@@ -350,7 +351,7 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
                   const Icon = STATUS_ICONS[s.estado?.slug || ""] || Clock;
                   return <Icon size={28} className={`z-10 ${isCancelled ? "text-red-500" : "text-primary"}`} />;
                 })()}
-                <div className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary animate-ping"}`} />
+                <div className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary"}`} />
               </div>
             </div>
             <div className="min-w-0">
@@ -561,7 +562,7 @@ export default function DashboardPage() {
                         <TableHead className="hidden lg:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Dirección</TableHead>
                         <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Vehículo</TableHead>
                         <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Matrícula</TableHead>
-                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest w-[100px]">Estado</TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-[10px] font-black uppercase italic tracking-widest w-[100px]">Estado</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -676,7 +677,7 @@ export default function DashboardPage() {
                     innerRadius={60}
                     outerRadius={80}
                     paddingAngle={5}
-                    isAnimationActive={true}
+                    isAnimationActive={false}
                     label={renderPieLabel}
                     labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                   >
@@ -734,7 +735,7 @@ export default function DashboardPage() {
                   
                   <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4 relative z-10">
                     <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-2xl ring-4 ring-yellow-50/50 dark:ring-yellow-900/10 shadow-inner">
-                      <AlertTriangle className="text-yellow-600 dark:text-yellow-400 animate-pulse" size={24} />
+                      <AlertTriangle className="text-yellow-600 dark:text-yellow-400" size={24} />
                     </div>
                     
                     <div className="flex-1 text-center md:text-left">
@@ -758,7 +759,7 @@ export default function DashboardPage() {
                           return (
                             <Button 
                               asChild
-                              className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 w-52 rounded-xl group-hover:scale-105 active:scale-95 flex items-center justify-center p-0"
+                              className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 w-52 rounded-xl active:scale-95 flex items-center justify-center p-0"
                             >
                               <NavLink to={`/solicitudes/${s.id}`}>
                                 <FileText size={18} className="mr-2" />
@@ -839,7 +840,7 @@ export default function DashboardPage() {
                     innerRadius={60}
                     outerRadius={80}
                     paddingAngle={5}
-                    isAnimationActive={true}
+                    isAnimationActive={false}
                     label={renderPieLabel}
                     labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
                   >
@@ -861,6 +862,21 @@ export default function DashboardPage() {
 
   function ClienteDashboard() {
     const navigate = useNavigate();
+    const isProfileComplete = () => {
+      return !!(user?.apellidos && user?.telefono && user?.direccion && user?.ciudad && user?.codigo_postal);
+    };
+
+    const handleSolicitar = (path: string) => {
+      if (!isProfileComplete()) {
+        toast.error("Por favor, completa tus datos personales en el perfil antes de solicitar servicio.");
+        return;
+      }
+      if (contadores?.vehiculos === 0) {
+        toast.error("Añade al menos un vehículo a tu perfil para poder solicitar un servicio.");
+        return;
+      }
+      navigate(path);
+    };
 
     return (
       <div className="space-y-6">
@@ -886,8 +902,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <Button 
-                      onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud?vehiculo_id=${alert.id}&v_marca=${alert.marca}&v_modelo=${alert.modelo}&v_matricula=${alert.matricula}`)}
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                      onClick={() => handleSolicitar(`/perfil/${user?.id}/nueva-solicitud?vehiculo_id=${alert.id}&v_marca=${alert.marca}&v_modelo=${alert.modelo}&v_matricula=${alert.matricula}`)}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all active:scale-95 whitespace-nowrap"
                     >
                       <FileText size={18} className="mr-2" />
                       Solicitar recogida
@@ -911,8 +927,8 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <Button 
-                  onClick={() => navigate(`/perfil/${user?.id}/nueva-solicitud`)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all hover:scale-105 active:scale-95"
+                  onClick={() => handleSolicitar(`/perfil/${user?.id}/nueva-solicitud`)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all active:scale-95"
                 >
                   <FileText size={18} className="mr-2" />
                   Solicitar ahora

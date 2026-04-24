@@ -37,10 +37,27 @@ class UpdateUserRequest extends FormRequest
                 'exists:roles,id',
             ],
             'activo'    => 'sometimes|boolean',
+            'current_password' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($currentUser) {
+                    $targetUser = $this->route('user');
+                    if ($this->filled('password') && $currentUser->id === $targetUser->id) {
+                        if (!\Illuminate\Support\Facades\Hash::check($value, $currentUser->password)) {
+                            $fail('La contraseña actual es incorrecta.');
+                        }
+                    }
+                }
+            ],
             'password'  => [
                 'nullable',
                 'string',
                 'confirmed',
+                function ($attribute, $value, $fail) use ($currentUser) {
+                    $targetUser = $this->route('user');
+                    if ($currentUser->id === $targetUser->id && empty($this->input('current_password'))) {
+                        $fail('Debe ingresar su contraseña actual para establecer una nueva.');
+                    }
+                },
                 Password::min(8)
                     ->letters()
                     ->mixedCase()
@@ -51,6 +68,11 @@ class UpdateUserRequest extends FormRequest
             'direccion' => 'nullable|string|max:255',
             'ciudad' => 'nullable|string|max:100',
             'codigo_postal' => 'nullable|string|max:10',
+            'direcciones' => 'sometimes|array',
+            'direcciones.*.alias' => 'nullable|string|max:100',
+            'direcciones.*.direccion' => 'nullable|string|max:255',
+            'direcciones.*.ciudad' => 'nullable|string|max:100',
+            'direcciones.*.codigo_postal' => 'nullable|string|max:10',
         ];
     }
 
