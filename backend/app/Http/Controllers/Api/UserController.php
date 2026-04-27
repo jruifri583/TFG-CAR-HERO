@@ -8,7 +8,6 @@ use App\Http\Resources\UserResource;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Resources\UserResource;
 
 class UserController extends Controller
 {

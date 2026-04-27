@@ -194,13 +194,23 @@ export default function PerfilPage() {
           direccion: userData.direccion ?? "",
           ciudad: userData.ciudad ?? "",
           codigo_postal: userData.codigo_postal ?? "",
-          direcciones: (userData.direcciones || []).map((d: any) => ({
-            id: d.id,
-            alias: d.alias ?? "",
-            direccion: d.direccion ?? "",
-            ciudad: d.ciudad ?? "",
-            codigo_postal: d.codigo_postal ?? ""
-          })),
+          direcciones: [
+            // Metemos la principal como la primera de la lista para el formulario
+            {
+              id: -1, // ID especial para la principal
+              direccion: userData.direccion ?? "",
+              ciudad: userData.ciudad ?? "",
+              codigo_postal: userData.codigo_postal ?? "",
+              alias: "Principal"
+            },
+            ...(userData.direcciones || []).map((d: any) => ({
+              id: d.id,
+              alias: d.alias ?? "",
+              direccion: d.direccion ?? "",
+              ciudad: d.ciudad ?? "",
+              codigo_postal: d.codigo_postal ?? ""
+            }))
+          ],
           current_password: "",
           password: "",
           password_confirmation: "",
@@ -271,13 +281,22 @@ export default function PerfilPage() {
       direccion: user?.direccion ?? "",
       ciudad: user?.ciudad ?? "",
       codigo_postal: user?.codigo_postal ?? "",
-      direcciones: (user?.direcciones || []).map((d: any) => ({
-        id: d.id,
-        alias: d.alias ?? "",
-        direccion: d.direccion ?? "",
-        ciudad: d.ciudad ?? "",
-        codigo_postal: d.codigo_postal ?? ""
-      })),
+      direcciones: [
+        {
+          id: -1,
+          direccion: user?.direccion ?? "",
+          ciudad: user?.ciudad ?? "",
+          codigo_postal: user?.codigo_postal ?? "",
+          alias: "Principal"
+        },
+        ...(user?.direcciones || []).map((d: any) => ({
+          id: d.id,
+          alias: d.alias ?? "",
+          direccion: d.direccion ?? "",
+          ciudad: d.ciudad ?? "",
+          codigo_postal: d.codigo_postal ?? ""
+        }))
+      ],
       current_password: "",
       password: "",
       password_confirmation: "",
@@ -289,8 +308,18 @@ export default function PerfilPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
+      const { direcciones: allDirs, ...rest } = data;
+      
+      // Separamos: la primera va a los campos del usuario, el resto al array de direcciones
+      const principal = allDirs?.[0];
+      const adicionales = allDirs?.slice(1) || [];
+
       const payload = { 
-        ...data,
+        ...rest,
+        direccion: principal?.direccion || "",
+        ciudad: principal?.ciudad || "",
+        codigo_postal: principal?.codigo_postal || "",
+        direcciones: adicionales,
         rol_id: data.rol_id,
         activo: data.activo
       };
@@ -318,13 +347,22 @@ export default function PerfilPage() {
         direccion: updated.direccion ?? "",
         ciudad: updated.ciudad ?? "",
         codigo_postal: updated.codigo_postal ?? "",
-        direcciones: (updated.direcciones || []).map((d: any) => ({
-          id: d.id,
-          alias: d.alias ?? "",
-          direccion: d.direccion ?? "",
-          ciudad: d.ciudad ?? "",
-          codigo_postal: d.codigo_postal ?? ""
-        })),
+        direcciones: [
+          {
+            id: -1,
+            direccion: updated.direccion ?? "",
+            ciudad: updated.ciudad ?? "",
+            codigo_postal: updated.codigo_postal ?? "",
+            alias: "Principal"
+          },
+          ...(updated.direcciones || []).map((d: any) => ({
+            id: d.id,
+            alias: d.alias ?? "",
+            direccion: d.direccion ?? "",
+            ciudad: d.ciudad ?? "",
+            codigo_postal: d.codigo_postal ?? ""
+          }))
+        ],
         current_password: "",
         password: "",
         password_confirmation: "",
@@ -548,59 +586,16 @@ export default function PerfilPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Dirección</label>
-                  <Input
-                    type="text"
-                    {...register("direccion")}
-                    readOnly={!isEditing}
-                    className={`${readOnlyClass} bg-transparent border-slate-200`}
-                  />
-                  {errors.direccion && (
-                    <p className="text-red-500 text-xs font-medium">
-                      {errors.direccion.message}
-                    </p>
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Ciudad</label>
-                    <Input
-                      type="text"
-                      {...register("ciudad")}
-                      readOnly={!isEditing}
-                      className={`${readOnlyClass} bg-transparent border-slate-200`}
-                    />
-                    {errors.ciudad && (
-                      <p className="text-red-500 text-xs font-medium">{errors.ciudad.message}</p>
-                    )}
-                  </div>
 
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium">Código Postal</label>
-                    <Input
-                      type="text"
-                      {...register("codigo_postal")}
-                      readOnly={!isEditing}
-                      className={`${readOnlyClass} bg-transparent border-slate-200`}
-                    />
-                    {errors.codigo_postal && (
-                      <p className="text-red-500 text-xs font-medium">{errors.codigo_postal.message}</p>
-                    )}
-                  </div>
-                </div>
               </div>
 
-              {/* Bloque 3: Direcciones Adicionales */}
-              {(direccionesFields.length > 0 || isEditing) && (
-                <div className="space-y-4 pt-6 border-t-2 border-primary col-span-1 sm:col-span-2">
-                <div className="flex items-center justify-between mb-4">
+              <div className="space-y-4 pt-6 border-t-2 border-primary col-span-1 sm:col-span-2">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <div className="bg-primary/10 p-2 rounded-lg">
                       <MapPin className="text-primary" size={20} />
                     </div>
-                    <h3 className="font-bold text-lg">Direcciones Adicionales</h3>
+                    <h3 className="font-bold text-lg">Direcciones</h3>
                   </div>
                   {isEditing && (
                     <Button 
@@ -613,71 +608,81 @@ export default function PerfilPage() {
                   )}
                 </div>
 
-                {direccionesFields.length === 0 && !isEditing ? (
-                  <p className="text-sm text-muted-foreground italic">No hay direcciones adicionales registradas.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {direccionesFields.map((field, index) => (
-                      <Card key={field.id} className="relative overflow-hidden shadow-sm transition-all p-0 bg-blue-50/30 border-blue-100/50">
-                        <CardContent className="p-6 space-y-4">
-                          {isEditing && (
-                            <button
-                              type="button"
-                              onClick={() => removeDireccion(index)}
-                              className="absolute top-3 right-3 p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-full transition-all z-10"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          )}
+                <div className="grid grid-cols-1 gap-4">
+                  {direccionesFields.map((field, index) => (
+                    <Card key={field.id} className="shadow-none border-slate-200 bg-transparent relative group">
+                      <CardContent className="p-5">
+                        {isEditing && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              toast.warning("¿Eliminar esta dirección?", {
+                                description: `Se eliminará la Dirección ${index + 1}.`,
+                                action: {
+                                  label: "Confirmar",
+                                  onClick: () => removeDireccion(index),
+                                },
+                                actionButtonStyle: {
+                                  backgroundColor: "#f59e0b",
+                                  color: "white",
+                                },
+                              });
+                            }}
+                            className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                           <div className="space-y-1.5">
-                            <label className="text-sm font-medium">Dirección</label>
+                            <label className="text-sm font-medium">Dirección {index + 1}</label>
                             <Input
                               {...register(`direcciones.${index}.direccion` as const)}
                               readOnly={!isEditing}
-                              placeholder="Calle, número, piso..."
-                              className={`h-10 text-sm ${readOnlyClass} bg-transparent border-slate-200`}
+                              placeholder="Calle, número..."
+                              className={`${readOnlyClass} bg-transparent border-slate-200 shadow-none focus-visible:ring-1`}
                             />
                             {errors.direcciones?.[index]?.direccion && (
-                              <p className="text-red-500 text-xs font-medium mt-1">
-                                {errors.direcciones[index]?.direccion?.message}
-                              </p>
+                              <p className="text-red-500 text-[10px] font-medium mt-1">{errors.direcciones[index]?.direccion?.message}</p>
                             )}
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                              <label className="text-sm font-medium">Ciudad</label>
-                              <Input
-                                {...register(`direcciones.${index}.ciudad` as const)}
-                                readOnly={!isEditing}
-                                className={`h-10 text-sm ${readOnlyClass} bg-transparent border-slate-200`}
-                              />
-                              {errors.direcciones?.[index]?.ciudad && (
-                                <p className="text-red-500 text-xs font-medium mt-1">
-                                  {errors.direcciones[index]?.ciudad?.message}
-                                </p>
-                              )}
-                            </div>
-                            <div className="space-y-1.5">
-                              <label className="text-sm font-medium">C.P.</label>
-                              <Input
-                                {...register(`direcciones.${index}.codigo_postal` as const)}
-                                readOnly={!isEditing}
-                                className={`h-10 text-sm ${readOnlyClass} bg-transparent border-slate-200`}
-                              />
-                              {errors.direcciones?.[index]?.codigo_postal && (
-                                <p className="text-red-500 text-xs font-medium mt-1">
-                                  {errors.direcciones[index]?.codigo_postal?.message}
-                                </p>
-                              )}
-                            </div>
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-medium">Ciudad</label>
+                            <Input
+                              {...register(`direcciones.${index}.ciudad` as const)}
+                              readOnly={!isEditing}
+                              placeholder="Ciudad"
+                              className={`${readOnlyClass} bg-transparent border-slate-200 shadow-none focus-visible:ring-1`}
+                            />
+                            {errors.direcciones?.[index]?.ciudad && (
+                              <p className="text-red-500 text-[10px] font-medium mt-1">{errors.direcciones[index]?.ciudad?.message}</p>
+                            )}
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-sm font-medium">Código Postal</label>
+                              {!isEditing && <MapPin size={16} className="text-slate-300" />}
+                            </div>
+                            <Input
+                              {...register(`direcciones.${index}.codigo_postal` as const)}
+                              readOnly={!isEditing}
+                              placeholder="CP"
+                              className={`${readOnlyClass} bg-transparent border-slate-200 shadow-none focus-visible:ring-1`}
+                            />
+                            {errors.direcciones?.[index]?.codigo_postal && (
+                              <p className="text-red-500 text-[10px] font-medium mt-1">{errors.direcciones[index]?.codigo_postal?.message}</p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+
+                  {direccionesFields.length === 0 && !isEditing && (
+                    <p className="text-sm text-muted-foreground italic px-2">No hay direcciones registradas.</p>
+                  )}
+                </div>
               </div>
-              )}
             </div>
 
             <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">

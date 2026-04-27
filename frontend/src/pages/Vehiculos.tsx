@@ -456,7 +456,7 @@ function ClienteList({
           {vehiculos.map((vehiculo) => (
             <CardSinBorde
               key={vehiculo.id}
-              className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full sm:w-52 p-0 rounded-lg sm:h-72"
+              className="overflow-hidden shadow-md hover:shadow-lg transition cursor-pointer w-full sm:w-44 p-0 rounded-lg sm:h-60"
               onClick={() => navigate(`/vehiculos/${vehiculo.id}`)}
             >
               {/* Imagen a pantalla completa */}
@@ -471,12 +471,12 @@ function ClienteList({
                 />
               </div>
 
-              <CardContent className="p-4 space-y-1">
-                <h2 className="text-lg font-semibold">
+              <CardContent className="p-3 space-y-0.5">
+                <h2 className="text-sm font-bold truncate">
                   {vehiculo.marca} {vehiculo.modelo}
                 </h2>
 
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   <span className="font-medium">{vehiculo.matricula}</span>
                 </p>
               </CardContent>

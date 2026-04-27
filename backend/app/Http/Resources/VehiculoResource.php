@@ -32,6 +32,7 @@ class VehiculoResource extends JsonResource
                 'nombre' => $this->cliente?->nombre,
                 'apellidos' => $this->cliente?->apellidos,
                 'email' => $this->cliente?->email,
+                'imagen' => $this->cliente?->imagen,
             ],
         ];
     }

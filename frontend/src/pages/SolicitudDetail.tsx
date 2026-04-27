@@ -1,5 +1,5 @@
 import { useEffect, useState, memo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -652,28 +652,34 @@ const StandardDetailView = memo(({
                 <CardSinBorde className="border-l-2 border-l-primary">
                   <CardContent className="pt-6 space-y-4">
                     <h3 className="font-bold text-lg">Cliente</h3>
-                    <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                      <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                    <Link 
+                      to={`/perfil/${solicitud.cliente?.id}`}
+                      className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
+                    >
+                      <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
                       <div className="flex-1">
-                        <p className="font-bold text-lg">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
+                        <p className="font-bold text-lg group-hover:text-primary transition-colors">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
                         <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
                       </div>
-                    </div>
+                    </Link>
                   </CardContent>
                 </CardSinBorde>
               )}
               <CardSinBorde className="border-l-2 border-l-primary">
                 <CardContent className="pt-6 space-y-4">
                   <h3 className="font-bold text-lg">Vehículo</h3>
-                  <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center">
+                  <Link 
+                    to={`/vehiculos/${solicitud.vehiculo?.id}`}
+                    className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
+                  >
+                    <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform">
                       <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-lg">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
+                      <p className="font-bold text-lg group-hover:text-primary transition-colors">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
                       <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
                     </div>
-                  </div>
+                  </Link>
                 </CardContent>
               </CardSinBorde>
            </div>
@@ -962,16 +968,31 @@ export default function SolicitudDetailPage() {
 
   const handleCancelar = async () => {
     if (!solicitud) return;
-    setCancelando(true);
-    setServerError(null);
-    try {
-      await api.post(`/solicitudes/${id}/cancelar`);
-      await cargarSolicitud();
-    } catch (err: any) {
-      setServerError(err?.response?.data?.message || "No se pudo cancelar la solicitud.");
-    } finally {
-      setCancelando(false);
-    }
+
+    toast.warning("¿Cancelar esta solicitud?", {
+      description: "Esta acción marcará la solicitud como cancelada definitivamente.",
+      action: {
+        label: "Confirmar",
+        onClick: async () => {
+          setCancelando(true);
+          setServerError(null);
+          try {
+            await api.post(`/solicitudes/${id}/cancelar`);
+            toast.success("Solicitud cancelada correctamente");
+            await cargarSolicitud();
+          } catch (err: any) {
+            setServerError(err?.response?.data?.message || "No se pudo cancelar la solicitud.");
+            toast.error("Error al cancelar la solicitud");
+          } finally {
+            setCancelando(false);
+          }
+        },
+      },
+      actionButtonStyle: {
+        backgroundColor: "#f59e0b",
+        color: "white",
+      },
+    });
   };
 
   if (!solicitud) return <p className="p-8 text-center animate-pulse">Cargando...</p>;

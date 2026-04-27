@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Car } from "lucide-react";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ interface Vehiculo {
     nombre: string;
     apellidos: string;
     email: string;
+    imagen: string | null;
   } | null;
 }
 
@@ -167,6 +169,29 @@ export default function VehiculoDetailPage() {
     } catch (error) {
       console.error("Error actualizando vehículo:", error);
     }
+  };
+
+  const handleDelete = async () => {
+    toast.warning("¿Eliminar este vehículo?", {
+      description: `Se eliminará el vehículo ${vehiculo?.marca} ${vehiculo?.modelo}.`,
+      action: {
+        label: "Confirmar",
+        onClick: async () => {
+          try {
+            await api.delete(`/vehiculos/${id}`);
+            toast.success("Vehículo eliminado correctamente");
+            navigate("/vehiculos");
+          } catch (error: any) {
+            console.error("Error eliminando vehículo:", error);
+            toast.error(error.response?.data?.message || "No se pudo eliminar el vehículo");
+          }
+        },
+      },
+      actionButtonStyle: {
+        backgroundColor: "#f59e0b",
+        color: "white",
+      },
+    });
   };
 
   if (!vehiculo) return <p>Cargando...</p>;
@@ -314,16 +339,26 @@ export default function VehiculoDetailPage() {
 
                 {/* Propietario (solo admin/empleado) */}
                 {role !== "cliente" && (
-                  <div className="pt-6 border-t-2 border-primary mt-6">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Propietario</h4>
-                    {vehiculo.cliente ? (
-                      <div className="bg-slate-50 p-3 rounded-md border border-slate-100 flex flex-col gap-1">
-                        <p className="text-sm font-bold">{vehiculo.cliente.nombre} {vehiculo.cliente.apellidos}</p>
-                        <p className="text-xs text-muted-foreground">{vehiculo.cliente.email}</p>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic">Sin propietario asignado</p>
-                    )}
+                  <div className="pt-6">
+                    <CardSinBorde className="border-t-2 border-primary shadow-none">
+                      <CardContent className="pt-6 space-y-4 p-0 bg-transparent">
+                        <h4 className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Propietario</h4>
+                        {vehiculo.cliente ? (
+                          <Link 
+                            to={`/perfil/${vehiculo.cliente.id}`}
+                            className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
+                          >
+                            <img src={vehiculo.cliente.imagen ?? "/avatars/default_user.png"} className="w-12 h-12 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-base group-hover:text-primary transition-colors truncate">{vehiculo.cliente.nombre} {vehiculo.cliente.apellidos}</p>
+                              <p className="text-xs text-muted-foreground truncate">{vehiculo.cliente.email}</p>
+                            </div>
+                          </Link>
+                        ) : (
+                          <p className="text-xs text-muted-foreground italic ml-1">Sin propietario asignado</p>
+                        )}
+                      </CardContent>
+                    </CardSinBorde>
                   </div>
                 )}
               </div>
@@ -342,10 +377,10 @@ export default function VehiculoDetailPage() {
                   <Button
                     className="w-40"
                     type="button"
-                    variant="outline"
-                    onClick={() => navigate(-1)}
+                    variant="destructive"
+                    onClick={handleDelete}
                   >
-                    Volver
+                    Eliminar Vehículo
                   </Button>
                 </>
               ) : (
