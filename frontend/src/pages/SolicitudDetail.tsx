@@ -1001,7 +1001,7 @@ export default function SolicitudDetailPage() {
   const esFinalizar = siguiente?.slug === 'finalizado';
   const esTransferencia = pagoMetodoId === 3;
   const esEnItv = solicitud.estado?.slug === 'en_itv';
-  const _esRetornando = solicitud.estado?.slug === 'retornando';
+  // esRetornando evaluado directamente donde se necesita
   const puedeAvanzar = 
     role === "empleado" && 
     !!siguiente && 

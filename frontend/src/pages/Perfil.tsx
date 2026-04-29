@@ -150,7 +150,7 @@ export default function PerfilPage() {
 
   const isOwnProfile = !id;
   const isAdmin = authUser?.rol?.slug === "administrador" || authUser?.rol_id === 1;
-  const _isStaff = isAdmin || authUser?.rol?.slug === "empleado" || authUser?.rol_id === 2;
+  // isStaff se evalúa a través de isAdmin en los condicionales del formulario
 
   const {
     register,
