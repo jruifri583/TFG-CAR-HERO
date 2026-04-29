@@ -283,9 +283,9 @@ interface StandardDetailViewProps extends CommonViewProps {
 const EmpleadoDetailView = memo(({
   id, solicitud, resoluciones, avanzando, setAvanzando, cargarSolicitud,
   pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId,
-  handleRegistrarPago, handlePagar, pagando, serverError,
+  handleRegistrarPago: _handleRegistrarPago, handlePagar: _handlePagar, pagando: _pagando, serverError,
   puedeAvanzar, handleAvanzarEstado, isBusy, siguiente,
-  esFinalizar, esTransferencia
+  esFinalizar, esTransferencia: _esTransferencia
 }: EmpleadoDetailViewProps) => {
   const esAsignado = solicitud.estado?.slug === 'asignado';
   const scheduledDate = solicitud.fecha_programada ? new Date(solicitud.fecha_programada) : null;
@@ -486,11 +486,11 @@ const EmpleadoDetailView = memo(({
 });
 
 const StandardDetailView = memo(({
-  id, solicitud, role, editando, setEditando, serverError, setServerError, 
-  avanzando, setAvanzando,
+  id: _id, solicitud, role, editando, setEditando, serverError, setServerError, 
+  avanzando, setAvanzando: _setAvanzando,
   resoluciones, empleados, pagando, handlePagar, puedeAvanzar, handleAvanzarEstado,
   siguiente, isBusy, register, handleSubmit, setValue, watch, errors, 
-  isSubmitting, onSubmit, onError, navigate, 
+  isSubmitting, onSubmit, onError, navigate: _navigate, 
   pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago,
   cancelando, handleCancelar, puedeCancelar
 }: StandardDetailViewProps) => {
@@ -1001,7 +1001,7 @@ export default function SolicitudDetailPage() {
   const esFinalizar = siguiente?.slug === 'finalizado';
   const esTransferencia = pagoMetodoId === 3;
   const esEnItv = solicitud.estado?.slug === 'en_itv';
-  const esRetornando = solicitud.estado?.slug === 'retornando';
+  const _esRetornando = solicitud.estado?.slug === 'retornando';
   const puedeAvanzar = 
     role === "empleado" && 
     !!siguiente && 

@@ -10,7 +10,7 @@ import { useHeader } from "@/context/HeaderContext";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ButtonGroup } from "@/components/ui/button-group";
+// ButtonGroup removed — unused
 import { toast } from "sonner";
 
 const ROLES = [
@@ -150,7 +150,7 @@ export default function PerfilPage() {
 
   const isOwnProfile = !id;
   const isAdmin = authUser?.rol?.slug === "administrador" || authUser?.rol_id === 1;
-  const isStaff = isAdmin || authUser?.rol?.slug === "empleado" || authUser?.rol_id === 2;
+  const _isStaff = isAdmin || authUser?.rol?.slug === "empleado" || authUser?.rol_id === 2;
 
   const {
     register,

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardSinBorde } from "@/compon
 import { 
   Users, Car, FileText, CreditCard, AlertTriangle,
   Clock, UserCheck, Truck, Search, RotateCcw, CheckCircle, XCircle,
-  ShieldCheck, Calendar, BarChart2, PieChart as PieChartIcon, Activity
+  ShieldCheck, Calendar, BarChart2, PieChart as PieChartIcon
 } from "lucide-react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
@@ -20,7 +20,6 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
@@ -775,7 +774,7 @@ export default function DashboardPage() {
                             className="bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-none font-bold h-11 w-52 rounded-xl cursor-not-allowed opacity-70 flex items-center justify-center p-0"
                           >
                             <Clock size={16} className="mr-2" />
-                            {isBusy && isForToday ? "Servicio en curso" : `Programado: ${format(new Date(s.fecha_programada), "dd/MM")}`}
+                            {isBusy && isForToday ? "Servicio en curso" : `Programado: ${format(new Date(s.fecha_programada!), "dd/MM")}`}
                           </Button>
                         );
                       })()}
