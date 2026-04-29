@@ -55,6 +55,7 @@ RUN composer dump-autoload --optimize --no-dev 2>/dev/null || true
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     storage/logs \
     bootstrap/cache \
+    /var/log/supervisor \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
