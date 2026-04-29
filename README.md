@@ -29,4 +29,9 @@ http://localhost:8081  → db
 
 
 
+git pull
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+
+
+
 
