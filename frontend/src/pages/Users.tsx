@@ -54,7 +54,7 @@ type SortField =
   | "activo"
   | "created_at";
 
-const dominio = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const dominio = import.meta.env.VITE_API_URL || "";
 
 export default function UsersPage({
   isSelector = false,

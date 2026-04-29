@@ -6,7 +6,7 @@ import { useHeader } from "@/context/HeaderContext";
 import { useRef } from "react";
 import api from "@/lib/axios";
 
-const dominio = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const dominio = import.meta.env.VITE_API_URL || "";
 
 const ROUTE_CONFIG: Record<string, { imagen: string; titulo: string }> = {
   "/vehiculos": {
