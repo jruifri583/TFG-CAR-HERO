@@ -292,14 +292,14 @@ export default function NuevoUsuarioPage() {
 
             <div className="flex flex-wrap gap-2 justify-end mt-4 pt-4 border-t-2 border-primary">
               <Button
-                className="w-50"
+                className="w-full md:w-50"
                 type="button"
                 variant="outline"
                 onClick={() => navigate("/users")}
               >
                 Cancelar
               </Button>
-              <Button className="w-50" type="submit" disabled={isSubmitting}>
+              <Button className="w-full md:w-50" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Guardando..." : "Crear usuario"}
               </Button>
             </div>

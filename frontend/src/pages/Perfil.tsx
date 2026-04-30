@@ -20,7 +20,7 @@ const ROLES = [
 ];
 
 const schema = z.object({
-  email: z.string().email("Email inválido").max(150, "Máximo 150 caracteres"),
+  email: z.string().email("Email inválido").max(150, "Máximo 150 caracteres").optional().or(z.literal("")),
   nombre: z
     .string()
     .max(255, "Máximo 255 caracteres")
@@ -82,9 +82,9 @@ const schema = z.object({
     .or(z.literal("")),
   direcciones: z.array(z.object({
     alias: z.string().max(100, "Máximo 100 caracteres").optional().or(z.literal("")),
-    direccion: z.string().min(1, "La dirección es obligatoria").max(255, "Máximo 255 caracteres"),
-    ciudad: z.string().min(1, "La ciudad es obligatoria").max(100, "Máximo 100 caracteres"),
-    codigo_postal: z.string().min(1, "El C.P. es obligatorio").max(10, "Máximo 10 caracteres"),
+    direccion: z.string().max(255, "Máximo 255 caracteres").optional().or(z.literal("")),
+    ciudad: z.string().max(100, "Máximo 100 caracteres").optional().or(z.literal("")),
+    codigo_postal: z.string().max(10, "Máximo 10 caracteres").optional().or(z.literal("")),
   })).optional(),
     current_password: z
       .string()
@@ -447,11 +447,10 @@ export default function PerfilPage() {
                   </div>
                 )}
 
-                {isEditing && (
+                {isEditing && isOwnProfile && (
                   <div className="space-y-4 pt-2 border-t-2 border-primary mt-4">
-                    {isOwnProfile && (
-                      <div className="space-y-1">
-                        <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Contraseña Actual</label>
+                    <div className="space-y-1">
+                      <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Contraseña Actual</label>
                         <Input
                           type="password"
                           {...register("current_password")}
@@ -464,7 +463,7 @@ export default function PerfilPage() {
                           </p>
                         )}
                       </div>
-                    )}
+
                     <div className="space-y-1">
                       <label className="text-sm font-medium text-primary uppercase text-[10px] tracking-wider font-black">Nueva Contraseña</label>
                       <Input
@@ -492,9 +491,9 @@ export default function PerfilPage() {
                           {errors.password_confirmation.message}
                         </p>
                       )}
-                    </div>
                   </div>
-                )}
+                </div>
+              )}
 
                 {isAdmin && !isOwnProfile && (
                   <div className="flex items-center gap-3 pt-4 border-t-2 border-primary">
@@ -601,7 +600,7 @@ export default function PerfilPage() {
                     <Button 
                       type="button" 
                       onClick={() => appendDireccion({ alias: "", direccion: "", ciudad: "", codigo_postal: "" })}
-                      className="w-50 gap-2 font-bold"
+                      className="w-full md:w-50 gap-2 font-bold"
                     >
                       <Plus size={16} /> Añadir dirección
                     </Button>
@@ -689,14 +688,14 @@ export default function PerfilPage() {
               {!isEditing ? (
                 <>
                   <Button
-                    className="w-50"
+                    className="w-full md:w-50"
                     type="button"
                     onClick={() => setIsEditing(true)}
                   >
                     Editar Perfil
                   </Button>
                   <Button
-                    className="w-50"
+                    className="w-full md:w-50"
                     type="button"
                     variant="outline"
                     onClick={() => navigate(-1)}
@@ -707,14 +706,14 @@ export default function PerfilPage() {
               ) : (
                 <>
                   <Button
-                    className="w-50"
+                    className="w-full md:w-50"
                     type="button"
                     variant="outline"
                     onClick={handleCancel}
                   >
                     Cancelar
                   </Button>
-                  <Button className="w-50" type="submit">
+                  <Button className="w-full md:w-50" type="submit">
                     Guardar Cambios
                   </Button>
                 </>

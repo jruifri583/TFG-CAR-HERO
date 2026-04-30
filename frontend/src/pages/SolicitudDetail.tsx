@@ -577,10 +577,10 @@ const StandardDetailView = memo(({
               </div>
               {serverError && <p className="text-red-500 text-sm font-bold italic text-center p-3 bg-red-50 rounded-lg">{serverError}</p>}
               <div className="flex justify-end gap-3 pt-6 border-t-2 border-primary font-bold">
-                <Button type="button" variant="outline" className="w-50" onClick={() => { setEditando(false); setServerError(null); }}>Cancelar</Button>
+                <Button type="button" variant="outline" className="w-full md:w-50" onClick={() => { setEditando(false); setServerError(null); }}>Cancelar</Button>
                 <Button 
                   type="submit" 
-                  className="w-50" 
+                  className="w-full md:w-50" 
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Guardando..." : "Guardar cambios"}
@@ -759,11 +759,11 @@ const StandardDetailView = memo(({
 
       <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
         {role === "administrador" && ["pendiente", "asignado"].includes(solicitud.estado?.slug || "") && (
-          <Button onClick={() => setEditando(true)} variant={puedeAvanzar ? "outline" : "default"} className="w-50">Editar</Button>
+          <Button onClick={() => setEditando(true)} variant={puedeAvanzar ? "outline" : "default"} className="w-full md:w-50">Editar</Button>
         )}
         {puedeAvanzar && (
           <Button
-            className="w-50"
+            className="w-full md:w-50"
             variant={(!solicitud.pago && !pagoMetodoId && esFinalizar) ? "destructive" : "default"}
             onClick={handleAvanzarEstado}
             disabled={avanzando || (isBusy && siguiente?.slug === 'en_recogida')}
@@ -785,7 +785,7 @@ const StandardDetailView = memo(({
         {role === "cliente" && puedeCancelar && (
           <Button
             variant="destructive"
-            className="w-50 hover:bg-red-700"
+            className="w-full md:w-50 hover:bg-red-700"
             onClick={handleCancelar}
             disabled={cancelando}
           >

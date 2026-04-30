@@ -303,14 +303,14 @@ export default function NuevaSolicitudPage() {
 
             <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               <Button
-                className="w-50"
+                className="w-full md:w-50"
                 type="button"
                 variant="outline"
                 onClick={() => navigate(-1)}
               >
                 Cancelar
               </Button>
-              <Button className="w-50" type="submit" disabled={isSubmitting}>
+              <Button className="w-full md:w-50" type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Guardando..." : "Crear solicitud"}
               </Button>
             </div>
