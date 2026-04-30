@@ -197,7 +197,7 @@ export default function UsersPage({
               Email{renderSortArrow("email")}
             </TableHead>
             <TableHead
-              className="cursor-pointer text-left pl-4 md:text-center md:pl-2 min-w-0 md:w-[200px]"
+              className="cursor-pointer text-left pl-10 md:text-center md:pl-2 min-w-0 md:w-[200px]"
               onClick={() => handleSort("nombre")}
             >
               Nombre y Apellidos{renderSortArrow("nombre")}
@@ -255,7 +255,7 @@ export default function UsersPage({
                     {user.email}
                   </span>
                 </TableCell>
-                <TableCell className="text-left pl-4 md:text-center md:pl-2 font-medium truncate">
+                <TableCell className="text-left pl-10 md:text-center md:pl-2 font-medium truncate">
                   {[user.nombre, user.apellidos].filter(Boolean).join(" ")}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell text-center">
