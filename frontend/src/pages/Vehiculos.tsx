@@ -245,7 +245,7 @@ function AdminList({
           <p className="text-slate-500 font-medium italic">No se han encontrado vehículos.</p>
         </div>
       ) : (
-      <Table className="table-fixed w-full">
+      <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="text-center w-[80px]">Imagen</TableHead>

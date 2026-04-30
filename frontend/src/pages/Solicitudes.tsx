@@ -381,7 +381,7 @@ export default function SolicitudesPage({
             <p className="text-slate-500 font-medium italic">No se han encontrado solicitudes.</p>
           </div>
         ) : (
-        <Table className="table-fixed w-full">
+        <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="text-center w-[70px]">ID</TableHead>
