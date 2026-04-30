@@ -11,7 +11,6 @@ import {
   CardTitle,
   CardSinBorde,
 } from "@/components/ui/card";
-import api from "@/lib/axios";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
