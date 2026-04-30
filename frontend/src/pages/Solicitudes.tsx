@@ -203,8 +203,8 @@ export default function SolicitudesPage({
 
   return (
     <>
-      <div className="flex justify-end mb-4 gap-2 items-center w-full overflow-x-auto pb-2">
-        <ButtonGroup>
+      <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
+        <ButtonGroup className="max-w-full">
           <div className="relative flex items-center">
           {!search && (
             <Search
@@ -376,6 +376,11 @@ export default function SolicitudesPage({
           )}
         </div>
       ) : (
+        solicitudes.length === 0 ? (
+          <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl w-full">
+            <p className="text-slate-500 font-medium italic">No se han encontrado solicitudes.</p>
+          </div>
+        ) : (
         <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow>
@@ -401,14 +406,7 @@ export default function SolicitudesPage({
           </TableHeader>
 
           <TableBody>
-            {solicitudes.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground italic">
-                  No se han encontrado solicitudes.
-                </TableCell>
-              </TableRow>
-            ) : (
-              solicitudes?.map((s) => (
+              {solicitudes?.map((s) => (
                 <TableRow
                   key={s.id}
                   className={`cursor-pointer transition-colors h-14 ${
@@ -491,10 +489,10 @@ export default function SolicitudesPage({
                     </span>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
+              ))}
           </TableBody>
         </Table>
+        )
       )}
 
       {totalPages > 1 && (

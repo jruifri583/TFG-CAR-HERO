@@ -112,8 +112,8 @@ export default function PagosPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4 items-center w-full overflow-x-auto pb-2">
-        <ButtonGroup>
+      <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
+        <ButtonGroup className="max-w-full">
           <div className="relative flex items-center">
             {!search && (
               <Search
@@ -155,6 +155,11 @@ export default function PagosPage() {
         </ButtonGroup>
       </div>
 
+      {pagos.length === 0 ? (
+        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl w-full">
+          <p className="text-slate-500 font-medium italic">No se han encontrado pagos.</p>
+        </div>
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -186,14 +191,7 @@ export default function PagosPage() {
         </TableHeader>
 
         <TableBody>
-          {pagos.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-12 text-muted-foreground italic">
-                No se han encontrado pagos.
-              </TableCell>
-            </TableRow>
-          ) : (
-            pagos.map((pago) => (
+            {pagos.map((pago) => (
               <TableRow
                 key={pago.id}
                 className="cursor-pointer hover:bg-muted/50 h-14"
@@ -235,10 +233,10 @@ export default function PagosPage() {
                   </span>
                 </TableCell>
               </TableRow>
-            ))
-          )}
+            ))}
         </TableBody>
       </Table>
+      )}
 
       {totalPages > 1 && (
         <Pagination className="mt-6">

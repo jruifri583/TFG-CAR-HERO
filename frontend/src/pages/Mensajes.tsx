@@ -169,8 +169,8 @@ export default function MensajesPage() {
 
   return (
     <>
-      <div className="flex justify-end mb-4 items-center w-full overflow-x-auto pb-2">
-        <ButtonGroup>
+      <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
+        <ButtonGroup className="max-w-full">
           <div className="relative flex items-center">
             {!search && (
               <Search
@@ -207,6 +207,11 @@ export default function MensajesPage() {
           </div>
         </ButtonGroup>
       </div>
+      {mensajes.length === 0 ? (
+        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl w-full">
+          <p className="text-slate-500 font-medium italic">No hay mensajes en la bandeja</p>
+        </div>
+      ) : (
       <Table>
         <TableHeader>
           <TableRow>
@@ -233,14 +238,7 @@ export default function MensajesPage() {
         </TableHeader>
 
         <TableBody>
-          {mensajes.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
-                No hay mensajes en la bandeja
-              </TableCell>
-            </TableRow>
-          ) : (
-            mensajes.map((mensaje) => (
+            {mensajes.map((mensaje) => (
               <React.Fragment key={mensaje.id}>
                 <TableRow
                   key={mensaje.id}
@@ -329,10 +327,10 @@ export default function MensajesPage() {
                   </TableRow>
                 )}
               </React.Fragment>
-            ))
-          )}
+            ))}
         </TableBody>
       </Table>
+      )}
 
       {totalPages > 1 && (
         <Pagination className="mt-6">
