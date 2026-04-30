@@ -178,7 +178,7 @@ export default function Header() {
 
             <div className="absolute top-full right-0 mt-3">
               {!isPerfilPage ? (
-                <Button asChild className="w-full md:w-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                <Button asChild className="w-full md:w-50 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                   <NavLink to="/perfil">Ver perfil</NavLink>
                 </Button>
               ) : isEditing ? (
