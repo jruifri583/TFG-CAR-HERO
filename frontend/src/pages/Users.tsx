@@ -152,8 +152,7 @@ export default function UsersPage({
               }}
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
-              className={`border-black py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
-                ${!isSelector ? "rounded-l-md rounded-r-none" : "rounded-md"}
+              className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
                 ${search ? "pl-3" : "pl-8"}
                 ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
                 focus-visible:ring-0`}
@@ -172,12 +171,12 @@ export default function UsersPage({
           </div>
           {!isSelector && (
             <Button
-            onClick={() => navigate("/users/nuevo")}
-            className="w-fit md:w-50 shrink-0"
-          >
-            <PlusIcon className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Añadir</span>
-          </Button>
+              onClick={() => navigate("/users/nuevo")}
+              className="w-fit md:w-50 shrink-0"
+            >
+              <PlusIcon className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Añadir</span>
+            </Button>
           )}
         </ButtonGroup>
       </div>

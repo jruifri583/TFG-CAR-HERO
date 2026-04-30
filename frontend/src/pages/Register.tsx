@@ -91,7 +91,7 @@ export default function Register() {
       <div className="hidden md:block bg-primary bg-[url('/logo.png')] bg-no-repeat bg-center"></div>
 
       <div className="flex flex-col items-center justify-center gap-12">
-        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-100 h-32"></div>
+        <div className="bg-[url('/logoLinea.png')] bg-no-repeat bg-center bg-contain w-64 h-24 md:w-100 md:h-32"></div>
 
         <CardSinBorde className="w-full p-1 max-w-87.5 h-120">
           <CardHeader>

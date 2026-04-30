@@ -206,46 +206,48 @@ export default function SolicitudesPage({
       <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
         <ButtonGroup className="md:w-fit max-w-full">
           <div className="relative flex items-center min-w-0">
-          {!search && (
-            <Search
-              size={14}
-              className="absolute left-2.5 text-muted-foreground pointer-events-none"
-            />
-          )}
-          <Input
-            type="text"
-            placeholder="Buscar..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              debouncedSearch(e.target.value);
-            }}
-            onFocus={() => setInputFocused(true)}
-            onBlur={() => setInputFocused(false)}
-            className={`border-black py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
-        ${!sinPago ? "rounded-l-md rounded-r-none" : "rounded-md"}
-        ${search ? "pl-3" : "pl-8"}
-        ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
-        focus-visible:ring-0`}
-          />
-          {search && (
-            <button
-              className="absolute right-2 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                setSearch("");
-                debouncedSearch("");
+            {!search && (
+              <Search
+                size={14}
+                className="absolute left-2.5 text-muted-foreground pointer-events-none"
+              />
+            )}
+            <Input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                debouncedSearch(e.target.value);
               }}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
+              className={`border-black rounded-l-md rounded-r-none py-1.5 text-sm outline-none transition-all duration-300 bg-background shadow-none
+                ${search ? "pl-3" : "pl-8"}
+                ${inputFocused || search ? "w-44 md:w-64" : "w-28 md:w-32"}
+                focus-visible:ring-0`}
+            />
+            {search && (
+              <button
+                className="absolute right-2 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setSearch("");
+                  debouncedSearch("");
+                }}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          {!sinPago && (
+            <Button
+              onClick={handleNuevaSolicitud}
+              className="w-fit md:w-50 shrink-0"
             >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-        {!sinPago && (
-            <Button onClick={handleNuevaSolicitud} className="w-fit md:w-50 shrink-0">
               <PlusIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Añadir</span>
             </Button>
-        )}
+          )}
         </ButtonGroup>
       </div>
 
