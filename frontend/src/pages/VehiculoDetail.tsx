@@ -368,14 +368,14 @@ export default function VehiculoDetailPage() {
               {!isEditing ? (
                 <>
                   <Button
-                    className="w-40"
+                    className="w-full md:w-50"
                     type="button"
                     onClick={() => setIsEditing(true)}
                   >
                     Editar Vehículo
                   </Button>
                   <Button
-                    className="w-40"
+                    className="w-full md:w-50"
                     type="button"
                     variant="destructive"
                     onClick={handleDelete}
@@ -386,14 +386,14 @@ export default function VehiculoDetailPage() {
               ) : (
                 <>
                   <Button
-                    className="w-40"
+                    className="w-full md:w-50"
                     type="button"
                     variant="outline"
                     onClick={handleCancel}
                   >
                     Cancelar
                   </Button>
-                  <Button className="w-40" type="submit">
+                  <Button className="w-full md:w-50" type="submit">
                     Guardar Cambios
                   </Button>
                 </>

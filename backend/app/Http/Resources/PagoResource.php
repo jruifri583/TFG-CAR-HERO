@@ -26,12 +26,14 @@ class PagoResource extends JsonResource
             'metodo_pago' => [
                 'id' => $this->metodoPago?->id,
                 'nombre' => $this->metodoPago?->nombre ?? null,
+                'slug' => $this->metodoPago?->slug ?? null,
             ],
 
             // Relación: Estado de pago
             'estado_pago' => [
                 'id' => $this->estadoPago?->id,
                 'nombre' => $this->estadoPago?->nombre ?? null,
+                'slug' => $this->estadoPago?->slug ?? null,
             ],
             'created_at' => $this->created_at?->toISOString(),
         ];

@@ -148,7 +148,7 @@ export default function PagosPage() {
               </button>
             )}
           </div>
-          <Button onClick={() => navigate("/pagos/nuevo")} className="px-3 sm:px-4 shrink-0">
+          <Button onClick={() => navigate("/pagos/nuevo")} className="w-full md:w-50 shrink-0">
             <PlusIcon className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Añadir</span>
           </Button>

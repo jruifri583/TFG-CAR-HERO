@@ -68,10 +68,12 @@ class SolicitudResource extends JsonResource
                 'metodo_pago' => $this->pago->metodoPago ? [
                     'id' => $this->pago->metodoPago->id,
                     'nombre' => $this->pago->metodoPago->nombre,
+                    'slug' => $this->pago->metodoPago->slug,
                 ] : null,
                 'estado_pago' => $this->pago->estadoPago ? [
                     'id' => $this->pago->estadoPago->id,
                     'nombre' => $this->pago->estadoPago->nombre,
+                    'slug' => $this->pago->estadoPago->slug,
                 ] : null,
             ] : null,
             'updated_at' => $this->updated_at?->toISOString(),

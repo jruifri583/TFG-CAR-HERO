@@ -410,7 +410,7 @@ const EmpleadoDetailView = memo(({
             )}
 
             {/* Pago COMPLETADO */}
-            {solicitud.pago && solicitud.pago.estado_pago?.slug === 'pagado' && (
+            {solicitud.pago && (solicitud.pago.estado_pago?.slug === 'pagado' || solicitud.pago.estado_pago?.id === 2) && (
               <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
                   <div className="flex items-center justify-center gap-2 text-emerald-700 font-black text-sm uppercase italic">
                     <ShieldCheck size={18} /> Pago completado ({solicitud.pago.metodo_pago?.nombre})
@@ -618,7 +618,7 @@ const StandardDetailView = memo(({
                 <ReadOnlyField label="Agente Asignado" value={solicitud.empleado ? `${solicitud.empleado.nombre} ${solicitud.empleado.apellidos}` : "No asignado"} />
                 <ReadOnlyField label="Resolución ITV" value={solicitud.resolucion?.nombre} icon={ShieldCheck} />
                 
-                {role === 'administrador' && solicitud.estado?.slug === 'retornando' && !solicitud.pago && (
+                {role === 'administrador' && ['retornando', 'finalizado'].includes(solicitud.estado?.slug || "") && !solicitud.pago && (
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
                     <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-1 block text-center">Registro de Cobro</Label>
                     <div className="grid grid-cols-2 gap-3">
@@ -712,7 +712,7 @@ const StandardDetailView = memo(({
                     <div className="text-xs text-slate-500 mt-0.5">{solicitud.pago.metodo_pago?.nombre}</div>
                   </div>
                   <span className={`px-4 py-1.5 rounded-full text-xs font-bold ring-1 ${
-                    solicitud.pago.estado_pago?.slug === 'pagado'
+                    (solicitud.pago.estado_pago?.slug === 'pagado' || solicitud.pago.estado_pago?.id === 2)
                       ? 'bg-success/10 text-success ring-success/20'
                       : 'bg-warning/10 text-warning ring-warning/20'
                   }`}>
@@ -776,7 +776,7 @@ const StandardDetailView = memo(({
                  : `A "${siguiente?.nombre}"`}
           </Button>
          )}
-        {solicitud.pago && solicitud.pago.estado_pago?.slug === 'pendiente' && (
+        {solicitud.pago && (solicitud.pago.estado_pago?.slug === 'pendiente' || solicitud.pago.estado_pago?.id === 1) && (
           <div className="flex gap-2">
             <Button className="bg-emerald-600 text-white" disabled={pagando} onClick={() => handlePagar(1)}>Cobrar Efectivo</Button>
             <Button className="bg-cyan-600 text-white" disabled={pagando} onClick={() => handlePagar(2)}>Cobrar Tarjeta</Button>

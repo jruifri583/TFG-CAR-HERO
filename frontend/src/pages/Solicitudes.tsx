@@ -241,7 +241,7 @@ export default function SolicitudesPage({
           )}
         </div>
         {!sinPago && (
-            <Button onClick={handleNuevaSolicitud} className="px-3 sm:px-4 shrink-0">
+            <Button onClick={handleNuevaSolicitud} className="w-full md:w-50 shrink-0">
               <PlusIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Añadir</span>
             </Button>
