@@ -113,8 +113,8 @@ export default function PagosPage() {
   return (
     <>
       <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
-        <ButtonGroup className="w-full md:w-fit max-w-full">
-          <div className="relative flex items-center flex-1 min-w-0">
+        <ButtonGroup className="md:w-fit max-w-full">
+          <div className="relative flex items-center min-w-0">
             {!search && (
               <Search
                 size={14}

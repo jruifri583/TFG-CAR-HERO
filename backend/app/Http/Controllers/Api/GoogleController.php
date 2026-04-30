@@ -39,6 +39,8 @@ class GoogleController extends Controller
 
             $token = $user->createToken('google-token')->plainTextToken;
 
+            $user->load('rol');
+
             return response()->json([
                 'user' => $user,
                 'token' => $token
