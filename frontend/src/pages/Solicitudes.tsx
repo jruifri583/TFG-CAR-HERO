@@ -204,8 +204,8 @@ export default function SolicitudesPage({
   return (
     <>
       <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
-        <ButtonGroup className="max-w-full">
-          <div className="relative flex items-center">
+        <ButtonGroup className="w-full md:w-fit max-w-full">
+          <div className="relative flex items-center flex-1 min-w-0">
           {!search && (
             <Search
               size={14}
@@ -385,7 +385,7 @@ export default function SolicitudesPage({
           <TableHeader>
             <TableRow>
               <TableHead className="text-center w-[70px]">ID</TableHead>
-              <TableHead className="text-center min-w-[200px] hidden md:table-cell">Vehículo</TableHead>
+              <TableHead className="text-center min-w-[150px] md:min-w-[200px]">Vehículo</TableHead>
               <TableHead className="text-center min-w-0 md:min-w-[200px]">Cliente</TableHead>
               <TableHead className="text-center min-w-[150px] hidden md:table-cell">Empleado</TableHead>
               {!sinPago && (
@@ -397,7 +397,7 @@ export default function SolicitudesPage({
                 </TableHead>
               )}
               <TableHead
-                className="cursor-pointer text-center min-w-0 md:w-[180px]"
+                className="cursor-pointer text-center min-w-0 md:w-[180px] hidden md:table-cell"
                 onClick={() => handleSort("fecha_programada")}
               >
                 Fecha programada{renderSortArrow("fecha_programada")}
@@ -424,8 +424,8 @@ export default function SolicitudesPage({
                     {s.id}
                   </TableCell>
 
-                  <TableCell className="hidden md:table-cell">
-                    <div className="flex items-center gap-3">
+                  <TableCell className="">
+                    <div className="flex items-center justify-center gap-3">
                       <div className="w-10 h-10 shrink-0">
                         <img
                           src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
@@ -436,11 +436,11 @@ export default function SolicitudesPage({
                           }}
                         />
                       </div>
-                      <div className="text-left">
-                        <p className="font-bold text-sm text-slate-800">
+                      <div className="text-left md:text-left">
+                        <p className="font-bold text-xs md:text-sm text-slate-800">
                           {s.vehiculo?.marca} {s.vehiculo?.modelo}
                         </p>
-                        <p className="text-[10px] font-bold text-primary uppercase tracking-tight">
+                        <p className="text-[9px] md:text-[10px] font-bold text-primary uppercase tracking-tight">
                           {s.vehiculo?.matricula}
                         </p>
                       </div>
@@ -448,7 +448,7 @@ export default function SolicitudesPage({
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center gap-3">
                       <div className="w-8 h-8 shrink-0">
                         <img
                           src={s.cliente?.imagen ?? "/avatars/default_user.png"}
@@ -483,7 +483,7 @@ export default function SolicitudesPage({
                     </TableCell>
                   )}
 
-                  <TableCell className="text-center">
+                  <TableCell className="text-center hidden md:table-cell">
                     <span className="text-xs font-semibold text-slate-500">
                       {fmt(s.fecha_programada)}
                     </span>

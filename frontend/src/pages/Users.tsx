@@ -134,8 +134,8 @@ export default function UsersPage({
   return (
     <>
       <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
-        <ButtonGroup className="max-w-full">
-          <div className="relative flex items-center">
+        <ButtonGroup className="w-full md:w-fit max-w-full">
+          <div className="relative flex items-center flex-1 min-w-0">
             {!search && (
               <Search
                 size={14}
@@ -211,7 +211,7 @@ export default function UsersPage({
               Rol{renderSortArrow("rol_id")}
             </TableHead>
             <TableHead
-              className="cursor-pointer text-center min-w-0 md:w-[100px]"
+              className="cursor-pointer text-center min-w-0 md:w-[100px] hidden md:table-cell"
               onClick={() => handleSort("activo")}
             >
               Activo{renderSortArrow("activo")}
@@ -267,7 +267,7 @@ export default function UsersPage({
                     {user.rol?.nombre || "-"}
                   </span>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center hidden md:table-cell">
                   {user.activo ? (
                     <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
                   ) : (

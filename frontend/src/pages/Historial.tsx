@@ -162,7 +162,7 @@ export default function HistorialPage() {
                 Fecha ITV{renderSortArrow("fecha_itv")}
               </TableHead>
               <TableHead
-                className="cursor-pointer text-center w-[200px]"
+                className="cursor-pointer text-center w-[200px] hidden md:table-cell"
                 onClick={() => handleSort("resolucion_id")}
               >
                 Resolución{renderSortArrow("resolucion_id")}
@@ -195,7 +195,7 @@ export default function HistorialPage() {
                       : "-"}
                   </span>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center hidden md:table-cell">
                   <span
                     className={`text-sm px-2 py-1 rounded-full font-medium capitalize ${RESOLUCION_COLORS[h.resolucion?.nombre?.toLowerCase()] ?? "bg-gray-100 text-gray-800"}`}
                   >
