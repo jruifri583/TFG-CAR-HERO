@@ -32,10 +32,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { user, token } = res.data;
 
     localStorage.setItem("token", token);
+    localStorage.setItem("user_data", JSON.stringify(user));
     localStorage.setItem("last_login", new Date().toISOString());
 
     api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setUser(user);
+  };
+
+  const loginWithToken = async (token: string) => {
+    localStorage.setItem("token", token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    
+    try {
+      const res = await api.get("/me");
+      const user = res.data.user;
+      setUser(user);
+      localStorage.setItem("user_data", JSON.stringify(user));
+      localStorage.setItem("last_login", new Date().toISOString());
+    } catch (error) {
+      logout();
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -78,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser,
         login,
         loginWithGoogle,
+        loginWithToken,
         logout,
         loading,
         isEditing,

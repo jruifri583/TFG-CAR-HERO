@@ -40,7 +40,7 @@ type FormData = {
 };
 
 export default function Register() {
-  const { setUser, login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -78,12 +78,11 @@ export default function Register() {
   const handleGoogleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) return;
     try {
-      await api.post("/auth/google", { id_token: response.credential });
-      const res = await api.get("/me");
-      setUser(res.data);
+      await loginWithGoogle(response.credential);
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
+      toast.error("Error al registrarse con Google");
     }
   };
 

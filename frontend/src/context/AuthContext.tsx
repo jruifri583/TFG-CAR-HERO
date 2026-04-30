@@ -5,9 +5,10 @@ import type { User, LoginCredentials } from "@/types/auth";
 
 export interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void; // para actualizar usuario
+  setUser: (user: User | null) => void;
   login: (credentials: LoginCredentials) => Promise<void>;
-  loginWithGoogle: (token: string, userData: User) => Promise<void>;
+  loginWithGoogle: (id_token: string) => Promise<void>;
+  loginWithToken: (token: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
   isEditing: boolean;

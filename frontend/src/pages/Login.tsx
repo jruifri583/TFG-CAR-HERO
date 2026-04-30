@@ -28,7 +28,7 @@ type FormData = {
 };
 
 export default function LoginPage() {
-  const { login, setUser } = useAuth();
+  const { login, loginWithGoogle, loginWithToken } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -62,17 +62,11 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (response: CredentialResponse) => {
     if (!response.credential) return;
     try {
-      const loginRes = await api.post("/auth/google", {
-        id_token: response.credential,
-      });
-      const { user, token } = loginRes.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user_data", JSON.stringify(user));
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      setUser(user);
+      await loginWithGoogle(response.credential);
       navigate("/dashboard");
     } catch (error) {
       console.error(error);
+      toast.error("Error al iniciar sesión con Google");
     }
   };
 
@@ -80,12 +74,14 @@ export default function LoginPage() {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
-      localStorage.setItem("token", token);
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      window.history.replaceState({}, document.title, "/");
-      navigate("/dashboard");
+      loginWithToken(token).then(() => {
+        window.history.replaceState({}, document.title, "/");
+        navigate("/dashboard");
+      }).catch(() => {
+        toast.error("Sesión inválida");
+      });
     }
-  }, [navigate]);
+  }, [navigate, loginWithToken]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 min-h-screen w-full">

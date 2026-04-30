@@ -241,7 +241,7 @@ export default function SolicitudesPage({
           )}
         </div>
         {!sinPago && (
-            <Button onClick={handleNuevaSolicitud} className="w-full md:w-50 shrink-0">
+            <Button onClick={handleNuevaSolicitud} className="w-fit md:w-50 shrink-0">
               <PlusIcon className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Añadir</span>
             </Button>
@@ -385,7 +385,7 @@ export default function SolicitudesPage({
           <TableHeader>
             <TableRow>
               <TableHead className="text-center w-[70px]">ID</TableHead>
-              <TableHead className="text-center min-w-[150px] md:min-w-[200px]">Vehículo</TableHead>
+              <TableHead className="text-center min-w-[200px] hidden md:table-cell">Vehículo</TableHead>
               <TableHead className="text-center min-w-0 md:min-w-[200px]">Cliente</TableHead>
               <TableHead className="text-center min-w-[150px] hidden md:table-cell">Empleado</TableHead>
               {!sinPago && (
@@ -424,7 +424,7 @@ export default function SolicitudesPage({
                     {s.id}
                   </TableCell>
 
-                  <TableCell className="">
+                  <TableCell className="hidden md:table-cell">
                     <div className="flex items-center justify-center gap-3">
                       <div className="w-10 h-10 shrink-0">
                         <img

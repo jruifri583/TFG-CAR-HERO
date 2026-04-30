@@ -173,7 +173,7 @@ export default function UsersPage({
           {!isSelector && (
             <Button
             onClick={() => navigate("/users/nuevo")}
-            className="w-full md:w-50 shrink-0"
+            className="w-fit md:w-50 shrink-0"
           >
             <PlusIcon className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Añadir</span>
