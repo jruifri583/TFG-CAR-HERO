@@ -234,9 +234,9 @@ function AdminList({
               </button>
             )}
           </div>
-          <Button className="w-50" onClick={() => navigate("/vehiculos/nuevo")}>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Añadir
+          <Button onClick={() => navigate("/vehiculos/nuevo")} className="px-3 sm:px-4 shrink-0">
+            <PlusIcon className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Añadir</span>
           </Button>
         </ButtonGroup>
       </div>
@@ -437,11 +437,11 @@ function ClienteList({
             )}
           </div>
           <Button
-            className="w-50"
             onClick={() => navigate(`/perfil/${user?.id}/nuevo-vehiculo`)}
+            className="px-3 sm:px-4 shrink-0"
           >
-            <PlusIcon className="mr-2 h-4 w-4" />
-            Añadir
+            <PlusIcon className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Añadir</span>
           </Button>
         </ButtonGroup>
       </div>
