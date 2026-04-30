@@ -32,7 +32,6 @@ class ContactController extends Controller
             $response = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret'   => $turnstileSecret,
                 'response' => $request->input('cf_turnstile_response'),
-                'remoteip' => $request->ip(),
             ]);
 
             if (!$response->json('success')) {
