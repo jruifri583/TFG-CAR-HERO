@@ -69,9 +69,10 @@ export default function LoginPage() {
     try {
       await loginWithGoogle(response.credential);
       navigate("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Error al iniciar sesión con Google");
+      const msg = error.response?.data?.message || "Error al iniciar sesión con Google";
+      toast.error(msg);
     }
   };
 
@@ -140,7 +141,7 @@ export default function LoginPage() {
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
                     onError={() => toast.error("Error al iniciar sesión con Google")}
-                    useOneTap
+                    useOneTap={false}
                     size="medium"
                     text="continue_with"
                   />

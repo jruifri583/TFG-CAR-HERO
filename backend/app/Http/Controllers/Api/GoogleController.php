@@ -52,9 +52,12 @@ class GoogleController extends Controller
             ]);
 
         } catch (Exception $e) {
-            // Esto te dirá el error exacto en la respuesta JSON
+            \Log::error('Google Login Error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
-                'error' => 'Error interno en el servidor',
+                'error' => 'Error en la verificación con Google',
                 'message' => $e->getMessage()
             ], 500);
         }
