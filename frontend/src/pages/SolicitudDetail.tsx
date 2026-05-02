@@ -1026,10 +1026,26 @@ export default function SolicitudDetailPage() {
       }
       await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, estado_id: siguiente.id });
       await cargarSolicitud();
+      
+      // Notificación de éxito solo al finalizar
+      if (esFinalizar) {
+        toast.success("¡Servicio finalizado con éxito!", {
+          description: "La solicitud ha sido completada y cerrada correctamente.",
+        });
+      }
+
       setPagoMetodoId(null);
       setPagoImporte("");
     } catch (err: any) {
-      setServerError(err?.response?.data?.message || "Error al avanzar.");
+      const errorMsg = err?.response?.data?.message || "Error al avanzar.";
+      const validationErrors = err?.response?.data?.errors;
+      
+      if (validationErrors) {
+        Object.values(validationErrors).flat().forEach((msg: any) => toast.error(msg));
+      } else {
+        toast.error(errorMsg);
+      }
+      setServerError(errorMsg);
     } finally { setAvanzando(false); }
   };
 

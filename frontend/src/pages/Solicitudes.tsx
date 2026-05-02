@@ -125,14 +125,14 @@ export default function SolicitudesPage({
   const handleNuevaSolicitud = async () => {
     if (role === "cliente") {
       if (!isProfileComplete()) {
-        toast.error("Por favor, completa tus datos personales en el perfil antes de solicitar servicio.");
+        toast.error("Por favor, completa tus datos personales en la cuenta antes de solicitar servicio.");
         return;
       }
       try {
         const res = await api.get('/vehiculos');
         const vehiculos = res.data?.data ?? res.data ?? [];
         if (vehiculos.length === 0) {
-          toast.error("Añade al menos un vehículo a tu perfil para poder solicitar un servicio.");
+          toast.error("Añade al menos un vehículo a tu cuenta para poder solicitar un servicio.");
           return;
         }
         navigate(`/perfil/${user?.id}/nueva-solicitud`);

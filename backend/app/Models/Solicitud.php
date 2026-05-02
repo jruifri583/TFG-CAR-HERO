@@ -167,6 +167,24 @@ class Solicitud extends Model
                     ]);
                 }
 
+                // Validación de orden por hora: Debe gestionar la solicitud más temprana primero
+                if ($solicitud->fecha_programada) {
+                    $earlier = self::where('user_empleado_id', $solicitud->user_empleado_id)
+                        ->where('id', '!=', $solicitud->id)
+                        ->whereHas('estado', function($q) {
+                            $q->where('slug', EstadoSlug::ASIGNADO->value);
+                        })
+                        ->whereDate('fecha_programada', $solicitud->fecha_programada->toDateString())
+                        ->where('fecha_programada', '<', $solicitud->fecha_programada)
+                        ->exists();
+
+                    if ($earlier) {
+                        throw ValidationException::withMessages([
+                            'estado_id' => 'Debes gestionar tus solicitudes de hoy por orden horario (de más temprana a más tardía).',
+                        ]);
+                    }
+                }
+
                 $solicitud->hora_recogida = $ahora;
             }
 

@@ -208,6 +208,10 @@ export default function NuevoVehiculoPage() {
                     {...register("vin")}
                     placeholder="VIN del vehículo"
                     className="border-slate-200"
+                    onChange={(e) => {
+                      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+                      register("vin").onChange(e);
+                    }}
                   />
                   {errors.vin && (
                     <p className="text-red-500 text-xs font-medium">{errors.vin.message}</p>

@@ -7,6 +7,7 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import SolicitudesPage from "@/pages/Solicitudes";
 
 const METODOS_PAGO = [
@@ -75,9 +76,13 @@ export default function NuevoPagoPage() {
   const onSubmit = async (data: any) => {
     try {
       await api.post("/pagos", { ...data, estado_pago_id: 2 });
+      toast.success("¡Pago registrado con éxito!", {
+        description: "El pago de la solicitud ha sido procesado correctamente.",
+      });
       navigate("/pagos");
     } catch (error: any) {
       console.error("Error creando pago:", error);
+      toast.error("Ocurrió un error al registrar el pago.");
     }
   };
 

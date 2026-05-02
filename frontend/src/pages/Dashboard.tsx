@@ -745,7 +745,7 @@ export default function DashboardPage() {
                         {s.vehiculo?.marca} {s.vehiculo?.modelo} - <span className="font-mono text-xs opacity-70">{s.vehiculo?.matricula}</span>
                       </h3>
                       <p className="text-xs text-yellow-700/80 dark:text-yellow-300/60 font-medium">
-                        Cliente: {s.cliente?.nombre} {s.cliente?.apellidos} • {s.direccion}
+                        Cliente: {s.cliente?.nombre} {s.cliente?.apellidos} • {s.direccion} {s.fecha_programada && ` • ${format(new Date(s.fecha_programada), "HH:mm")}`}
                       </p>
                     </div>
 
@@ -754,18 +754,39 @@ export default function DashboardPage() {
                         const isForToday = !s.fecha_programada || isToday(new Date(s.fecha_programada));
                         const isBusy = contadores?.has_active_request;
 
+                        // Encontrar la más temprana de hoy entre las asignadas
+                        const assignmentsToday = pendingAssignments
+                          .filter(pa => pa.fecha_programada && isToday(new Date(pa.fecha_programada)))
+                          .sort((a, b) => new Date(a.fecha_programada!).getTime() - new Date(b.fecha_programada!).getTime());
+                        
+                        const isEarliest = assignmentsToday.length === 0 || assignmentsToday[0].id === s.id;
+
                         if (isForToday && !isBusy) {
-                          return (
-                            <Button 
-                              asChild
-                              className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 w-52 rounded-xl active:scale-95 flex items-center justify-center p-0"
-                            >
-                              <NavLink to={`/solicitudes/${s.id}`}>
-                                <FileText size={18} className="mr-2" />
-                                Gestionar ahora
-                              </NavLink>
-                            </Button>
-                          );
+                          if (isEarliest) {
+                            return (
+                              <Button 
+                                asChild
+                                className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 w-52 rounded-xl active:scale-95 flex items-center justify-center p-0"
+                              >
+                                <NavLink to={`/solicitudes/${s.id}`}>
+                                  <FileText size={18} className="mr-2" />
+                                  Gestionar ahora
+                                </NavLink>
+                              </Button>
+                            );
+                          } else {
+                            return (
+                              <Button 
+                                onClick={() => toast.warning("Orden de prioridad", {
+                                  description: "Debes gestionar primero la solicitud más temprana del día asignada a ti."
+                                })}
+                                className="bg-amber-100 hover:bg-amber-200 text-amber-700 border-none transition-all font-bold h-11 w-52 rounded-xl flex items-center justify-center p-0"
+                              >
+                                <Clock size={18} className="mr-2" />
+                                Esperar turno
+                              </Button>
+                            );
+                          }
                         }
 
                         return (
@@ -774,7 +795,7 @@ export default function DashboardPage() {
                             className="bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-none font-bold h-11 w-52 rounded-xl cursor-not-allowed opacity-70 flex items-center justify-center p-0"
                           >
                             <Clock size={16} className="mr-2" />
-                            {isBusy && isForToday ? "Servicio en curso" : `Programado: ${format(new Date(s.fecha_programada!), "dd/MM")}`}
+                            {isBusy && isForToday ? "Servicio en curso" : `Programado: ${format(new Date(s.fecha_programada!), "dd/MM HH:mm")}`}
                           </Button>
                         );
                       })()}
@@ -867,11 +888,11 @@ export default function DashboardPage() {
 
     const handleSolicitar = (path: string) => {
       if (!isProfileComplete()) {
-        toast.error("Por favor, completa tus datos personales en el perfil antes de solicitar servicio.");
+        toast.error("Por favor, completa tus datos personales en la cuenta antes de solicitar servicio.");
         return;
       }
       if (contadores?.vehiculos === 0) {
-        toast.error("Añade al menos un vehículo a tu perfil para poder solicitar un servicio.");
+        toast.error("Añade al menos un vehículo a tu cuenta para poder solicitar un servicio.");
         return;
       }
       navigate(path);
