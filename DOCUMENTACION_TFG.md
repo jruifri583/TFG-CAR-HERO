@@ -48,7 +48,7 @@ La plataforma cubre todos los requisitos del ciclo de vida del servicio basándo
 | Pantalla | Fichero | Roles | Descripción |
 |---|---|---|---|
 | Dashboard | `Dashboard.tsx` | Todos | Panel de control con contadores interactivos, gráficos de solicitudes por estado y por mes (**Recharts**), alertas de ITV próximas y solicitudes recientes |
-| Perfil | `Perfil.tsx` | Todos | Configuración de datos personales (nombre, apellidos, NIF, teléfono, dirección, ciudad, código postal), cambio de contraseña y subida de imagen de perfil. Permite al cliente crear vehículos y solicitudes desde su propio perfil |
+| Perfil | `Perfil.tsx` | Todos | Configuración de datos personales (nombre, apellidos, NIF, teléfono, dirección, ciudad, código postal), cambio de contraseña y subida de imagen de perfil. Incluye función de **eliminación de cuenta** con periodo de gracia de 24 horas (cancelable al volver a iniciar sesión) |
 | Detalle Solicitud | `SolicitudDetail.tsx` | Todos | Vista completa de una solicitud con: mapa de ubicación geolocalizada, tracker circular de progreso de estados, formularios de edición condicional por rol, acciones para avanzar el flujo, cancelar servicio, asignar empleado y registrar pagos |
 | Detalle Vehículo | `VehiculoDetail.tsx` | Admin, Cliente | Ficha técnica del vehículo con historial de ITVs asociadas |
 
@@ -201,6 +201,7 @@ sequenceDiagram
 | **Cifrado** | SSL / TLS | Certificados gratuitos de **Let's Encrypt** gestionados y renovados automáticamente mediante **Certbot** en el entorno de producción |
 | **OAuth externo** | Google API Client | Verificación del `id_token` de Google directamente contra los servidores de Google en el backend |
 | **Ocultación de datos** | Hidden attributes | El campo `password` se excluye automáticamente de toda serialización JSON del modelo `User` |
+| **Eliminación de cuenta** | Soft-delete con gracia de 24h | Al solicitar eliminación se marca `pending_deletion_at`, se revocan tokens y se redirige al login. Si el usuario vuelve a loguearse antes de 24h se cancela la eliminación. Un comando scheduled (`accounts:purge`) elimina definitivamente las cuentas expiradas cada hora |
 | **Interceptor HTTP** | Axios interceptor | Inyección automática del `Bearer Token` en cada petición saliente del frontend |
 
 #### Expiración del Token
@@ -270,6 +271,7 @@ erDiagram
         string imagen
         int rol_id FK
         boolean activo
+        timestamp pending_deletion_at
     }
     DIRECCIONES {
         int id PK
@@ -389,19 +391,20 @@ CREATE TABLE roles (
 -- TABLA: users (antes 'usuarios')
 -- Diferencias: añadidos 'ciudad' y 'codigo_postal' para geolocalización del cliente
 CREATE TABLE users (
-    id            INT AUTO_INCREMENT PRIMARY KEY,
-    email         VARCHAR(150) UNIQUE NOT NULL,
-    password      VARCHAR(255) NOT NULL,
-    nombre        VARCHAR(150) NULL,
-    apellidos     VARCHAR(250) NULL,
-    nif           VARCHAR(20)  NULL,
-    telefono      VARCHAR(50)  NULL,
-    direccion     VARCHAR(255) NULL,
-    ciudad        VARCHAR(100) NULL,
-    codigo_postal VARCHAR(10)  NULL,
-    imagen        VARCHAR(255) NULL,
-    rol_id        INT NOT NULL DEFAULT 3,
-    activo        BOOLEAN DEFAULT TRUE,
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    email               VARCHAR(150) UNIQUE NOT NULL,
+    password            VARCHAR(255) NOT NULL,
+    nombre              VARCHAR(150) NULL,
+    apellidos           VARCHAR(250) NULL,
+    nif                 VARCHAR(20)  NULL,
+    telefono            VARCHAR(50)  NULL,
+    direccion           VARCHAR(255) NULL,
+    ciudad              VARCHAR(100) NULL,
+    codigo_postal       VARCHAR(10)  NULL,
+    imagen              VARCHAR(255) NULL,
+    rol_id              INT NOT NULL DEFAULT 3,
+    activo              BOOLEAN DEFAULT TRUE,
+    pending_deletion_at TIMESTAMP NULL,  -- Eliminación diferida con gracia de 24h
     created_at TIMESTAMP, updated_at TIMESTAMP,
     FOREIGN KEY (rol_id) REFERENCES roles(id)
 );
@@ -614,6 +617,7 @@ stateDiagram-v2
 |---|---|---|
 | `GET` | `/api/me` | Obtener datos del usuario autenticado |
 | `PUT` | `/api/me` | Actualizar perfil del usuario autenticado |
+| `DELETE` | `/api/me` | Solicitar eliminación de cuenta (gracia de 24h, cancelable al volver a iniciar sesión) |
 | `POST` | `/api/me/imagen` | Subir/actualizar imagen de perfil |
 | `POST` | `/api/logout` | Cerrar sesión (eliminar todos los tokens) |
 
@@ -755,7 +759,7 @@ backend/
 │   │
 │   ├── Http/
 │   │   ├── Controllers/Api/      # Controladores REST
-│   │   │   ├── AuthController.php          # Register, Login, Me, Logout, UpdatePerfil, UpdateImagen
+│   │   │   ├── AuthController.php          # Register, Login, Me, Logout, UpdatePerfil, UpdateImagen, RequestDeletion
 │   │   │   ├── GoogleController.php        # Login con Google OAuth
 │   │   │   ├── ContactController.php       # Contacto público + Turnstile
 │   │   │   ├── UserController.php          # CRUD usuarios (admin)
@@ -806,6 +810,9 @@ backend/
 │   │   ├── UserPolicy.php        # Solo admin
 │   │   └── HistorialPolicy.php   # Visibilidad por solicitud
 │   │
+│   ├── Console/Commands/         # Comandos Artisan programados
+│   │   └── PurgeDeletedAccounts.php  # Eliminación definitiva de cuentas expiradas (>24h)
+│   │
 │   ├── Services/                 # Lógica de dominio desacoplada
 │   │   ├── SolicitudService.php  # Máquina de estados, validaciones de transición
 │   │   └── HistorialService.php  # Creación automática de historial
@@ -824,7 +831,7 @@ backend/
 │   └── ...
 │
 ├── database/
-│   ├── migrations/               # 20 migraciones ordenadas
+│   ├── migrations/               # 21 migraciones ordenadas
 │   └── seeders/                  # Datos iniciales de prueba
 │       ├── DatabaseSeeder.php    # Orquestador
 │       ├── RolesSeeder.php       # 3 roles
@@ -837,7 +844,8 @@ backend/
 │       └── SolicitudesSeeder.php # Solicitudes con datos realistas
 │
 ├── routes/
-│   └── api.php                   # Definición de todas las rutas API
+│   ├── api.php                   # Definición de todas las rutas API
+│   └── console.php               # Scheduler: accounts:purge cada hora
 │
 ├── Dockerfile                    # PHP 8.2-cli + extensiones + Composer
 └── docker-entrypoint.sh          # Auto-install vendor si está vacío

@@ -1,5 +1,5 @@
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/context/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,12 @@ export default function LoginPage() {
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
   });
+
+  const [googleReady, setGoogleReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setGoogleReady(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -130,13 +136,15 @@ export default function LoginPage() {
                 >
                   {isSubmitting ? "Entrando..." : "Entrar"}
                 </Button>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => toast.error("Error al iniciar sesión con Google")}
-                  useOneTap
-                  size="medium"
-                  text="continue_with"
-                />
+                <div className={`google-btn-wrapper${googleReady ? " visible" : ""}`}>
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => toast.error("Error al iniciar sesión con Google")}
+                    useOneTap
+                    size="medium"
+                    text="continue_with"
+                  />
+                </div>
               </div>
             </form>
 

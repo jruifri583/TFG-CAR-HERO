@@ -156,3 +156,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Aislar el botón de Google: oculto por defecto, visible tras mount */
+.google-btn-wrapper {
+  opacity: 0;
+  min-height: 35px;
+  transition: opacity 0.2s ease;
+}
+.google-btn-wrapper.visible {
+  opacity: 1;
+}

@@ -41,6 +41,11 @@ class GoogleController extends Controller
 
             $user->load('rol');
 
+            // Cancelar eliminación pendiente si el usuario vuelve a loguearse
+            if ($user->pending_deletion_at) {
+                $user->update(['pending_deletion_at' => null]);
+            }
+
             return response()->json([
                 'user' => $user,
                 'token' => $token

@@ -9,7 +9,7 @@ import { CardContent, CardSinBorde } from "@/components/ui/card";
 import SolicitudCircularTracker from "@/components/ui/SolicitudCircularTracker";
 import { 
   FileText,
-  Clock, MapPin, ShieldCheck, ExternalLink, Activity
+  Clock, MapPin, ShieldCheck, ExternalLink, Activity, User, Phone
 } from "lucide-react";
 import { format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,6 +39,7 @@ interface Solicitud {
     ciudad: string | null;
     codigo_postal: string | null;
     imagen: string | null;
+    telefono: string | null;
   } | null;
   vehiculo: {
     id: number;
@@ -53,6 +54,7 @@ interface Solicitud {
     nombre: string;
     apellidos: string;
     email: string;
+    imagen: string | null;
   } | null;
   resolucion: { id: number; nombre: string } | null;
   pago: {
@@ -72,6 +74,14 @@ interface Empleado {
   id: number;
   nombre: string;
   apellidos: string;
+  email: string;
+}
+
+// Helper: muestra nombre+apellidos o, si son null, la parte antes de @ del email
+function displayName(nombre: string | null | undefined, apellidos: string | null | undefined, email?: string | null): string {
+  if (nombre || apellidos) return `${nombre ?? ""} ${apellidos ?? ""}`.trim();
+  if (email) return email.split("@")[0];
+  return "Sin nombre";
 }
 
 interface Estado {
@@ -304,6 +314,33 @@ const EmpleadoDetailView = memo(({
       <div className="lg:col-span-5 space-y-6">
         <CardSinBorde className="border border-border shadow-sm h-full rounded-xl overflow-hidden relative">
           <CardContent className="p-6 flex flex-col h-full space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border-b border-slate-100 pb-4">
+              <div className="space-y-1 sm:border-r sm:border-slate-100 sm:pr-4">
+                <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
+                  <User size={16} /> Cliente
+                </Label>
+                <div className="font-bold text-base text-slate-900 px-1">
+                  {displayName(solicitud.cliente?.nombre, solicitud.cliente?.apellidos, solicitud.cliente?.email)}
+                </div>
+              </div>
+              
+              <div className="space-y-1 sm:pl-4 pt-4 sm:pt-0">
+                <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
+                  <Phone size={16} /> Teléfono
+                </Label>
+                {solicitud.cliente?.telefono ? (
+                  <a 
+                    href={`tel:${solicitud.cliente.telefono}`}
+                    className="font-bold text-base text-primary hover:underline px-1 flex items-center gap-2"
+                  >
+                    {solicitud.cliente.telefono}
+                  </a>
+                ) : (
+                  <div className="text-sm text-slate-400 italic px-1">No disponible</div>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
                 <Clock size={16} /> Estado de Servicio
@@ -317,15 +354,15 @@ const EmpleadoDetailView = memo(({
             </div>
             
             <div className="space-y-4">
-              {(solicitud.estado?.slug === 'en_itv' || solicitud.resolucion) && (
-                <div className="space-y-2">
+              {['en_itv', 'retornando', 'finalizado'].includes(solicitud.estado?.slug || "") && (
+                <div className="space-y-2 p-4 bg-primary/5 rounded-xl border border-primary/10">
                   <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
                      <ShieldCheck size={16} /> Resultado ITV
                   </Label>
                   <select 
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-bold"
                     value={solicitud.resolucion?.id ?? ""}
-                    disabled={solicitud.estado?.slug !== 'en_itv'}
+                    disabled={solicitud.estado?.slug !== 'en_itv' || avanzando}
                     onChange={async (e) => {
                       const rid = e.target.value ? Number(e.target.value) : null;
                       try {
@@ -350,29 +387,58 @@ const EmpleadoDetailView = memo(({
                 </div>
               )}
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label className="text-primary flex items-center gap-2 uppercase font-black text-xs tracking-widest">
                    <FileText size={16} /> Notas Operativas
                 </Label>
-                <Textarea 
-                  className="min-h-[80px] resize-none"
-                  placeholder="Observaciones..."
-                  disabled={solicitud.estado?.slug === 'finalizado'}
-                  defaultValue={solicitud.notas ?? ""}
-                  onBlur={async (e) => {
-                    const val = e.target.value;
-                    if (val === solicitud.notas) return;
-                    try {
-                      setAvanzando(true);
-                      await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, notas: val });
-                      await cargarSolicitud();
-                    } catch(err) {
-                      console.error(err);
-                    } finally {
-                      setAvanzando(false);
-                    }
-                  }}
-                />
+                
+                {/* Visualización de notas existentes - No editable */}
+                {solicitud.notas && (
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 whitespace-pre-wrap italic">
+                    {solicitud.notas}
+                  </div>
+                )}
+
+                {/* Área para añadir nuevas notas */}
+                <div className="space-y-2 pt-1">
+                  <Textarea 
+                    id="nueva-nota"
+                    className="min-h-[80px] resize-none text-sm border-slate-200 focus:border-primary/50"
+                    placeholder="Añadir una observación interna..."
+                    disabled={avanzando || solicitud.estado?.slug === 'finalizado'}
+                  />
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full text-[10px] uppercase font-bold h-8"
+                    disabled={avanzando || solicitud.estado?.slug === 'finalizado'}
+                    onClick={async () => {
+                      const input = document.getElementById('nueva-nota') as HTMLTextAreaElement;
+                      const val = input?.value.trim();
+                      if (!val) return;
+
+                      try {
+                        setAvanzando(true);
+                        const timestamp = new Date().toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+                        const nuevaNotaCompleta = solicitud.notas 
+                          ? `${solicitud.notas}\n\n[${timestamp}] Empleado: ${val}` 
+                          : `[${timestamp}] Empleado: ${val}`;
+                        
+                        await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, notas: nuevaNotaCompleta });
+                        if (input) input.value = '';
+                        await cargarSolicitud();
+                        toast.success("Nota añadida");
+                      } catch(err) {
+                        console.error(err);
+                        toast.error("No se pudo añadir la nota");
+                      } finally {
+                        setAvanzando(false);
+                      }
+                    }}
+                  >
+                    Añadir comentario
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -550,7 +616,7 @@ const StandardDetailView = memo(({
                           onChange={(v) => setValue("user_empleado_id", v)} 
                           options={empleados.map((e: Empleado) => ({ 
                             id: e.id, 
-                            nombre: `${e.nombre} ${e.apellidos}` 
+                            nombre: displayName(e.nombre, e.apellidos, e.email)
                           }))} 
                           placeholder="Seleccionar empleado" 
                         />
@@ -615,7 +681,6 @@ const StandardDetailView = memo(({
                   <ReadOnlyField label="Fecha Programada" value={fmt(solicitud.fecha_programada)} icon={Clock} />
                   <ReadOnlyField label="Estado Actual" value={solicitud.estado?.nombre} />
                 </div>
-                <ReadOnlyField label="Agente Asignado" value={solicitud.empleado ? `${solicitud.empleado.nombre} ${solicitud.empleado.apellidos}` : "No asignado"} />
                 <ReadOnlyField label="Resolución ITV" value={solicitud.resolucion?.nombre} icon={ShieldCheck} />
                 
                 {role === 'administrador' && ['retornando', 'finalizado'].includes(solicitud.estado?.slug || "") && !solicitud.pago && (
@@ -652,82 +717,100 @@ const StandardDetailView = memo(({
                 <CardSinBorde className="border-l-2 border-l-primary">
                   <CardContent className="pt-6 space-y-4">
                     <h3 className="font-bold text-lg">Cliente</h3>
-                    <Link 
-                      to={`/perfil/${solicitud.cliente?.id}`}
-                      className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
-                    >
-                      <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
-                      <div className="flex-1">
-                        <p className="font-bold text-lg group-hover:text-primary transition-colors">{solicitud.cliente?.nombre} {solicitud.cliente?.apellidos}</p>
-                        <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
+                    {role === "administrador" ? (
+                      <Link 
+                        to={`/perfil/${solicitud.cliente?.id}`}
+                        className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
+                      >
+                        <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
+                        <div className="flex-1">
+                          <p className="font-bold text-lg group-hover:text-primary transition-colors">{displayName(solicitud.cliente?.nombre, solicitud.cliente?.apellidos, solicitud.cliente?.email)}</p>
+                          <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
+                        </div>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <img src={solicitud.cliente?.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                        <div className="flex-1">
+                          <p className="font-bold text-lg">{displayName(solicitud.cliente?.nombre, solicitud.cliente?.apellidos, solicitud.cliente?.email)}</p>
+                          <p className="text-sm text-slate-500 truncate">{solicitud.cliente?.email}</p>
+                        </div>
                       </div>
-                    </Link>
+                    )}
                   </CardContent>
                 </CardSinBorde>
               )}
               <CardSinBorde className="border-l-2 border-l-primary">
                 <CardContent className="pt-6 space-y-4">
                   <h3 className="font-bold text-lg">Vehículo</h3>
-                  <Link 
-                    to={`/vehiculos/${solicitud.vehiculo?.id}`}
-                    className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
-                  >
-                    <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform">
-                      <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
+                  {role !== "empleado" ? (
+                    <Link 
+                      to={`/vehiculos/${solicitud.vehiculo?.id}`}
+                      className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
+                    >
+                      <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg group-hover:text-primary transition-colors">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
+                        <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
+                      </div>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      <div className="w-16 h-16 bg-white rounded-full overflow-hidden flex items-center justify-center">
+                        <img src={solicitud.vehiculo?.imagen ?? "/avatars/default_car.png"} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
+                        <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-lg group-hover:text-primary transition-colors">{solicitud.vehiculo?.marca} {solicitud.vehiculo?.modelo}</p>
-                      <p className="text-[12px] font-bold text-primary uppercase tracking-tight mt-0.5">{solicitud.vehiculo?.matricula}</p>
-                    </div>
-                  </Link>
+                  )}
                 </CardContent>
               </CardSinBorde>
+              {/* Card Empleado */}
+              {role !== "empleado" && (
+                <CardSinBorde className="border-l-2 border-l-primary md:col-span-2 xl:col-span-1">
+                  <CardContent className="pt-6 space-y-4">
+                    <h3 className="font-bold text-lg">Empleado</h3>
+                    {solicitud.empleado ? (
+                      role === "administrador" ? (
+                        <Link 
+                          to={`/perfil/${solicitud.empleado.id}`}
+                          className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-slate-100/80 hover:border-primary/30 transition-all cursor-pointer group"
+                        >
+                          <img src={solicitud.empleado.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-lg group-hover:text-primary transition-colors truncate">{displayName(solicitud.empleado.nombre, solicitud.empleado.apellidos, solicitud.empleado.email)}</p>
+                            <p className="text-sm text-slate-500 truncate">{solicitud.empleado.email}</p>
+                          </div>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                          <img src={solicitud.empleado.imagen ?? "/avatars/default_user.png"} className="w-16 h-16 rounded-full object-cover shadow-sm" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-lg truncate">{displayName(solicitud.empleado.nombre, solicitud.empleado.apellidos, solicitud.empleado.email)}</p>
+                            <p className="text-sm text-slate-500 truncate">{solicitud.empleado.email}</p>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex items-center gap-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                          <User className="text-slate-400" size={24} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-500">No asignado</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </CardSinBorde>
+              )}
            </div>
 
-           {/* Información de Pago y Notas */}
-           <div className="space-y-6">
-              {/* Importe fijado por el admin — el cliente solo lo ve como información */}
-              {!solicitud.pago && solicitud.importe_cobro && (
-                <div className="px-6 py-4 rounded-xl border border-yellow-200 flex items-center justify-between gap-4" style={{ background: 'rgb(254 252 232)' }}>
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Importe del servicio</label>
-                    <div className="text-2xl font-black text-slate-800">
-                      {Number(solicitud.importe_cobro).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                    </div>
-                    <div className="text-xs text-yellow-700 mt-0.5 italic">Pendiente de cobro</div>
-                  </div>
-                </div>
-              )}
 
-              {solicitud.pago && (
-                <div className="px-6 py-4 rounded-xl border flex items-center justify-between gap-4" style={{
-                  background: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(240 253 244)' : 'rgb(254 252 232)',
-                  borderColor: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(187 247 208)' : 'rgb(253 224 71 / 0.4)',
-                }}>
-                  <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detalle del Pago</label>
-                    <div className="text-2xl font-black text-slate-800">
-                      {Number(solicitud.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                    </div>
-                    <div className="text-xs text-slate-500 mt-0.5">{solicitud.pago.metodo_pago?.nombre}</div>
-                  </div>
-                  <span className={`px-4 py-1.5 rounded-full text-xs font-bold ring-1 ${
-                    (solicitud.pago.estado_pago?.slug === 'pagado' || solicitud.pago.estado_pago?.id === 2)
-                      ? 'bg-success/10 text-success ring-success/20'
-                      : 'bg-warning/10 text-warning ring-warning/20'
-                  }`}>
-                    {solicitud.pago.estado_pago?.nombre}
-                  </span>
-                </div>
-              )}
-
-              <div className="font-medium">
-                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Notas del servicio</label>
-                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm italic text-slate-600 mt-1">
-                   {solicitud.notas || "Sin observaciones adicionales."}
-                 </div>
-              </div>
-           </div>
         </div>
 
         <div className="lg:col-span-5 space-y-8">
@@ -755,6 +838,53 @@ const StandardDetailView = memo(({
               </CardContent>
             </CardSinBorde>
         </div>
+      </div>
+
+      {/* Información de Pago y Notas - Ancho Completo */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch mt-8">
+         <div className="space-y-6">
+           {/* Importe fijado por el admin — el cliente solo lo ve como información */}
+           {!solicitud.pago && solicitud.importe_cobro && (
+             <div className="px-6 py-4 rounded-xl border border-yellow-200 flex items-center justify-between gap-4 h-full" style={{ background: 'rgb(254 252 232)' }}>
+               <div>
+                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Importe del servicio</label>
+                 <div className="text-2xl font-black text-slate-800">
+                   {Number(solicitud.importe_cobro).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                 </div>
+                 <div className="text-xs text-yellow-700 mt-0.5 italic">Pendiente de cobro</div>
+               </div>
+             </div>
+           )}
+
+           {solicitud.pago && (
+             <div className="px-6 py-4 rounded-xl border flex items-center justify-between gap-4 h-full" style={{
+               background: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(240 253 244)' : 'rgb(254 252 232)',
+               borderColor: solicitud.pago.estado_pago?.slug === 'pagado' ? 'rgb(187 247 208)' : 'rgb(253 224 71 / 0.4)',
+             }}>
+               <div>
+                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detalle del Pago</label>
+                 <div className="text-2xl font-black text-slate-800">
+                   {Number(solicitud.pago.importe).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                 </div>
+                 <div className="text-xs text-slate-500 mt-0.5">{solicitud.pago.metodo_pago?.nombre}</div>
+               </div>
+               <span className={`px-4 py-1.5 rounded-full text-xs font-bold ring-1 ${
+                 (solicitud.pago.estado_pago?.slug === 'pagado' || solicitud.pago.estado_pago?.id === 2)
+                   ? 'bg-success/10 text-success ring-success/20'
+                   : 'bg-warning/10 text-warning ring-warning/20'
+               }`}>
+                 {solicitud.pago.estado_pago?.nombre}
+               </span>
+             </div>
+           )}
+         </div>
+
+         <div className="font-medium flex flex-col h-full">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 mb-1">Notas del servicio</label>
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm italic text-slate-600 flex-1">
+              {solicitud.notas || "Sin observaciones adicionales."}
+            </div>
+         </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3 pt-8 mt-2 border-t-2 border-primary font-bold">
@@ -789,7 +919,7 @@ const StandardDetailView = memo(({
             onClick={handleCancelar}
             disabled={cancelando}
           >
-            {cancelando ? "Cancelando..." : "Cancelar solicitud"}
+            {cancelando ? "Cancelando..." : "Cancelar"}
           </Button>
         )}
       </div>
@@ -1056,9 +1186,11 @@ export default function SolicitudDetailPage() {
     setEditando, editando, pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago
   };
 
+  const isTerminal = ["finalizado", "cancelado"].includes(solicitud.estado?.slug || "");
+
   return (
     <div className="w-full">
-      {role === "empleado" && !editando 
+      {role === "empleado" && !editando && !isTerminal
         ? <EmpleadoDetailView {...employeeProps} /> 
         : <StandardDetailView {...standardProps} />}
     </div>

@@ -55,7 +55,7 @@ interface Solicitud {
   } | null;
   estado: { slug: string; nombre: string };
   resolucion?: { nombre: string } | null;
-  empleado: { nombre: string; apellidos: string; imagen: string | null} | null;
+  empleado: { nombre: string; apellidos: string; email: string; imagen: string | null} | null;
   updated_at?: string;
 }
 
@@ -86,7 +86,7 @@ const ESTADO_COLORS: Record<string, string> = {
   finalizado: "bg-green-100 text-green-800",
 };
 
-type SortField = "fecha_programada" | "estado_id" | "created_at";
+type SortField = "id" | "fecha_programada" | "estado_id" | "created_at" | "empleado";
 type SortOrder = "asc" | "desc";
 
 function fmt(iso: string | null) {
@@ -386,10 +386,20 @@ export default function SolicitudesPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-center w-[70px]">ID</TableHead>
+              <TableHead 
+                className="cursor-pointer text-center w-[90px]"
+                onClick={() => handleSort("id")}
+              >
+                ID{renderSortArrow("id")}
+              </TableHead>
               <TableHead className="text-center min-w-[200px] hidden md:table-cell">Vehículo</TableHead>
               <TableHead className="text-center min-w-0 md:min-w-[200px]">Cliente</TableHead>
-              <TableHead className="text-center min-w-[150px] hidden md:table-cell">Empleado</TableHead>
+              <TableHead 
+                className="cursor-pointer text-center min-w-[150px] hidden md:table-cell"
+                onClick={() => handleSort("empleado")}
+              >
+                Empleado{renderSortArrow("empleado")}
+              </TableHead>
               {!sinPago && (
                 <TableHead
                   className="cursor-pointer text-center w-[130px] hidden md:table-cell"
@@ -462,14 +472,20 @@ export default function SolicitudesPage({
                         />
                       </div>
                       <span className="text-sm font-medium">
-                        {s.cliente?.nombre} {s.cliente?.apellidos}
+                        {s.cliente?.nombre || s.cliente?.apellidos
+                          ? `${s.cliente?.nombre ?? ""} ${s.cliente?.apellidos ?? ""}`.trim()
+                          : s.cliente?.email?.split("@")[0] ?? "Sin nombre"}
                       </span>
                     </div>
                   </TableCell>
 
                   <TableCell className="text-center text-sm hidden md:table-cell">
                     {s.empleado ? (
-                      <span className="font-medium">{s.empleado.nombre} {s.empleado.apellidos}</span>
+                      <span className="font-medium">
+                        {s.empleado.nombre || s.empleado.apellidos
+                          ? `${s.empleado.nombre ?? ""} ${s.empleado.apellidos ?? ""}`.trim()
+                          : s.empleado.email?.split("@")[0] ?? "Sin nombre"}
+                      </span>
                     ) : (
                       <span className="text-muted-foreground italic">Sin asignar</span>
                     )}

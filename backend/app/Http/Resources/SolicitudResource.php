@@ -33,6 +33,7 @@ class SolicitudResource extends JsonResource
                 'ciudad' => $this->cliente?->ciudad,
                 'codigo_postal' => $this->cliente?->codigo_postal,
                 'imagen'   => $this->cliente?->imagen,
+                'telefono' => $this->cliente?->telefono,
             ],
 
             'empleado' => $this->empleado ? [

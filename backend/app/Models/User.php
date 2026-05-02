@@ -32,6 +32,7 @@ class User extends Authenticatable
         'imagen',
         'rol_id',
         'activo',
+        'pending_deletion_at',
     ];
 
     // Ocultamos datos sensibles al serializar
@@ -44,6 +45,7 @@ class User extends Authenticatable
         'activo' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'pending_deletion_at' => 'datetime',
     ];
 
     // Relaciones

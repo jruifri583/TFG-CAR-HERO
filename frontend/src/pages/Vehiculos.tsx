@@ -199,7 +199,7 @@ function AdminList({
   return (
     <>
       <div className="flex justify-end mb-4 items-center w-full flex-wrap gap-2 pb-2">
-        <ButtonGroup className="max-w-full">
+        <ButtonGroup className="md:w-fit max-w-full">
           <div className="relative flex items-center">
             {!search && (
               <Search
@@ -234,7 +234,7 @@ function AdminList({
               </button>
             )}
           </div>
-          <Button onClick={() => navigate("/vehiculos/nuevo")} className="px-3 sm:px-4 shrink-0">
+          <Button onClick={() => navigate("/vehiculos/nuevo")} className="w-fit md:w-50 shrink-0">
             <PlusIcon className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Añadir</span>
           </Button>

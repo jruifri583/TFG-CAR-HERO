@@ -25,7 +25,7 @@ class SolicitudController extends Controller
     public function index(Request $request)
 {
     $user = $request->user();
-    $allowed = ['fecha_programada', 'estado_id', 'created_at'];
+    $allowed = ['id', 'fecha_programada', 'estado_id', 'created_at', 'empleado'];
     $sort = in_array($request->get('sort'), $allowed) ? $request->get('sort') : 'created_at';
     $order = $request->get('order', 'desc') === 'asc' ? 'asc' : 'desc';
 
@@ -42,7 +42,7 @@ class SolicitudController extends Controller
         ->when($request->get('sin_pago'), fn($q) => $q->whereNull('pago_id'))
         ->when($request->get('search'), function ($q, $v) {
             $q->where(function ($q2) use ($v) {
-                $q2->where('id', 'like', "%$v%")
+                $q2->where('solicitudes.id', 'like', "%$v%")
                    ->orWhere('fecha_programada', 'like', "%$v%")
                    ->orWhereHas('cliente', fn($q3) => $q3->where('nombre', 'like', "%$v%")
                        ->orWhere('apellidos', 'like', "%$v%"))
@@ -50,7 +50,13 @@ class SolicitudController extends Controller
                        ->orWhere('marca', 'like', "%$v%"));
             });
         })
-        ->orderBy($sort, $order)
+        ->when($sort === 'empleado', function ($q) use ($order) {
+            $q->leftJoin('users as e_join', 'solicitudes.user_empleado_id', '=', 'e_join.id')
+              ->select('solicitudes.*')
+              ->orderBy('e_join.nombre', $order);
+        }, function ($q) use ($sort, $order) {
+            $q->select('solicitudes.*')->orderBy("solicitudes.$sort", $order);
+        })
         ->paginate(6);
 
     return SolicitudResource::collection($solicitudes)->response();
@@ -63,7 +69,7 @@ class SolicitudController extends Controller
         $user = Auth::user();
 
         $empleados = ($user->isAdmin() || $user->isEmployee())
-            ? User::empleados()->get(['id', 'nombre', 'apellidos'])
+            ? User::empleados()->get(['id', 'nombre', 'apellidos', 'email'])
             : collect();
 
         return response()->json([

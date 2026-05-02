@@ -140,11 +140,13 @@ export default function PerfilPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [editModeTime, setEditModeTime] = useState(0);
   const {
     isEditing,
     setIsEditing,
     setUser: setContextUser,
     user: authUser,
+    logout,
   } = useAuth();
   const { setHeaderData, setOnImageChange } = useHeader();
 
@@ -307,6 +309,7 @@ export default function PerfilPage() {
   };
 
   const onSubmit = async (data: FormData) => {
+    if (!isEditing || Date.now() - editModeTime < 500) return;
     try {
       const { direcciones: allDirs, ...rest } = data;
       
@@ -397,7 +400,7 @@ export default function PerfilPage() {
         <CardContent className="flex flex-col gap-6 pt-6">
 
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <form id="perfil-form" onSubmit={handleSubmit(onSubmit)} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
               {/* Bloque 1: Credenciales */}
               <div className="space-y-4 border-b-2 border-primary pb-8 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-8">
@@ -687,20 +690,35 @@ export default function PerfilPage() {
             <div className="flex flex-wrap gap-3 justify-end mt-10 pt-6 border-t-2 border-primary font-bold">
               {!isEditing ? (
                 <>
+                  {isOwnProfile && (
+                    <Button
+                      className="w-full md:w-50"
+                      type="button"
+                      variant="destructive"
+                      onClick={async () => {
+                        try {
+                          await api.delete("/me");
+                          logout();
+                          navigate("/login");
+                          toast.error("Si no inicias sesión en las próximas 24 horas, tu cuenta se eliminará definitivamente.");
+                        } catch {
+                          toast.error("Ocurrió un error al solicitar la eliminación de la cuenta.");
+                        }
+                      }}
+                    >
+                      Eliminar cuenta
+                    </Button>
+                  )}
                   <Button
                     className="w-full md:w-50"
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    onClick={(e) => { 
+                      e.preventDefault(); 
+                      setEditModeTime(Date.now());
+                      setIsEditing(true); 
+                    }}
                   >
-                    Editar Perfil
-                  </Button>
-                  <Button
-                    className="w-full md:w-50"
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate(-1)}
-                  >
-                    Volver
+                    Editar
                   </Button>
                 </>
               ) : (

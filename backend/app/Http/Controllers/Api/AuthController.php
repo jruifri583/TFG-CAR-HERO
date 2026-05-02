@@ -67,6 +67,11 @@ class AuthController extends Controller
     $token = $user->createToken('auth')->plainTextToken;
     $user->load('rol'); // 👈
 
+    // Cancelar eliminación pendiente si el usuario vuelve a loguearse
+    if ($user->pending_deletion_at) {
+        $user->update(['pending_deletion_at' => null]);
+    }
+
     return response()->json([
         'user' => $user,
         'token' => $token,
@@ -189,4 +194,20 @@ class AuthController extends Controller
 
     return response()->json(['user' => $user->fresh()->load('rol')]);
 }
-}
+
+    // ======================
+    // REQUEST DELETION
+    // ======================
+    public function requestDeletion(Request $request)
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $user->update(['pending_deletion_at' => now()]);
+        $user->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Tu cuenta se eliminará en 24 horas si no vuelves a iniciar sesión.'
+        ]);
+    }
+}

@@ -71,6 +71,7 @@ export default function VehiculoDetailPage() {
   const navigate = useNavigate();
   const [vehiculo, setVehiculo] = useState<Vehiculo | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [editModeTime, setEditModeTime] = useState(0);
   const { setHeaderData, setOnImageChange } = useHeader();
   const { user } = useAuth();
   const role = user?.rol?.slug;
@@ -149,6 +150,8 @@ export default function VehiculoDetailPage() {
   };
 
   const onSubmit = async (data: any) => {
+    if (Date.now() - editModeTime < 500) return; // Prevent double-click auto-submit
+
     try {
       const res = await api.put(`/vehiculos/${id}`, {
         ...data,
@@ -166,8 +169,10 @@ export default function VehiculoDetailPage() {
         fecha_ultima_itv: updated.fecha_ultima_itv ? updated.fecha_ultima_itv.split("T")[0] : "",
       });
       setIsEditing(false);
+      toast.success("Vehículo actualizado correctamente");
     } catch (error) {
       console.error("Error actualizando vehículo:", error);
+      toast.error("No se pudo actualizar el vehículo");
     }
   };
 
@@ -370,17 +375,21 @@ export default function VehiculoDetailPage() {
                   <Button
                     className="w-full md:w-50"
                     type="button"
-                    onClick={() => setIsEditing(true)}
+                    variant="destructive"
+                    onClick={handleDelete}
                   >
-                    Editar Vehículo
+                    Eliminar
                   </Button>
                   <Button
                     className="w-full md:w-50"
                     type="button"
-                    variant="destructive"
-                    onClick={handleDelete}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setEditModeTime(Date.now());
+                      setIsEditing(true);
+                    }}
                   >
-                    Eliminar Vehículo
+                    Editar
                   </Button>
                 </>
               ) : (

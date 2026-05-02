@@ -1,4 +1,5 @@
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/useAuth";
 import { useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
@@ -56,6 +57,12 @@ export default function Register() {
       password_confirmation: "",
     },
   });
+
+  const [googleReady, setGoogleReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setGoogleReady(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -151,7 +158,7 @@ export default function Register() {
                 >
                   {isSubmitting ? "Registrando..." : "Registrarse"}
                 </Button>
-                <div className="w-full">
+                <div className={`google-btn-wrapper${googleReady ? " visible" : ""}`}>
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
                     onError={() => toast.error("Error al iniciar sesión con Google")}
