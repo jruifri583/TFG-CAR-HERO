@@ -135,7 +135,7 @@ export default function NuevoUsuarioPage() {
     <div className="w-full">
       <CardSinBorde className="w-full">
         <CardContent className="flex flex-col gap-4">
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {/* Bloque 1: Credenciales */}
               <div className="space-y-4 border-b-2 border-primary pb-6 sm:border-b-0 sm:pb-0 sm:border-r-2 sm:border-primary sm:pr-6">
@@ -147,6 +147,7 @@ export default function NuevoUsuarioPage() {
                     type="text"
                     {...register("email")}
                     placeholder="email@ejemplo.com"
+                    autoComplete="new-email"
                   />
                   {errors.email && (
                     <p className="text-red-500 text-xs font-medium">{errors.email.message}</p>
@@ -158,7 +159,8 @@ export default function NuevoUsuarioPage() {
                   <Input
                     type="password"
                     {...register("password")}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
+                    autoComplete="new-password"
                   />
                   {errors.password && (
                     <p className="text-red-500 text-xs font-medium">
@@ -173,6 +175,7 @@ export default function NuevoUsuarioPage() {
                     type="password"
                     {...register("password_confirmation")}
                     placeholder="Repite la contraseña"
+                    autoComplete="new-password"
                   />
                   {errors.password_confirmation && (
                     <p className="text-red-500 text-xs font-medium">
