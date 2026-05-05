@@ -101,12 +101,33 @@ export default function NuevoUsuarioPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await api.post("/users", data);
+      // Limpiar campos opcionales vacíos → enviar como null
+      const payload = {
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.password_confirmation,
+        rol_id: data.rol_id,
+        activo: data.activo,
+        nombre: data.nombre || null,
+        apellidos: data.apellidos || null,
+        nif: data.nif || null,
+        telefono: data.telefono || null,
+        direccion: data.direccion || null,
+        ciudad: data.ciudad || null,
+        codigo_postal: data.codigo_postal || null,
+      };
+      await api.post("/users", payload);
       toast.success("¡Usuario creado con éxito!");
       navigate("/users");
     } catch (error: any) {
       console.error("Error creando usuario:", error);
-      toast.error("No se pudo crear el usuario. Por favor, revisa los datos.");
+      const msg = error?.response?.data?.message;
+      const validationErrors = error?.response?.data?.errors;
+      if (validationErrors) {
+        Object.values(validationErrors).flat().forEach((m: any) => toast.error(m));
+      } else {
+        toast.error(msg || "No se pudo crear el usuario. Por favor, revisa los datos.");
+      }
     }
   };
 
