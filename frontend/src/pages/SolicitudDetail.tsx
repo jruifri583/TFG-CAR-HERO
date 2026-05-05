@@ -554,7 +554,7 @@ const EmpleadoDetailView = memo(({
 const StandardDetailView = memo(({
   id: _id, solicitud, role, editando, setEditando, serverError, setServerError, 
   avanzando, setAvanzando: _setAvanzando,
-  resoluciones, empleados, pagando, handlePagar, puedeAvanzar, handleAvanzarEstado,
+  resoluciones, empleados, pagando, handlePagar: _handlePagar, puedeAvanzar, handleAvanzarEstado,
   siguiente, isBusy, register, handleSubmit, setValue, watch, errors, 
   isSubmitting, onSubmit, onError, navigate: _navigate, 
   pagoImporte, setPagoImporte, pagoMetodoId, setPagoMetodoId, handleRegistrarPago,
