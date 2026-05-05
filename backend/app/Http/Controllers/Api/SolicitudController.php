@@ -92,20 +92,21 @@ class SolicitudController extends Controller
 
 
     public function show(Request $request, Solicitud $solicitud)
-{
-    $this->authorize('view', $solicitud);
-    \Log::info('show called', ['id' => $solicitud->id]);
-    $solicitud->load([
-        'vehiculo',
-        'cliente',
-        'empleado',
-        'estado',
-        'resolucion',
-        'pago.metodoPago',
-        'pago.estadoPago',
-    ]);
-    return SolicitudResource::make($solicitud)->response();
-}
+    {
+        $this->authorize('view', $solicitud);
+        
+        $solicitud->load([
+            'vehiculo',
+            'cliente',
+            'empleado',
+            'estado',
+            'resolucion',
+            'pago.metodoPago',
+            'pago.estadoPago',
+        ]);
+
+        return new SolicitudResource($solicitud);
+    }
 
     public function update(
         UpdateSolicitudRequest $request,

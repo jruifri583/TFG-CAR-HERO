@@ -953,7 +953,11 @@ export default function SolicitudDetailPage() {
     try {
       const res = await api.get(`/solicitudes/${id}`);
       setSolicitud(res.data.data);
-    } catch(err) { console.error(err); }
+    } catch(err: any) { 
+      console.error(err);
+      toast.error("No se pudo cargar la solicitud.");
+      setTimeout(() => navigate("/solicitudes"), 2000);
+    }
   };
 
   useEffect(() => { cargarSolicitud(); }, [id]);
