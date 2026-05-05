@@ -99,32 +99,39 @@ export default function Sidebar() {
   // CONTADORES Y RESPONSIVE
   // ------------------------------
 
-  useEffect(() => {
-    const fetchContadores = () => {
-      const lastLogin = localStorage.getItem("last_login");
-      const vistosStr = localStorage.getItem("vistos");
-      let vistos: Record<string, string> = {};
-      try {
-        vistos = vistosStr ? JSON.parse(vistosStr) : {};
-      } catch (e) {
-        vistos = {};
-      }
+  const fetchContadores = () => {
+    const lastLogin = localStorage.getItem("last_login");
+    const vistosStr = localStorage.getItem("vistos");
+    let vistos: Record<string, string> = {};
+    try {
+      vistos = vistosStr ? JSON.parse(vistosStr) : {};
+    } catch (e) {
+      vistos = {};
+    }
 
-      // Merge with last_login for items never seen
-      const params: Record<string, string> = {};
-      Object.values(RUTA_CONTADOR).forEach((key) => {
-        params[key] = vistos[key] || lastLogin || "";
+    const params: Record<string, string> = {};
+    Object.values(RUTA_CONTADOR).forEach((key) => {
+      params[key] = vistos[key] || lastLogin || "";
+    });
+    params["mensajes"] = vistos["mensajes"] || lastLogin || "";
+
+    api
+      .get("/contadores", { params: { vistos: params } })
+      .then((res) => {
+        const currentKey = RUTA_CONTADOR[location.pathname];
+        setContadores((prev) => {
+          const next = { ...prev, ...res.data };
+          // Si estamos en la página, mantener el contador en 0
+          if (currentKey) next[currentKey] = 0;
+          return next;
+        });
       });
-      // Add mensajes if not there (it has its own logic but we can pass it)
-      params["mensajes"] = vistos["mensajes"] || lastLogin || "";
+  };
 
-      api
-        .get("/contadores", { params: { vistos: params } })
-        .then((res) => setContadores(res.data));
-    };
-
+  // Fetch inicial + polling cada 30s
+  useEffect(() => {
     fetchContadores();
-    const interval = setInterval(fetchContadores, 30000); // Refrescar cada 30s
+    const interval = setInterval(fetchContadores, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -163,6 +170,8 @@ export default function Sidebar() {
       vistos[key] = new Date().toISOString();
       localStorage.setItem("vistos", JSON.stringify(vistos));
     }
+    // Re-fetch contadores al cambiar de página para detectar nuevos items
+    fetchContadores();
   }, [location.pathname]);
 
   const handleLogout = async () => {
