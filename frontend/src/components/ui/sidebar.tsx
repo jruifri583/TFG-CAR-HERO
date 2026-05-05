@@ -100,26 +100,32 @@ export default function Sidebar() {
   // ------------------------------
 
   useEffect(() => {
-    const lastLogin = localStorage.getItem("last_login");
-    const vistosStr = localStorage.getItem("vistos");
-    let vistos: Record<string, string> = {};
-    try {
-      vistos = vistosStr ? JSON.parse(vistosStr) : {};
-    } catch (e) {
-      vistos = {};
-    }
+    const fetchContadores = () => {
+      const lastLogin = localStorage.getItem("last_login");
+      const vistosStr = localStorage.getItem("vistos");
+      let vistos: Record<string, string> = {};
+      try {
+        vistos = vistosStr ? JSON.parse(vistosStr) : {};
+      } catch (e) {
+        vistos = {};
+      }
 
-    // Merge with last_login for items never seen
-    const params: Record<string, string> = {};
-    Object.values(RUTA_CONTADOR).forEach((key) => {
-      params[key] = vistos[key] || lastLogin || "";
-    });
-    // Add mensajes if not there (it has its own logic but we can pass it)
-    params["mensajes"] = vistos["mensajes"] || lastLogin || "";
+      // Merge with last_login for items never seen
+      const params: Record<string, string> = {};
+      Object.values(RUTA_CONTADOR).forEach((key) => {
+        params[key] = vistos[key] || lastLogin || "";
+      });
+      // Add mensajes if not there (it has its own logic but we can pass it)
+      params["mensajes"] = vistos["mensajes"] || lastLogin || "";
 
-    api
-      .get("/contadores", { params: { vistos: params } })
-      .then((res) => setContadores(res.data));
+      api
+        .get("/contadores", { params: { vistos: params } })
+        .then((res) => setContadores(res.data));
+    };
+
+    fetchContadores();
+    const interval = setInterval(fetchContadores, 30000); // Refrescar cada 30s
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

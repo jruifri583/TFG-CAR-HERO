@@ -906,12 +906,7 @@ const StandardDetailView = memo(({
                  : `A "${siguiente?.nombre}"`}
           </Button>
          )}
-        {solicitud.pago && (solicitud.pago.estado_pago?.slug === 'pendiente' || solicitud.pago.estado_pago?.id === 1) && (
-          <div className="flex gap-2">
-            <Button className="bg-emerald-600 text-white" disabled={pagando} onClick={() => handlePagar(1)}>Cobrar Efectivo</Button>
-            <Button className="bg-cyan-600 text-white" disabled={pagando} onClick={() => handlePagar(2)}>Cobrar Tarjeta</Button>
-          </div>
-        )}
+
         {role === "cliente" && puedeCancelar && (
           <Button
             variant="destructive"
