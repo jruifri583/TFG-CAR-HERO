@@ -687,13 +687,11 @@ const StandardDetailView = memo(({
                   <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
                     <Label className="text-[10px] uppercase tracking-widest text-primary font-black mb-1 block text-center">Registro de Cobro</Label>
                     <div className="grid grid-cols-2 gap-3">
-                        {pagoMetodoId !== 3 && (
-                          <div className="space-y-1">
-                            <Label className="text-[10px]">Importe</Label>
-                            <Input type="number" value={pagoImporte} onChange={(e) => setPagoImporte(e.target.value)} className="h-9 text-sm" />
-                          </div>
-                        )}
-                        <div className={`space-y-1 ${pagoMetodoId === 3 ? 'col-span-2' : ''}`}>
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Importe</Label>
+                          <Input type="number" value={pagoImporte} onChange={(e) => setPagoImporte(e.target.value)} className="h-9 text-sm" />
+                        </div>
+                        <div className="space-y-1">
                           <Label className="text-[10px]">Método</Label>
                           <select className="w-full h-9 border rounded-md px-2 text-xs" value={pagoMetodoId ?? ""} onChange={(e) => setPagoMetodoId(Number(e.target.value))}>
                             <option value="">Seleccionar</option>
@@ -703,9 +701,7 @@ const StandardDetailView = memo(({
                           </select>
                         </div>
                     </div>
-                    {pagoMetodoId !== 3 && (
-                      <Button onClick={handleRegistrarPago} disabled={pagando || !pagoMetodoId || !pagoImporte} className="w-full h-10 bg-primary text-white font-bold">Cobrar ahora</Button>
-                    )}
+                    <Button onClick={handleRegistrarPago} disabled={pagando || !pagoMetodoId || !pagoImporte} className="w-full h-10 bg-primary text-white font-bold">Cobrar ahora</Button>
                   </div>
                 )}
               </div>
@@ -1020,7 +1016,7 @@ export default function SolicitudDetailPage() {
           solicitud_id: solicitud.id,
           importe: importeEfectivo,
           metodo_pago_id: pagoMetodoId,
-          estado_pago_id: pagoMetodoId === 3 ? 1 : 2, // transferencia → pendiente, resto → pagado
+          estado_pago_id: 2, // siempre pagado (incluye transferencia)
         });
       }
       await api.put(`/solicitudes/${id}`, { direccion: solicitud.direccion, estado_id: siguiente.id });
@@ -1059,7 +1055,7 @@ export default function SolicitudDetailPage() {
         solicitud_id: solicitud.id,
         importe: importeEfectivo,
         metodo_pago_id: pagoMetodoId,
-        estado_pago_id: (pagoMetodoId === 3) ? 1 : 2,
+        estado_pago_id: 2,
       });
       await cargarSolicitud();
     } catch (err: any) { setServerError(err?.response?.data?.message || "Error pago."); }
