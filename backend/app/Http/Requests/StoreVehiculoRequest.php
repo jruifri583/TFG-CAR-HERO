@@ -18,7 +18,7 @@ class StoreVehiculoRequest extends VehiculoRequest
 
         return array_merge($this->commonValidations(), [
             'matricula' => 'required|string|max:20|unique:vehiculos,matricula',
-            'vin' => 'required|string|max:20|unique:vehiculos,vin',
+            'vin' => 'required|string|min:5|max:17|unique:vehiculos,vin',
         ]);
     }
 
@@ -41,7 +41,8 @@ class StoreVehiculoRequest extends VehiculoRequest
             'matricula.max' => 'La matrícula no puede tener más de 20 caracteres.',
             'vin.required' => 'El VIN es obligatorio.',
             'vin.unique' => 'Este VIN ya está registrado.',
-            'vin.max' => 'El VIN no puede tener más de 20 caracteres.',
+            'vin.min' => 'El VIN debe tener al menos 5 caracteres.',
+            'vin.max' => 'El VIN no puede tener más de 17 caracteres.',
         ]);
     }
 }

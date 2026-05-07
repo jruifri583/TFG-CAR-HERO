@@ -18,8 +18,8 @@ const schema = z.object({
     .max(20, "La matrícula no puede exceder los 20 caracteres"),
   vin: z
     .string()
-    .min(1, "El VIN es obligatorio")
-    .max(20, "El VIN no puede exceder los 20 caracteres"),
+    .min(5, "El VIN debe tener al menos 5 caracteres")
+    .max(17, "El VIN no puede exceder los 17 caracteres"),
   marca: z
     .string()
     .max(100, "La marca no puede exceder los 100 caracteres")

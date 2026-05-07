@@ -118,7 +118,9 @@ export default function Sidebar() {
     api
       .get("/contadores", { params: { vistos: params } })
       .then((res) => {
-        const currentKey = RUTA_CONTADOR[location.pathname];
+        const path = location.pathname;
+        const matchedBase = Object.keys(RUTA_CONTADOR).find(k => path.startsWith(k));
+        const currentKey = matchedBase ? RUTA_CONTADOR[matchedBase] : null;
         setContadores((prev) => {
           const next = { ...prev, ...res.data };
           // Si estamos en la página, mantener el contador en 0
@@ -155,7 +157,10 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
-    const key = RUTA_CONTADOR[location.pathname];
+    const path = location.pathname;
+    const matchedBase = Object.keys(RUTA_CONTADOR).find(k => path.startsWith(k));
+    const key = matchedBase ? RUTA_CONTADOR[matchedBase] : null;
+
     if (key) {
       setContadores((prev) => ({ ...prev, [key]: 0 }));
       

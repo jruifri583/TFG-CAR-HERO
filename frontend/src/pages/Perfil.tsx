@@ -140,6 +140,7 @@ export default function PerfilPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [editModeTime, setEditModeTime] = useState(0);
   const {
     isEditing,
@@ -243,30 +244,15 @@ export default function PerfilPage() {
   }, [id, reset, isOwnProfile, setHeaderData, setIsEditing, setOnImageChange]);
 
   useEffect(() => {
-    setOnImageChange(() => async (file: File) => {
-      const formData = new FormData();
-      formData.append("imagen", file);
-      try {
-        const res = isOwnProfile
-          ? await api.post("/me/imagen", formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            })
-          : await api.post(`/users/${id}/imagen`, formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
-            
-        const updated = res.data.user;
-        setUser(updated);
-        if (isOwnProfile) setContextUser(updated);
-
-        setHeaderData((prev) => (prev ? { ...prev, imagen: updated.imagen } : prev));
-        toast.success("Imagen de perfil actualizada");
-      } catch (error) {
-        console.error("Error actualizando imagen:", error);
-        toast.error("Hubo un error al actualizar la imagen");
-      }
+    setOnImageChange(() => (file: File) => {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setHeaderData((prev) => (prev ? { ...prev, imagen: reader.result as string } : prev));
+      };
+      reader.readAsDataURL(file);
     });
-  }, [id, isOwnProfile, setContextUser, setHeaderData, setOnImageChange]);
+  }, [setHeaderData, setOnImageChange]);
 
   // Actualiza isEditing en el header cuando cambia
   useEffect(() => {
@@ -305,12 +291,29 @@ export default function PerfilPage() {
       rol_id: user?.rol?.id,
       activo: !!user?.activo,
     });
+    setImageFile(null);
     setIsEditing(false);
+    // Restaurar imagen original en el header
+    setHeaderData((prev) => (prev ? { ...prev, imagen: user?.imagen ?? null } : prev));
   };
 
   const onSubmit = async (data: FormData) => {
     if (!isEditing || Date.now() - editModeTime < 500) return;
     try {
+      // 1. Subir imagen si hay una nueva seleccionada
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append("imagen", imageFile);
+        const resImg = isOwnProfile
+          ? await api.post("/me/imagen", formData, { headers: { "Content-Type": "multipart/form-data" } })
+          : await api.post(`/users/${id}/imagen`, formData, { headers: { "Content-Type": "multipart/form-data" } });
+        
+        const updatedWithImg = resImg.data.user;
+        setUser(updatedWithImg);
+        if (isOwnProfile) setContextUser(updatedWithImg);
+        setImageFile(null);
+      }
+
       const { direcciones: allDirs, ...rest } = data;
       
       // Separamos: la primera va a los campos del usuario, el resto al array de direcciones

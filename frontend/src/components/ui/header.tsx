@@ -112,7 +112,7 @@ export default function Header() {
                   />
                   <Button
                     variant="outline"
-                    className="transition-opacity duration-300 whitespace-nowrap"
+                    className="w-full md:w-50 transition-opacity duration-300 whitespace-nowrap"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Cambiar imagen
