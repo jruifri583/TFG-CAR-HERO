@@ -123,10 +123,13 @@ public function solicitudesRecientes()
 
     $solicitudes = \App\Models\Solicitud::visibleFor($user)
         ->withBaseRelations()
-        // Excluir solicitudes que están en 'Nuevas' (pendiente + sin empleado)
-        ->where(function($q) use ($estadoPendienteId) {
-            $q->where('estado_id', '!=', $estadoPendienteId)
-              ->orWhereNotNull('user_empleado_id');
+        // Excluir solicitudes que están en 'Nuevas' (pendiente + sin empleado) SOLO para Admin/Empleado
+        // para evitar duplicidad, ya que el Cliente no tiene sección de 'Nuevas'.
+        ->when($user->rol->slug !== \App\Enums\RolSlug::CLIENTE->value, function($q) use ($estadoPendienteId) {
+            $q->where(function($q2) use ($estadoPendienteId) {
+                $q2->where('estado_id', '!=', $estadoPendienteId)
+                  ->orWhereNotNull('user_empleado_id');
+            });
         })
         ->latest('updated_at')
         ->limit(3)
