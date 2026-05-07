@@ -119,8 +119,15 @@ public function solicitudesRecientes()
     public function solicitudesActualizadas()
 {
     $user = request()->user();
+    $estadoPendienteId = Estado::where('slug', EstadoSlug::PENDIENTE->value)->value('id');
+
     $solicitudes = \App\Models\Solicitud::visibleFor($user)
         ->withBaseRelations()
+        // Excluir solicitudes que están en 'Nuevas' (pendiente + sin empleado)
+        ->where(function($q) use ($estadoPendienteId) {
+            $q->where('estado_id', '!=', $estadoPendienteId)
+              ->orWhereNotNull('user_empleado_id');
+        })
         ->latest('updated_at')
         ->limit(3)
         ->get();
