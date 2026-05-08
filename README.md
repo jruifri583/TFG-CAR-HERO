@@ -1,6 +1,6 @@
 # CAR-HERO
 
-# Car-Hero — Gestión de recogida de vehículos para ITV
+# Gestión de recogida de vehículos para ITV
 
 Este repositorio contiene el proyecto **Car-Hero**, una aplicación para gestionar la recogida de vehículos solicitada por clientes, asignación por parte del administrador a empleados (por ubicación), traslado a ITV, seguimiento y devolución al cliente.
 
