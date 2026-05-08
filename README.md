@@ -10,28 +10,4 @@ Documentación en este wiki: funcionalidades, arquitectura, ER, API, despliegue 
 
 
 
-docker image prune -f
-docker compose build --no-cache
-docker compose restart backend
-docker compose restart frontend
-php artisan optimize:clear
-docker compose up -d
-docker compose down
-docker exec -it carhero_frontend bash
-docker exec -it carhero_backend bash
-php artisan migrate:refresh --seed
-
-
-
-http://localhost:5173  → frontend
-http://localhost:8000  → backend 
-http://localhost:8081  → db
-
-
-
-git pull
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-
-
-
 
