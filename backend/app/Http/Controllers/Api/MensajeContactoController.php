@@ -8,9 +8,7 @@ use Illuminate\Http\Request;
 
 class MensajeContactoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Lista los mensajes de contacto
     public function index(Request $request)
     {
         $sort = $request->query('sort', 'created_at');
@@ -43,9 +41,7 @@ class MensajeContactoController extends Controller
         return response()->json($query->paginate(6));
     }
 
-    /**
-     * Mark a message as read.
-     */
+    // Marca un mensaje como leído
     public function markAsRead(MensajeContacto $mensaje)
     {
         if (is_null($mensaje->leido_at)) {
@@ -56,9 +52,7 @@ class MensajeContactoController extends Controller
         return response()->json(['success' => true, 'mensaje' => $mensaje]);
     }
 
-    /**
-     * Reply to a message and send email.
-     */
+    // Responde a un mensaje y envía el correo de respuesta
     public function responder(Request $request, MensajeContacto $mensaje)
     {
         $request->validate([
@@ -82,9 +76,7 @@ class MensajeContactoController extends Controller
         return response()->json(['success' => true, 'mensaje' => $mensaje]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Elimina un mensaje de contacto
     public function destroy(MensajeContacto $mensaje)
     {
         $mensaje->delete();

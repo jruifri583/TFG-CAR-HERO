@@ -11,11 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class VehiculoFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    // Definición del modelo por defecto
     public function definition(): array
     {
         static $clienteId = null;

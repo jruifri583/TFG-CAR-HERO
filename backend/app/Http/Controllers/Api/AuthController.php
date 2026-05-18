@@ -13,9 +13,7 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    // ======================
-    // REGISTER
-    // ======================
+    // Registrar usuario
     public function register(Request $request)
     {
         $request->validate([
@@ -47,9 +45,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    // ======================
-    // LOGIN
-    // ======================
+    // Login
     public function login(Request $request)
 {
     $request->validate([
@@ -151,9 +147,7 @@ class AuthController extends Controller
     return response()->json(['user' => new UserResource($user->fresh()->load('rol', 'direcciones'))]);
 }
 
-    // ======================
-    // ME
-    // ======================
+    // Me
     public function me(Request $request)
     {
         return response()->json([
@@ -161,9 +155,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // ======================
-    // LOGOUT
-    // ======================
+    // Logout
     public function logout(Request $request)
     {
         $user = $request->user();
@@ -195,9 +187,7 @@ class AuthController extends Controller
     return response()->json(['user' => $user->fresh()->load('rol')]);
 }
 
-    // ======================
-    // REQUEST DELETION
-    // ======================
+    // Solicitud de eliminación
     public function requestDeletion(Request $request)
     {
         /** @var User $user */
@@ -210,4 +200,4 @@ class AuthController extends Controller
             'message' => 'Tu cuenta se eliminará en 24 horas si no vuelves a iniciar sesión.'
         ]);
     }
-}
+}

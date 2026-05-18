@@ -9,12 +9,14 @@ use App\Models\User;
 
 class UpdateUserRequest extends FormRequest
 {
+    // solo administrador y empleado, y si es el mismo usuario
     public function authorize(): bool
     {
         $user = $this->route('user');
         return $this->user()->can('update', $user);
     }
 
+    // Reglas de validación
     public function rules(): array
     {
         /** @var User $currentUser */
@@ -76,6 +78,7 @@ class UpdateUserRequest extends FormRequest
         ];
     }
 
+    // Mensajes de error
     public function messages(): array
     {
         return [

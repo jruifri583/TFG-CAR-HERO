@@ -9,11 +9,7 @@ use Illuminate\Support\Facades\Auth;
 
 class RolAdminMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
+    // Controla el acceso por roles
     public function handle(Request $request, Closure $next, $rol): Response
     {
         $user = Auth::user();
@@ -22,7 +18,6 @@ class RolAdminMiddleware
             abort(403);
         }
 
-        // Pasa a evaluar el siguiente middleware (si lo hubiere)
         return $next($request);
     }
 }

@@ -12,9 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class PagoController extends Controller
 {
-    /**
-     * Listar pagos con relaciones.
-     */
+    // Lista los pagos con relaciones.
     public function index(Request $request): JsonResponse
 {
     $user = Auth::user();
@@ -36,9 +34,7 @@ class PagoController extends Controller
 
     return PagoResource::collection($pagos)->response();
 }
-    /**
-     * Crear un nuevo pago.
-     */
+    // Crea un nuevo pago.
     public function store(StorePagoRequest $request): JsonResponse
     {
         $pago = Pago::create($request->validated());
@@ -57,9 +53,7 @@ class PagoController extends Controller
         ], 201);
     }
 
-    /**
-     * Mostrar un pago específico.
-     */
+    // Muestra un pago específico.
     public function show(Pago $pago): JsonResponse
     {
         return response()->json([
@@ -68,9 +62,7 @@ class PagoController extends Controller
         ], 200);
     }
 
-    /**
-     * Actualizar un pago.
-     */
+    // Actualiza un pago.
     public function update(StorePagoRequest $request, Pago $pago): JsonResponse
     {
         $pago->update($request->validated());
@@ -82,9 +74,7 @@ class PagoController extends Controller
         ], 200);
     }
 
-    /**
-     * Eliminar un pago.
-     */
+    // Elimina un pago.
     public function destroy(Pago $pago): JsonResponse
     {
         $pago->delete();

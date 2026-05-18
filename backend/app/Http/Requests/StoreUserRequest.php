@@ -9,9 +9,7 @@ use App\Models\User;
 
 class StoreUserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // Autorización
     public function authorize(): bool
     {
 
@@ -19,9 +17,7 @@ class StoreUserRequest extends FormRequest
         return $this->user()->can('create', User::class);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
+    // Reglas de validación
     public function rules(): array
     {
         return [
@@ -47,9 +43,7 @@ class StoreUserRequest extends FormRequest
         ];
     }
 
-    /**
-     * Mensajes personalizados
-     */
+    // Mensajes de error
     public function messages(): array
     {
         return [

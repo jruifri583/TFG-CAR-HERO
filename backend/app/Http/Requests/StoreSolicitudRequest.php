@@ -39,9 +39,7 @@ class StoreSolicitudRequest extends SolicitudRequest
         }
     }
 
-    /**
-     * Reglas de validación
-     */
+    // Reglas de validación
     public function rules(): array
     {
         $estadosAbiertosIds = Estado::whereIn('slug', [
@@ -63,9 +61,7 @@ class StoreSolicitudRequest extends SolicitudRequest
         ]);
     }
 
-    /**
-     * Mensajes de error personalizados
-     */
+    // Mensajes de error
     public function messages(): array
     {
         return array_merge($this->baseMessages(), [

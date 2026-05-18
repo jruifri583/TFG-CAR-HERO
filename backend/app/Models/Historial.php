@@ -26,8 +26,6 @@ class Historial extends Model
         'fecha_itv' => 'date:Y-m-d',
     ];
 
-    /* ================= RELACIONES ================= */
-
     public function solicitud(): BelongsTo
     {
         return $this->belongsTo(Solicitud::class);

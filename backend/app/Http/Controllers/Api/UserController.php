@@ -16,10 +16,7 @@ class UserController extends Controller
         $this->authorizeResource(User::class, 'user');
     }
 
-    /**
-     * Listar todos los usuarios
-     */
-
+    // Muestra todos los usuarios
     public function index()
     {
     $query = User::with('rol');
@@ -59,9 +56,7 @@ class UserController extends Controller
     ], 200);
 }
 
-    /**
-     * Crear un nuevo usuario
-     */
+    // Crea un nuevo usuario
     public function store(StoreUserRequest $request)
     {
         $data = $request->validated();
@@ -76,17 +71,13 @@ class UserController extends Controller
         ], 201);
     }
 
-    /**
-     * Mostrar un usuario específico
-     */
+    // Muestra un usuario específico
     public function show(User $user)
     {
         return response()->json(new UserResource($user->load('rol', 'direcciones')));
     }
 
-    /**
-     * Actualizar un usuario
-     */
+    // Actualiza un usuario
     public function update(UpdateUserRequest $request, User $user)
     {
         $data = $request->validated();

@@ -14,9 +14,7 @@ class UpdatePerfilRequest extends FormRequest
         return Auth::user()->id === $this->route('user')->id;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
+    // Reglas de validación
     public function rules(): array
     {
         return [
@@ -28,9 +26,7 @@ class UpdatePerfilRequest extends FormRequest
         ];
     }
 
-    /**
-     * Mensajes de error personalizados
-     */
+    // Mensajes de error
     public function messages(): array
     {
         return [

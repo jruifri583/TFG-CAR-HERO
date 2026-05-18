@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 abstract class SolicitudRequest extends FormRequest
 {
+    // Validaciones comunes para solicitudes
     protected function commonValidations(): array
     {
         return [
@@ -28,6 +29,7 @@ abstract class SolicitudRequest extends FormRequest
         ];
     }
 
+    // Mensajes de error
     protected function baseMessages(): array
     {
         return [

@@ -16,17 +16,13 @@ class ContactMessageMailable extends Mailable implements ShouldQueue
 
     public $data;
 
-    /**
-     * Create a new message instance.
-     */
+    // Constructor
     public function __construct(array $data)
     {
         $this->data = $data;
     }
 
-    /**
-     * Get the message envelope.
-     */
+    // Envuelve el mensaje
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -35,9 +31,7 @@ class ContactMessageMailable extends Mailable implements ShouldQueue
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
+    // Contenido del mensaje
     public function content(): Content
     {
         return new Content(
@@ -50,11 +44,6 @@ class ContactMessageMailable extends Mailable implements ShouldQueue
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
     public function attachments(): array
     {
         return [];

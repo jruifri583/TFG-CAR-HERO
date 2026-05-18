@@ -9,9 +9,7 @@ use App\Mail\ContactMessageMailable;
 
 class ContactController extends Controller
 {
-    /**
-     * Store and send a newly created contact message.
-     */
+    // Almacena y envía un nuevo mensaje de contacto.
     public function store(Request $request)
     {
         $turnstileSecret = env('TURNSTILE_SECRET_KEY');

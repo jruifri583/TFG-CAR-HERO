@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Console\Command;
 use Carbon\Carbon;
 
+// Elimina definitivamente las cuentas que llevan más de 24 horas en estado pendiente
 class PurgeDeletedAccounts extends Command
 {
     protected $signature = 'accounts:purge';
@@ -14,18 +15,21 @@ class PurgeDeletedAccounts extends Command
 
     public function handle(): int
     {
-        $count = User::whereNotNull('pending_deletion_at')
-            ->where('pending_deletion_at', '<=', Carbon::now()->subHours(24))
-            ->each(function (User $user) {
-                // Eliminar relaciones antes de borrar el usuario
-                $user->tokens()->delete();
-                $user->direcciones()->delete();
-                $user->vehiculos()->delete();
-                $user->solicitudesComoCliente()->delete();
-                $user->delete();
-            });
+        $query = User::whereNotNull('pending_deletion_at')
+            ->where('pending_deletion_at', '<=', Carbon::now()->subHours(24));
 
-        $this->info("Se eliminaron {$count->count()} cuentas pendientes de eliminación.");
+        $count = $query->count();
+
+        $query->each(function (User $user) {
+            // Eliminar relaciones antes de borrar el usuario
+            $user->tokens()->delete();
+            $user->direcciones()->delete();
+            $user->vehiculos()->delete();
+            $user->solicitudesComoCliente()->delete();
+            $user->delete();
+        });
+
+        $this->info("Se eliminaron {$count} cuentas pendientes de eliminación.");
 
         return self::SUCCESS;
     }

@@ -6,9 +6,7 @@ namespace App\Http\Requests;
 
 class UpdateSolicitudRequest extends SolicitudRequest
 {
-    /**
-     * solo administrador y empleado
-     */
+    // solo administrador y empleado
     public function authorize(): bool
     {
         $solicitud = $this->route('solicitud');
@@ -17,9 +15,7 @@ class UpdateSolicitudRequest extends SolicitudRequest
     }
 
 
-    /**
-     * Reglas de validación
-     */
+    // Reglas de validación
     public function rules(): array
     {
         $user = $this->user();

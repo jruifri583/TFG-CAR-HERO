@@ -13,6 +13,7 @@ class StoreVehiculoRequest extends VehiculoRequest
         return $this->user()->can('create', Vehiculo::class);
     }
 
+    // Reglas de validación
     public function rules(): array
     {
 
@@ -22,6 +23,7 @@ class StoreVehiculoRequest extends VehiculoRequest
         ]);
     }
 
+    // Preparación de datos
     protected function prepareForValidation()
     {
         $user = $this->user();
@@ -33,6 +35,7 @@ class StoreVehiculoRequest extends VehiculoRequest
         }
     }
 
+    // Mensajes de error
     public function messages(): array
     {
         return array_merge($this->baseMessages(), [

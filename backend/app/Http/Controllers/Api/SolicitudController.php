@@ -16,12 +16,7 @@ use App\Http\Resources\SolicitudResource;
 
 class SolicitudController extends Controller
 {
-    /* public function __construct()
-    {
-        $this->authorizeResource(Solicitud::class, 'solicitud');
-    } */
-
-
+    // Muestra todas las solicitudes
     public function index(Request $request)
 {
     $user = $request->user();
@@ -63,6 +58,7 @@ class SolicitudController extends Controller
 }
 
 
+    // Obtiene los datos necesarios para la solicitud
     public function meta()
     {
         /** @var User $user */
@@ -80,6 +76,7 @@ class SolicitudController extends Controller
     }
 
 
+    // Crea una nueva solicitud
     public function store(StoreSolicitudRequest $request)
     {
         $solicitud = Solicitud::create($request->validated());
@@ -91,6 +88,7 @@ class SolicitudController extends Controller
     }
 
 
+    // Muestra una solicitud específica
     public function show(Request $request, Solicitud $solicitud)
     {
         $this->authorize('view', $solicitud);
@@ -108,6 +106,7 @@ class SolicitudController extends Controller
         return new SolicitudResource($solicitud);
     }
 
+    // Actualiza una solicitud
     public function update(
         UpdateSolicitudRequest $request,
         Solicitud $solicitud,
@@ -127,9 +126,9 @@ class SolicitudController extends Controller
         ]);
     }
 
+    // Cancela una solicitud
     public function cancelar(Solicitud $solicitud)
     {
-        // Load estado for policy checks
         $solicitud->load('estado');
 
         $this->authorize('cancel', $solicitud);

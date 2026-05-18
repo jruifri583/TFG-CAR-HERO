@@ -8,12 +8,12 @@ use Carbon\Carbon;
 
 class HistorialService
 {
-    public function crearDesdeSolicitud(Solicitud $solicitud): void
+    public function crearDesdeSolicitud(Solicitud $solicitud): Historial
     {
-        Historial::updateOrCreate(
+        return Historial::updateOrCreate(
             ['solicitud_id' => $solicitud->id],
             [
-                'fecha_itv' => $solicitud->hora_itv ? Carbon::parse($solicitud->hora_itv)->toDateString() : now()->toDateString(),
+                'fecha_itv'     => $solicitud->hora_itv ? Carbon::parse($solicitud->hora_itv)->toDateString() : now()->toDateString(),
                 'resolucion_id' => $solicitud->resolucion_id,
                 'notas'         => $solicitud->notas,
             ]

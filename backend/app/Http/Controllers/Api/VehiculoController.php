@@ -20,6 +20,7 @@ class VehiculoController extends Controller
     }
 
 
+    // Muestra todos los vehículos
     public function index(Request $request)
 {
     try {
@@ -60,7 +61,7 @@ class VehiculoController extends Controller
     }
 }
 
-    
+    // Crea un nuevo vehículo
     public function store(StoreVehiculoRequest $request)
     {
         $data = $request->validated();
@@ -78,7 +79,7 @@ class VehiculoController extends Controller
         ], 201);
     }
 
-   
+    // Obtiene los datos necesarios para el vehículo
     public function meta()
     {
         /** @var User $user */
@@ -93,13 +94,13 @@ class VehiculoController extends Controller
         ]);
     }
 
-    
+    // Muestra un vehículo específico
     public function show(Vehiculo $vehiculo)
     {
         return response()->json($vehiculo->load('cliente'));
     }
 
-    
+    // Actualiza un vehículo
     public function update(UpdateVehiculoRequest $request, Vehiculo $vehiculo)
     {
         $vehiculo->update($request->validated());
@@ -109,7 +110,7 @@ class VehiculoController extends Controller
         ]);
     }
 
-    
+    // Elimina un vehículo
     public function destroy(Vehiculo $vehiculo)
     {
         if ($vehiculo->solicitudes()->exists()) {
@@ -124,6 +125,7 @@ class VehiculoController extends Controller
         ]);
     }
 
+    // Actualiza la imagen de un vehículo
     public function updateImagen(Request $request, Vehiculo $vehiculo)
 {
     $request->validate(['imagen' => 'required|image|max:2048']);

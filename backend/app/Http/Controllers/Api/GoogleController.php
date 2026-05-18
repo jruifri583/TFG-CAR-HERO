@@ -17,7 +17,6 @@ class GoogleController extends Controller
                 return response()->json(['error' => 'ID token requerido'], 422);
             }
 
-            // Usar la clase con el namespace correcto
             $client = new GoogleClient(['client_id' => config('services.google.client_id')]); 
             $payload = $client->verifyIdToken($idToken);
 
@@ -25,15 +24,14 @@ class GoogleController extends Controller
                 return response()->json(['error' => 'Token inválido'], 401);
             }
 
-            // OJO: Verifica que estos nombres coincidan con tu DB
             $user = User::updateOrCreate(
                 ['email' => $payload['email']],
                 [
                     'nombre' => $payload['name'],
-                    'imagen' => $payload['picture'], // ¿Es 'imagen' o 'image'?
+                    'imagen' => $payload['picture'],
                     'rol_id' => 3,
                     'activo' => true,
-                    'password' => bcrypt(str()->random(16)), // Algunos campos requieren password aunque no se use
+                    'password' => bcrypt(str()->random(16)),
                 ]
             );
 

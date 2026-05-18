@@ -60,9 +60,7 @@ class HistorialController extends Controller
     return response()->json($historiales);
 }
 
-    /**
-     * Mostrar un historial específico
-     */
+    // Mostrar un historial específico
     public function show(Historial $historial)
     {
         $this->authorize('view', $historial);
@@ -70,9 +68,7 @@ class HistorialController extends Controller
         return response()->json($historial);
     }
 
-    /**
-     * Crear un historial desde una solicitud
-     */
+    // Crear un historial basado en una solicitud
     public function store(StoreHistorialRequest $request)
     {
         $solicitud = Solicitud::findOrFail($request->solicitud_id);
