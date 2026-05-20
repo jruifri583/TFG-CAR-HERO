@@ -14,7 +14,7 @@ import {
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const { logout, user } = useAuth(); // ← IMPORTANTE: obtenemos el usuario
+  const { logout, user } = useAuth(); // ← obtenemos el usuario
   const [contadores, setContadores] = useState<
     Record<string, number | undefined>
   >({});
@@ -27,10 +27,9 @@ export default function Sidebar() {
     "/vehiculos": "vehiculos",
     "/pagos": "pagos",
     "/historial": "historial",
-    // "/mensajes": "mensajes", // Se decrementa manualmente desde la página
   };
 
-  // 🔥 Menú base con iconos y rutas
+  // Menú base con iconos y rutas
   const fullMenu = [
     {
       key: "Solicitudes",
@@ -76,7 +75,7 @@ export default function Sidebar() {
     },
   ];
 
-  // 🔥 Qué ve cada rol
+  // Qué ve cada rol
   const menuByRole: Record<string, string[]> = {
     administrador: [
       "Solicitudes",
@@ -90,14 +89,12 @@ export default function Sidebar() {
     cliente: ["Solicitudes", "Vehículos", "Historial"],
   };
 
-  // 🔥 Filtrar menú según rol
+  // Filtrar menú según rol
   const role = user?.rol?.slug ?? "";
   const allowedKeys = menuByRole[role] ?? [];
   const menu = fullMenu.filter((item) => allowedKeys.includes(item.key));
 
-  // ------------------------------
   // CONTADORES Y RESPONSIVE
-  // ------------------------------
 
   const fetchContadores = () => {
     const lastLogin = localStorage.getItem("last_login");

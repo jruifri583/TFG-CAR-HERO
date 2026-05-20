@@ -60,7 +60,7 @@ export default function ContactoPage() {
     } catch (err: any) {
       console.error("Error enviando contacto:", err);
       setErrorEnvio("Hubo un problema al enviar tu mensaje. Inténtalo más tarde.");
-      throw err; // para que isSubmitSuccessful no se marque a true por defecto
+      throw err;
     }
   };
 

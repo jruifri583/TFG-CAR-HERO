@@ -1,6 +1,6 @@
 import { Clock, UserCheck, Car, Building2, RotateCcw, CheckCircle, X } from "lucide-react";
 
-// Orden completo del flujo (excluye cancelado, que es terminal lateral)
+// Orden completo del flujo
 const ESTADOS = [
   { slug: "pendiente",   label: "Pendiente",   Icon: Clock        },
   { slug: "asignado",    label: "Asignado",    Icon: UserCheck    },

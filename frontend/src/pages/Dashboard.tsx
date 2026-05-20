@@ -470,7 +470,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          {/* Usuarios — azul profundo 900→800 */}
+          {/* Usuarios */}
           <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #194185 0%, #1849A9 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-semibold" style={{ color: '#84CAFF' }}>Usuarios</CardTitle>
@@ -485,7 +485,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Vehículos — azul oscuro 800→700 */}
+          {/* Vehículos */}
           <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #1849A9 0%, #175CD3 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-semibold" style={{ color: '#B2DDFF' }}>Vehículos</CardTitle>
@@ -500,7 +500,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Solicitudes — azul medio 600→500 */}
+          {/* Solicitudes */}
           <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #1570EF 0%, #2E90FA 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-semibold" style={{ color: '#D1E9FF' }}>Solicitudes</CardTitle>
@@ -515,7 +515,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Pagos — azul claro 100→50 */}
+          {/* Pagos */}
           <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #D1E9FF 0%, #EFF8FF 100%)' }}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-semibold" style={{ color: '#175CD3' }}>Pagos</CardTitle>

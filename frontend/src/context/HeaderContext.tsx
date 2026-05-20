@@ -5,7 +5,7 @@ interface HeaderData {
   matricula?: string;
   subtitulo?: string;
   imagen: string | null;
-  avatar?: string; // Text fallback for avatar
+  avatar?: string;
   isEditing?: boolean;
 }
 

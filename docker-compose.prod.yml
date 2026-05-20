@@ -1,18 +1,7 @@
-# =============================================================================
-#  CAR-HERO — Docker Compose de PRODUCCIÓN (AWS EC2)
-# =============================================================================
-#
-#  Uso:
-#    docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-#
-#  Requiere el fichero .env.prod con las variables de producción.
-# =============================================================================
+# CAR-HERO — Docker Compose de PRODUCCIÓN
 
 services:
-
-  # ─────────────────────────────────────────────
   # FRONTEND — Nginx sirviendo el build de React
-  # ─────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -35,9 +24,7 @@ services:
     networks:
       - carhero_network
 
-  # ─────────────────────────────────────────────
   # BACKEND — PHP-FPM + Nginx + Queue Worker
-  # ─────────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -87,9 +74,7 @@ services:
     networks:
       - carhero_network
 
-  # ─────────────────────────────────────────────
   # CERTBOT — Gestión automática de SSL
-  # ─────────────────────────────────────────────
   certbot:
     image: certbot/certbot
     container_name: carhero_certbot
@@ -100,9 +85,7 @@ services:
     networks:
       - carhero_network
 
-  # ─────────────────────────────────────────────
   # BASE DE DATOS — MySQL 8.0
-  # ─────────────────────────────────────────────
   db:
     image: mysql:8.0
     container_name: carhero_mysql
@@ -124,9 +107,7 @@ services:
     networks:
       - carhero_network
 
-# ─────────────────────────────────────────────
 # VOLÚMENES PERSISTENTES
-# ─────────────────────────────────────────────
 volumes:
   db_data:
     driver: local
@@ -137,9 +118,7 @@ volumes:
   certbot_var:
     driver: local
 
-# ─────────────────────────────────────────────
 # RED INTERNA
-# ─────────────────────────────────────────────
 networks:
   carhero_network:
     driver: bridge

@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useHeader } from "@/context/HeaderContext";
 import { toast } from "sonner";
 
-// ─── Interfaces ────────────────────────────────────────────────────────────────
+// Interfaces
 
 interface Solicitud {
   id: number;
@@ -101,7 +101,7 @@ const ORDEN_ESTADOS = [
 ];
 
 
-// ─── Schema de edición ─────────────────────────────────────────────────────────
+// Schema de edición
 
 const editSchema = z.object({
   direccion: z.string().min(1, "La dirección de recogida es obligatoria").max(255),
@@ -117,7 +117,7 @@ const editSchema = z.object({
 
 type EditFormData = z.infer<typeof editSchema>;
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
+// Helpers
 
 function fmt(iso: string | null) {
   if (!iso) return "-";
@@ -230,7 +230,7 @@ const MapCard = memo(({ direccion, ciudad, cp }: { direccion: string, ciudad?: s
   );
 });
 
-// ─── Props de Vistas ──────────────────────────────────────────────────────────
+// Props de Vistas
 
 interface CommonViewProps {
   id: string | undefined;
@@ -288,7 +288,7 @@ interface StandardDetailViewProps extends CommonViewProps {
   handleRegistrarPago: () => Promise<void>;
 }
 
-// ─── Sub-Componentes (Vistas) ────────────────────────────────────────────────
+// Sub-Componentes (Vistas)
 
 const EmpleadoDetailView = memo(({
   id, solicitud, resoluciones, avanzando, setAvanzando, cargarSolicitud,
@@ -918,7 +918,7 @@ const StandardDetailView = memo(({
   );
 });
 
-// ─── Componente Principal ──────────────────────────────────────────────────────
+// Componente Principal
 
 export default function SolicitudDetailPage() {
   const { id } = useParams();

@@ -47,7 +47,6 @@ export default function NuevoPagoPage() {
         tableContainerRef.current &&
         !tableContainerRef.current.contains(target)
       ) {
-        // Prevent clearing if clicking on inputs/buttons so the user doesn't lose selection when filling the rest of the form
         if (["INPUT", "SELECT", "BUTTON", "LABEL"].includes(target.tagName) || target.closest("button") || target.closest("input")) {
           return;
         }

@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      setLoading(false); // 👈 IMPORTANTE
+      setLoading(false);
       return;
     }
 
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
       })
       .finally(() => {
-        setLoading(false); // 👈 AHORA SÍ TERMINA LA CARGA
+        setLoading(false);
       });
   }, []);
 

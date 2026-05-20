@@ -10,7 +10,6 @@ import { useHeader } from "@/context/HeaderContext";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-// ButtonGroup removed — unused
 import { toast } from "sonner";
 
 const ROLES = [
@@ -240,7 +239,6 @@ export default function PerfilPage() {
       setIsEditing(false);
       setOnImageChange(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, reset, isOwnProfile, setHeaderData, setIsEditing, setOnImageChange]);
 
   useEffect(() => {

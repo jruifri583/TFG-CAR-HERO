@@ -99,7 +99,6 @@ export default function NuevoVehiculoPage() {
     }
   }, [actualUserId]);
 
-  // Registra el handler de imagen
   useEffect(() => {
     setOnImageChange(() => (file: File) => {
       setImageFile(file);
@@ -181,7 +180,7 @@ export default function NuevoVehiculoPage() {
                           formatted = val.slice(0, 4) + " " + val.slice(4, 7);
                         }
                       } 
-                      // Patron provincial Cordoba/Madrid: MA 1234 AB
+                      // Patron provincial MA 0000 AA
                       else {
                         const matches = val.match(/^([A-Z]{1,2})(\d{0,4})([A-Z]{0,2})$/);
                         if (matches) {

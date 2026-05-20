@@ -1,10 +1,7 @@
-/**
- * Genera un rango de números de página para la paginación con puntos suspensivos.
- * Ejemplo: [1, "...", 4, 5, 6, "...", 20]
- */
+
 export const getPaginationRange = (currentPage: number, totalPages: number, full = false) => {
   if (full) return Array.from({ length: totalPages }, (_, i) => i + 1);
-  const delta = 1; // Número de páginas a mostrar a cada lado de la actual
+  const delta = 1;
   const range: (number | string)[] = [];
   const rangeWithDots: (number | string)[] = [];
   let l: number | undefined;

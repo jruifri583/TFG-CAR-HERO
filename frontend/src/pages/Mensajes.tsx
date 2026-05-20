@@ -48,7 +48,6 @@ export default function MensajesPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const isMobile = useIsMobile();
 
-  // Accordion row state
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
   const [replying, setReplying] = useState(false);
@@ -93,7 +92,7 @@ export default function MensajesPage() {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder("desc"); // Default new sort strictly to desc
+      setSortOrder("desc");
     }
     setCurrentPage(1);
   };
@@ -109,18 +108,17 @@ export default function MensajesPage() {
   };
 
   const handleMessageClick = async (mensaje: Mensaje) => {
-    // Toggle accordion
     if (expandedId === mensaje.id) {
       setExpandedId(null);
     } else {
       setExpandedId(mensaje.id);
-      setReplyText(""); // clear draft when opening another
+      setReplyText("");
     }
 
     if (!mensaje.leido_at) {
       try {
         await api.patch(`/mensajes/${mensaje.id}/leido`);
-        // Update local state without fetching again
+        
         setMensajes((prev) =>
           prev.map((m) =>
             m.id === mensaje.id
@@ -144,7 +142,7 @@ export default function MensajesPage() {
         respuesta: replyText,
       });
       toast.success("Respuesta enviada correctamente");
-      // Update local state
+      
       setMensajes((prev) =>
         prev.map((m) =>
           m.id === mensajeId
