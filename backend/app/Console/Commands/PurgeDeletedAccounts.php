@@ -26,6 +26,11 @@ class PurgeDeletedAccounts extends Command
             $user->direcciones()->delete();
             $user->vehiculos()->delete();
             $user->solicitudesComoCliente()->delete();
+
+            // Renombrar el email para liberar la restricción UNIQUE en futuros registros
+            $user->email = $user->email . '_deleted_' . time();
+            $user->save();
+
             $user->delete();
         });
 

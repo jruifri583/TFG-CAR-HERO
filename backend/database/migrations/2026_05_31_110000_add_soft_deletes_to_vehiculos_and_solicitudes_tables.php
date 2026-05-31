@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->softDeletes();
+        });
+
         Schema::table('vehiculos', function (Blueprint $table) {
             $table->softDeletes();
         });
@@ -18,6 +22,10 @@ return new class extends Migration {
 
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+        });
+
         Schema::table('vehiculos', function (Blueprint $table) {
             $table->dropSoftDeletes();
         });
