@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Estado;
 use App\Enums\EstadoSlug;
 use Illuminate\Validation\ValidationException;
@@ -12,7 +13,7 @@ use App\Models\User;
 
 class Solicitud extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'solicitudes';
 
@@ -49,7 +50,7 @@ class Solicitud extends Model
 
     public function vehiculo()
     {
-        return $this->belongsTo(Vehiculo::class);
+        return $this->belongsTo(Vehiculo::class)->withTrashed();
     }
 
     public function empleado()

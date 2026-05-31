@@ -53,7 +53,7 @@ class User extends Authenticatable
     // Vehículos de este usuario
     public function vehiculos()
     {
-        return $this->hasMany(Vehiculo::class, 'usuario_id');
+        return $this->hasMany(Vehiculo::class, 'user_id');
     }
 
     // Solicitudes donde es cliente

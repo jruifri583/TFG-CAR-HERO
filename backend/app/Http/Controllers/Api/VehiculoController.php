@@ -113,12 +113,6 @@ class VehiculoController extends Controller
     // Elimina un vehículo
     public function destroy(Vehiculo $vehiculo)
     {
-        if ($vehiculo->solicitudes()->exists()) {
-            return response()->json([
-                'message' => 'No se puede eliminar este vehículo porque tiene solicitudes asociadas.'
-            ], 409);
-        }
-
         $vehiculo->delete();
         return response()->json([
             'message' => 'Vehículo eliminado.'
