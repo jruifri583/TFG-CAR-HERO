@@ -9,6 +9,7 @@ use App\Http\Requests\StorePagoRequest;
 use Illuminate\Http\JsonResponse;
 use App\Http\Resources\PagoResource;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Solicitud;
 
 class PagoController extends Controller
 {
@@ -40,7 +41,7 @@ class PagoController extends Controller
         $pago = Pago::create($request->validated());
         
         // Vincular el pago a la solicitud
-        $solicitud = \App\Models\Solicitud::find($pago->solicitud_id);
+        $solicitud = Solicitud::find($pago->solicitud_id);
         if ($solicitud) {
             $solicitud->pago_id = $pago->id;
             $solicitud->save();

@@ -3,15 +3,21 @@
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Solicitud;
 use App\Http\Resources\SolicitudResource;
 use App\Models\Estado;
+use App\Models\Pago;
+use App\Enums\EstadoSlug;
+use App\Models\User;
+use App\Models\Vehiculo;
+use App\Models\Historial;
 use App\Enums\EstadoSlug;
 
 class DashboardController extends Controller
 {
     public function contadores(Request $request)
 {
-    /** @var \App\Models\User $user */
+    /** @var User $user */
     $user = $request->user();
     $vistos = $request->get('vistos', []);
 
@@ -20,24 +26,24 @@ class DashboardController extends Controller
     };
 
     return response()->json([
-        'solicitudes' => \App\Models\Solicitud::visibleFor($user)
+        'solicitudes' => Solicitud::visibleFor($user)
             ->whereHas('estado', fn($q) => $q->whereNotIn('slug', ['finalizado', 'cancelado']))
             ->when($getDesde('solicitudes'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
-        'usuarios' => \App\Models\User::when($getDesde('usuarios'), fn($q, $d) => $q->where('created_at', '>', $d))
+        'usuarios' => User::when($getDesde('usuarios'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
-        'vehiculos' => \App\Models\Vehiculo::visibleFor($user)
+        'vehiculos' => Vehiculo::visibleFor($user)
             ->when($getDesde('vehiculos'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
-        'pagos' => \App\Models\Pago::visibleFor($user)
+        'pagos' => Pago::visibleFor($user)
             ->when($getDesde('pagos'), fn($q, $d) => $q->where('created_at', '>', $d))
             ->count(),
-        'historial' => \App\Models\Historial::visibleFor($user)->when($getDesde('historial'), fn($q, $d) => $q->where('created_at', '>', $d))->count(),
-        'mensajes' => $user->rol->slug === \App\Enums\RolSlug::ADMINISTRADOR->value 
-            ? \App\Models\MensajeContacto::whereNull('leido_at')->count()
+        'historial' => Historial::visibleFor($user)->when($getDesde('historial'), fn($q, $d) => $q->where('created_at', '>', $d))->count(),
+        'mensajes' => $user->rol->slug === RolSlug::ADMINISTRADOR->value 
+            ? MensajeContacto::whereNull('leido_at')->count()
             : 0,
-        'itv_alertas' => $user->rol->slug === \App\Enums\RolSlug::CLIENTE->value 
-            ? \App\Models\Vehiculo::where('user_id', $user->id)
+        'itv_alertas' => $user->rol->slug === RolSlug::CLIENTE->value 
+            ? Vehiculo::where('user_id', $user->id)
                 ->whereNotNull('fecha_ultima_itv')
                 ->where('fecha_ultima_itv', '>', '1990-01-01')
                 ->where('fecha_ultima_itv', '<=', now()->subMonths(11))
@@ -49,13 +55,13 @@ class DashboardController extends Controller
                 })
                 ->get(['id', 'marca', 'modelo', 'matricula', 'fecha_ultima_itv'])
             : [],
-        'has_active_request' => $user->rol->slug === \App\Enums\RolSlug::EMPLEADO->value 
-            ? \App\Models\Solicitud::where('user_empleado_id', $user->id)
+        'has_active_request' => $user->rol->slug === RolSlug::EMPLEADO->value 
+            ? Solicitud::where('user_empleado_id', $user->id)
                 ->whereHas('estado', function($q) {
                     $q->whereIn('slug', [
-                        \App\Enums\EstadoSlug::EN_RECOGIDA->value,
-                        \App\Enums\EstadoSlug::EN_ITV->value,
-                        \App\Enums\EstadoSlug::RETORNANDO->value,
+                        EstadoSlug::EN_RECOGIDA->value,
+                        EstadoSlug::EN_ITV->value,
+                        EstadoSlug::RETORNANDO->value,
                     ]);
                 })
                 ->whereNull('hora_entrega')

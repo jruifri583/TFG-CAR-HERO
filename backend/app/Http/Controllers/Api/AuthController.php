@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
+use App\Http\Requests\UpdatePerfilRequest;
 
 class AuthController extends Controller
 {
@@ -74,54 +75,12 @@ class AuthController extends Controller
     ]);
 }
 
-    public function update(Request $request)
+    public function update(UpdatePerfilRequest $request)
 {
     /** @var User $user */
     $user = $request->user();
 
-    $validated = $request->validate([
-        'nombre'    => 'sometimes|nullable|string|max:255',
-        'apellidos' => 'sometimes|nullable|string|max:255',
-        'nif'       => 'sometimes|nullable|string|max:20',
-        'telefono'  => 'sometimes|nullable|string|max:50',
-        'direccion' => 'sometimes|nullable|string|max:255',
-        'ciudad'    => 'sometimes|nullable|string|max:100',
-        'codigo_postal' => 'sometimes|nullable|string|max:10',
-        'direcciones' => 'sometimes|nullable|array',
-        'direcciones.*.alias' => 'nullable|string|max:100',
-        'direcciones.*.direccion' => 'required|string|max:255',
-        'direcciones.*.ciudad' => 'nullable|string|max:100',
-        'direcciones.*.codigo_postal' => 'nullable|string|max:10',
-        'email'     => 'sometimes|nullable|email|unique:users,email,' . $user->id,
-        'current_password' => [
-            'nullable',
-            function ($attribute, $value, $fail) use ($user, $request) {
-                if ($request->filled('password')) {
-                    if (!Hash::check($value, $user->password)) {
-                        $fail('La contraseña actual es incorrecta.');
-                    }
-                }
-            }
-        ],
-        'password'  => [
-            'sometimes',
-            'nullable',
-            'string',
-            function ($attribute, $value, $fail) use ($request) {
-                if ($request->filled('password') && empty($request->input('current_password'))) {
-                    $fail('Debe ingresar su contraseña actual para establecer una nueva.');
-                }
-            },
-            Password::min(8)
-                ->letters()
-                ->mixedCase()
-                ->numbers()
-                ->symbols(),
-        ],
-    ], [
-        'current_password.current_password' => 'La contraseña actual es incorrecta.',
-        'nombre.string' => 'El nombre debe ser válido.',
-    ]);
+    $validated = $request->validated();
 
     if (!empty($validated['password'])) {
         $validated['password'] = bcrypt($validated['password']);

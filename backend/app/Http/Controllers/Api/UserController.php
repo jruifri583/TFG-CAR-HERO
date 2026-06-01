@@ -8,6 +8,9 @@ use App\Http\Resources\UserResource;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -110,14 +113,14 @@ class UserController extends Controller
         ]);
     }
 
-    public function updateImagen(\Illuminate\Http\Request $request, User $user)
+    public function updateImagen(Request $request, User $user)
     {
         $request->validate([
             'imagen' => 'required|image|max:2048',
         ]);
 
         if ($user->getRawOriginal('imagen') && !filter_var($user->getRawOriginal('imagen'), FILTER_VALIDATE_URL)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete('avatars/' . $user->getRawOriginal('imagen'));
+            Storage::disk('public')->delete('avatars/' . $user->getRawOriginal('imagen'));
         }
 
         $filename = $request->file('imagen')->store('avatars', 'public');

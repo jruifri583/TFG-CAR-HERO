@@ -13,6 +13,7 @@ use App\Services\EstadoService;
 use App\Services\SolicitudService;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\SolicitudResource;
+use App\Models\Estado;
 
 class SolicitudController extends Controller
 {
@@ -133,7 +134,7 @@ class SolicitudController extends Controller
 
         $this->authorize('cancel', $solicitud);
 
-        $estadoCancelado = \App\Models\Estado::where('slug', \App\Enums\EstadoSlug::CANCELADO->value)->firstOrFail();
+        $estadoCancelado = Estado::where('slug', EstadoSlug::CANCELADO->value)->firstOrFail();
 
         $solicitud->estado_id = $estadoCancelado->id;
         $solicitud->save();

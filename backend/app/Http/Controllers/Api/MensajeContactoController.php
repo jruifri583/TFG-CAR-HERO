@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
+use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Controller;
 use App\Models\MensajeContacto;
 use Illuminate\Http\Request;
+use App\Mail\ResponderContactoMailable;
+use Carbon\Carbon;
 
 class MensajeContactoController extends Controller
 {
@@ -62,16 +64,16 @@ class MensajeContactoController extends Controller
         $mensaje->respuesta = $request->input('respuesta');
         
         if (is_null($mensaje->respondido_at)) {
-            $mensaje->respondido_at = \Carbon\Carbon::now();
+            $mensaje->respondido_at = Carbon::now();
         }
 
         if (is_null($mensaje->leido_at)) {
-            $mensaje->leido_at = \Carbon\Carbon::now();
+            $mensaje->leido_at = Carbon::now();
         }
 
         $mensaje->save();
 
-        \Illuminate\Support\Facades\Mail::to($mensaje->email)->send(new \App\Mail\ResponderContactoMailable($mensaje));
+        Mail::to($mensaje->email)->send(new ResponderContactoMailable($mensaje));
 
         return response()->json(['success' => true, 'mensaje' => $mensaje]);
     }
