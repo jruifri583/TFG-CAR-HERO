@@ -1,4 +1,4 @@
-import { Search, ArrowUp, ArrowDown, ArrowUpDown, X, PlusIcon, Clock, UserCheck, Truck, RotateCcw, CheckCircle, XCircle, ShieldCheck, Calendar } from "lucide-react";
+import { Search, X, PlusIcon, Clock, UserCheck, Truck, RotateCcw, CheckCircle, XCircle, ShieldCheck, Calendar } from "lucide-react";
 import { useDebouncedCallback } from "use-debounce";
 import { useEffect, useState } from "react";
 import {
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent } from "@/components/ui/card";
 import { PaginationSelector } from "@/components/ui/pagination";
+import { SortArrow } from "@/components/ui/sort-arrow";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
@@ -174,15 +175,7 @@ export default function SolicitudesPage({
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: SortField) => {
-    if (sortField !== field)
-      return <ArrowUpDown size={14} className="inline ml-1 opacity-40" />;
-    return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="inline ml-1" />
-    ) : (
-      <ArrowDown size={14} className="inline ml-1" />
-    );
-  };
+
 
   const goToPage = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -380,7 +373,7 @@ export default function SolicitudesPage({
                 className="cursor-pointer text-center w-[90px]"
                 onClick={() => handleSort("id")}
               >
-                ID{renderSortArrow("id")}
+                ID<SortArrow field="id" sortField={sortField} sortOrder={sortOrder} />
               </TableHead>
               <TableHead className="text-center min-w-[200px] hidden md:table-cell">Vehículo</TableHead>
               <TableHead className="text-center min-w-0 md:min-w-[200px]">Cliente</TableHead>
@@ -388,21 +381,21 @@ export default function SolicitudesPage({
                 className="cursor-pointer text-center min-w-[150px] hidden md:table-cell"
                 onClick={() => handleSort("empleado")}
               >
-                Empleado{renderSortArrow("empleado")}
+                Empleado<SortArrow field="empleado" sortField={sortField} sortOrder={sortOrder} />
               </TableHead>
               {!sinPago && (
                 <TableHead
                   className="cursor-pointer text-center w-[130px] hidden md:table-cell"
                   onClick={() => handleSort("estado_id")}
                 >
-                  Estado{renderSortArrow("estado_id")}
+                  Estado<SortArrow field="estado_id" sortField={sortField} sortOrder={sortOrder} />
                 </TableHead>
               )}
               <TableHead
                 className="cursor-pointer text-center min-w-0 md:w-[180px] hidden md:table-cell"
                 onClick={() => handleSort("fecha_programada")}
               >
-                Fecha programada{renderSortArrow("fecha_programada")}
+                Fecha programada<SortArrow field="fecha_programada" sortField={sortField} sortOrder={sortOrder} />
               </TableHead>
             </TableRow>
           </TableHeader>

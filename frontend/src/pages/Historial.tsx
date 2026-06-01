@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -9,6 +9,7 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { PaginationSelector } from "@/components/ui/pagination";
+import { SortArrow } from "@/components/ui/sort-arrow";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -81,15 +82,7 @@ export default function HistorialPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: SortField) => {
-    if (sortField !== field)
-      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
-    return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
-    ) : (
-      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
-    );
-  };
+
 
   if (loading) return <p>Cargando...</p>;
 
@@ -143,19 +136,19 @@ export default function HistorialPage() {
                 className="cursor-pointer text-center w-[150px]"
                 onClick={() => handleSort("solicitud_id")}
               >
-                Solicitud{renderSortArrow("solicitud_id")}
+                Solicitud<SortArrow field="solicitud_id" sortField={sortField} sortOrder={sortOrder} />
               </TableHead>
               <TableHead
                 className="cursor-pointer text-center w-[200px]"
                 onClick={() => handleSort("fecha_itv")}
               >
-                Fecha ITV{renderSortArrow("fecha_itv")}
+                Fecha ITV<SortArrow field="fecha_itv" sortField={sortField} sortOrder={sortOrder} />
               </TableHead>
               <TableHead
                 className="cursor-pointer text-center w-[200px] hidden md:table-cell"
                 onClick={() => handleSort("resolucion_id")}
               >
-                Resolución{renderSortArrow("resolucion_id")}
+                Resolución<SortArrow field="resolucion_id" sortField={sortField} sortOrder={sortOrder} />
               </TableHead>
             </TableRow>
           </TableHeader>

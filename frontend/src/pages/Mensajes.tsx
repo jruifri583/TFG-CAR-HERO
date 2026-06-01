@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown, MailOpen, Search, X } from "lucide-react";
+import { MailOpen, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useDebouncedCallback } from "use-debounce";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -12,6 +12,7 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { PaginationSelector } from "@/components/ui/pagination";
+import { SortArrow } from "@/components/ui/sort-arrow";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -87,15 +88,7 @@ export default function MensajesPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: SortField) => {
-    if (sortField !== field)
-      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
-    return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
-    ) : (
-      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
-    );
-  };
+
 
   const handleMessageClick = async (mensaje: Mensaje) => {
     if (expandedId === mensaje.id) {
@@ -208,19 +201,19 @@ export default function MensajesPage() {
               className="cursor-pointer font-bold text-center w-[220px]"
               onClick={() => handleSort("nombre")}
             >
-              Remitente{renderSortArrow("nombre")}
+              Remitente<SortArrow field="nombre" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="cursor-pointer font-bold text-center w-[250px] hidden sm:table-cell"
               onClick={() => handleSort("email")}
             >
-              Email{renderSortArrow("email")}
+              Email<SortArrow field="email" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="cursor-pointer font-bold text-center w-[200px]"
               onClick={() => handleSort("created_at")}
             >
-              Recibido{renderSortArrow("created_at")}
+              Recibido<SortArrow field="created_at" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
           </TableRow>
         </TableHeader>

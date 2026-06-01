@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
   Search,
   PlusIcon,
   X,
@@ -17,6 +14,7 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { PaginationSelector } from "@/components/ui/pagination";
+import { SortArrow } from "@/components/ui/sort-arrow";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -88,15 +86,7 @@ export default function PagosPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: SortField) => {
-    if (sortField !== field)
-      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
-    return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
-    ) : (
-      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
-    );
-  };
+
 
   if (loading) return <p>Cargando...</p>;
 
@@ -160,25 +150,25 @@ export default function PagosPage() {
               className="cursor-pointer text-center w-[150px]"
               onClick={() => handleSort("solicitud_id")}
             >
-              Solicitud{renderSortArrow("solicitud_id")}
+              Solicitud<SortArrow field="solicitud_id" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="cursor-pointer text-center w-[200px]"
               onClick={() => handleSort("importe")}
             >
-              Importe{renderSortArrow("importe")}
+              Importe<SortArrow field="importe" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="hidden sm:table-cell cursor-pointer text-center w-[250px]"
               onClick={() => handleSort("metodo_pago_id")}
             >
-              Método de Pago{renderSortArrow("metodo_pago_id")}
+              Método de Pago<SortArrow field="metodo_pago_id" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="hidden sm:table-cell cursor-pointer text-center w-[180px]"
               onClick={() => handleSort("created_at")}
             >
-              Fecha de pago{renderSortArrow("created_at")}
+              Fecha de pago<SortArrow field="created_at" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
           </TableRow>
         </TableHeader>

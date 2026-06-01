@@ -1,8 +1,5 @@
 import {
   Search,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
   X,
   PlusIcon,
 } from "lucide-react";
@@ -22,6 +19,7 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { PaginationSelector } from "@/components/ui/pagination";
+import { SortArrow } from "@/components/ui/sort-arrow";
 
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
@@ -106,17 +104,7 @@ export default function VehiculosPage() {
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: SortField) => {
-    if (sortField !== field)
-      return (
-        <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />
-      );
-    return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
-    ) : (
-      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
-    );
-  };
+
 
   if (loading) return <p>Cargando...</p>;
 
@@ -131,7 +119,8 @@ export default function VehiculosPage() {
           inputFocused={inputFocused}
           setInputFocused={setInputFocused}
           handleSort={handleSort}
-          renderSortArrow={renderSortArrow}
+          sortField={sortField}
+          sortOrder={sortOrder}
           totalPages={totalPages}
           currentPage={currentPage}
           goToPage={goToPage}
@@ -162,7 +151,8 @@ interface AdminListProps {
   inputFocused: boolean;
   setInputFocused: (v: boolean) => void;
   handleSort: (field: SortField) => void;
-  renderSortArrow: (field: SortField) => React.ReactNode;
+  sortField: SortField | null;
+  sortOrder: "asc" | "desc";
   totalPages: number;
   currentPage: number;
   goToPage: (page: number) => void;
@@ -177,7 +167,8 @@ function AdminList({
   inputFocused,
   setInputFocused,
   handleSort,
-  renderSortArrow,
+  sortField,
+  sortOrder,
   totalPages,
   currentPage,
   goToPage,
@@ -240,19 +231,19 @@ function AdminList({
               className="hidden md:table-cell cursor-pointer text-center w-[160px]"
               onClick={() => handleSort("matricula")}
             >
-              Matrícula{renderSortArrow("matricula")}
+              Matrícula<SortArrow field="matricula" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="cursor-pointer text-center min-w-0 md:w-[220px]"
               onClick={() => handleSort("marca")}
             >
-              Marca y Modelo{renderSortArrow("marca")}
+              Marca y Modelo<SortArrow field="marca" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="hidden md:table-cell cursor-pointer text-center w-[120px]"
               onClick={() => handleSort("año")}
             >
-              Año{renderSortArrow("año")}
+              Año<SortArrow field="año" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead className="hidden md:table-cell text-center w-[140px]">
               Kilómetros

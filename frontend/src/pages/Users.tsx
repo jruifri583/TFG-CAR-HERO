@@ -1,7 +1,4 @@
 import {
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
   PlusIcon,
   X,
   Search,
@@ -19,6 +16,7 @@ import {
   TableHead,
 } from "@/components/ui/table";
 import { PaginationSelector } from "@/components/ui/pagination";
+import { SortArrow } from "@/components/ui/sort-arrow";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -109,15 +107,7 @@ export default function UsersPage({
     setCurrentPage(1);
   };
 
-  const renderSortArrow = (field: SortField) => {
-    if (sortField !== field)
-      return <ArrowUpDown size={14} className="opacity-30 shrink-0 inline ml-1" />;
-    return sortOrder === "asc" ? (
-      <ArrowUp size={14} className="text-primary shrink-0 inline ml-1" />
-    ) : (
-      <ArrowDown size={14} className="text-primary shrink-0 inline ml-1" />
-    );
-  };
+
 
   if (loading) return <p>Cargando...</p>;
 
@@ -184,32 +174,32 @@ export default function UsersPage({
               className="hidden md:table-cell cursor-pointer text-center w-[220px]"
               onClick={() => handleSort("email")}
             >
-              Email{renderSortArrow("email")}
+              Email<SortArrow field="email" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="cursor-pointer text-left pl-10 md:text-center md:pl-2 min-w-0 md:w-[200px]"
               onClick={() => handleSort("nombre")}
             >
-              Nombre y Apellidos{renderSortArrow("nombre")}
+              Nombre y Apellidos<SortArrow field="nombre" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead className="hidden sm:table-cell text-center w-[120px]">Teléfono</TableHead>
             <TableHead
               className="hidden md:table-cell cursor-pointer text-center w-[120px]"
               onClick={() => handleSort("rol_id")}
             >
-              Rol{renderSortArrow("rol_id")}
+              Rol<SortArrow field="rol_id" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="cursor-pointer text-center min-w-0 md:w-[100px] hidden md:table-cell"
               onClick={() => handleSort("activo")}
             >
-              Activo{renderSortArrow("activo")}
+              Activo<SortArrow field="activo" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
             <TableHead
               className="hidden sm:table-cell cursor-pointer text-center w-[140px]"
               onClick={() => handleSort("created_at")}
             >
-              Creado{renderSortArrow("created_at")}
+              Creado<SortArrow field="created_at" sortField={sortField} sortOrder={sortOrder} />
             </TableHead>
           </TableRow>
         </TableHeader>
