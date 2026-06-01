@@ -11,7 +11,8 @@ use App\Enums\EstadoSlug;
 use App\Models\User;
 use App\Models\Vehiculo;
 use App\Models\Historial;
-use App\Enums\EstadoSlug;
+use App\Enums\RolSlug;
+use App\Models\MensajeContacto;
 
 class DashboardController extends Controller
 {
