@@ -21,13 +21,6 @@ export interface LoginCredentials {
 
 export interface AuthContextType {
   user: User | null;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => void;
-  loading: boolean;
-}
-
-export interface AuthContextType {
-  user: User | null;
   setUser: (user: User | null) => void;
   login: (credentials: LoginCredentials) => Promise<void>;
   loginWithGoogle: (token: string) => Promise<void>;

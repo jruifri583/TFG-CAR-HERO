@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Policies;
-
+use App\Models\Pago;
 use App\Models\Solicitud;
 use App\Models\User;
 
@@ -15,21 +15,15 @@ class PagoPolicy
         return null;
     }
     
-    // Permitir acceso a la visualización de solicitudes.
      
     public function create(User $user, Solicitud $solicitud): bool
     {
-        return $user->isAdmin() || $user->isEmployee() && $solicitud->isFinalizado();
+        return false;
     }
 
-    // El cliente puede confirmar el pago de su propia solicitud.
-    public function update(User $user, \App\Models\Pago $pago): bool
+    public function update(User $user, Pago $pago): bool
     {
-        if ($user->isAdmin() || $user->isEmployee()) {
-            return true;
-        }
-        // El cliente puede actualizar el pago si la solicitud le pertenece
-        return $pago->solicitud?->user_cliente_id === $user->id;
+        return false;
     }
 
     public function delete(User $user, Solicitud $solicitud): bool

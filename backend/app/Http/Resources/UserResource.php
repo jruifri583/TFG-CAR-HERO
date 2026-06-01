@@ -34,7 +34,7 @@ class UserResource extends JsonResource
             }) : [],
             'direcciones_anteriores' => $this->when(
                 str_contains($request->url(), 'api/users') || str_contains($request->url(), 'api/me'),
-                fn() => collect([$this->direccion]) // fallback
+                fn() => collect([$this->direccion])
             ),
             'rol' => [
                 'id' => $this->rol?->id,

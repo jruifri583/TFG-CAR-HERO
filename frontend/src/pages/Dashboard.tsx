@@ -1,10 +1,29 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
-import { Card, CardContent, CardHeader, CardTitle, CardSinBorde } from "@/components/ui/card";
-import { 
-  Users, Car, FileText, CreditCard, AlertTriangle,
-  Clock, UserCheck, Truck, Search, RotateCcw, CheckCircle, XCircle,
-  ShieldCheck, Calendar, BarChart2, PieChart as PieChartIcon
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardSinBorde,
+} from "@/components/ui/card";
+import {
+  Users,
+  Car,
+  FileText,
+  CreditCard,
+  AlertTriangle,
+  Clock,
+  UserCheck,
+  Truck,
+  Search,
+  RotateCcw,
+  CheckCircle,
+  XCircle,
+  ShieldCheck,
+  Calendar,
+  BarChart2,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
@@ -19,7 +38,6 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell,
 } from "recharts";
 import { format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
@@ -32,7 +50,6 @@ import {
   TableCell,
   TableHead,
 } from "@/components/ui/table";
-
 
 interface Contadores {
   usuarios: number;
@@ -66,14 +83,14 @@ interface SolicitudReciente {
   fecha_programada: string | null;
   created_at: string | null;
   updated_at: string | null;
-  cliente: { 
+  cliente: {
     id: number;
-    nombre: string; 
-    apellidos: string; 
+    nombre: string;
+    apellidos: string;
     email: string;
     ciudad: string | null;
     codigo_postal: string | null;
-    imagen: string | null 
+    imagen: string | null;
   } | null;
   vehiculo: {
     marca: string;
@@ -131,14 +148,22 @@ function fmt(iso: string | null) {
   return format(new Date(iso), "dd MMM yyyy", { locale: es });
 }
 
-const renderPieLabel = ({ cx, cy, midAngle, outerRadius, percent, name, fill }: any) => {
+const renderPieLabel = ({
+  cx,
+  cy,
+  midAngle,
+  outerRadius,
+  percent,
+  name,
+  fill,
+}: any) => {
   const RADIAN = Math.PI / 180;
   const radius = outerRadius * 1.15;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   let y = cy + radius * Math.sin(-midAngle * RADIAN);
 
   // Pequeño ajuste manual para evitar solapamiento si es "Cancelado"
-  if (name.toLowerCase().includes('cancelado')) {
+  if (name.toLowerCase().includes("cancelado")) {
     y -= 8;
   }
 
@@ -147,7 +172,7 @@ const renderPieLabel = ({ cx, cy, midAngle, outerRadius, percent, name, fill }: 
       x={x}
       y={y}
       fill={fill}
-      textAnchor={x > cx ? 'start' : 'end'}
+      textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
       className="text-[10px] font-black uppercase italic tracking-tight"
     >
@@ -236,7 +261,8 @@ function ActualizadaRow({ s }: { s: SolicitudReciente }) {
               src={s.empleado.imagen || "/avatars/default_user.png"}
               className="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = "/avatars/default_user.png";
+                (e.target as HTMLImageElement).src =
+                  "/avatars/default_user.png";
               }}
             />
             <span className="text-xs font-bold text-slate-700 truncate max-w-[100px]">
@@ -244,7 +270,9 @@ function ActualizadaRow({ s }: { s: SolicitudReciente }) {
             </span>
           </div>
         ) : (
-          <span className="text-[10px] text-muted-foreground italic font-medium">Asignando...</span>
+          <span className="text-[10px] text-muted-foreground italic font-medium">
+            Asignando...
+          </span>
         )}
       </TableCell>
 
@@ -305,17 +333,19 @@ const STATUS_ICONS: Record<string, any> = {
 function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
   const navigate = useNavigate();
   const isCancelled = s.estado?.slug === "cancelado";
-  
+
   // Colores de resolución
   const getResolucionClass = (nombre: string) => {
     const n = nombre.toLowerCase();
-    if (n.includes("favorable") && !n.includes("desfavorable")) return "bg-green-100 text-green-700 border-green-200";
-    if (n.includes("desfavorable")) return "bg-red-100 text-red-700 border-red-200";
+    if (n.includes("favorable") && !n.includes("desfavorable"))
+      return "bg-green-100 text-green-700 border-green-200";
+    if (n.includes("desfavorable"))
+      return "bg-red-100 text-red-700 border-red-200";
     return "bg-slate-100 text-slate-600 border-slate-200"; // Pendiente u otros
   };
 
   return (
-    <Card 
+    <Card
       className="overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all cursor-pointer group bg-slate-50/50 dark:bg-slate-900/40 mb-4"
       onClick={() => navigate(`/solicitudes/${s.id}`)}
     >
@@ -325,11 +355,10 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
             {s.id}
           </span>
           <div className="flex flex-col md:flex-row flex-wrap md:flex-nowrap justify-between gap-y-6 gap-x-4 w-full min-w-0">
-            
             {/* Bloque 1: Vehículo */}
             <div className="flex items-center gap-4 min-w-0">
-              <img 
-                src={s.vehiculo?.imagen ?? "/avatars/default_car.png"} 
+              <img
+                src={s.vehiculo?.imagen ?? "/avatars/default_car.png"}
                 className="w-12 h-12 lg:w-14 lg:h-14 object-cover rounded-full shadow-sm border-2 border-white dark:border-slate-800 shrink-0"
               />
               <div className="min-w-0">
@@ -342,80 +371,112 @@ function SolicitudStatusCard({ s }: { s: SolicitudReciente }) {
               </div>
             </div>
 
-          {/* Estado */}
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
-              <div className="relative flex items-center justify-center shrink-0">
-                {(() => {
-                  const Icon = STATUS_ICONS[s.estado?.slug || ""] || Clock;
-                  return <Icon size={28} className={`z-10 ${isCancelled ? "text-red-500" : "text-primary"}`} />;
-                })()}
-                <div className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary"}`} />
+            {/* Estado */}
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                <div className="relative flex items-center justify-center shrink-0">
+                  {(() => {
+                    const Icon = STATUS_ICONS[s.estado?.slug || ""] || Clock;
+                    return (
+                      <Icon
+                        size={28}
+                        className={`z-10 ${isCancelled ? "text-red-500" : "text-primary"}`}
+                      />
+                    );
+                  })()}
+                  <div
+                    className={`absolute w-4 h-4 rounded-full z-0 opacity-20 ${isCancelled ? "bg-red-500" : "bg-primary"}`}
+                  />
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">
+                  Estado
+                </p>
+                <h4
+                  className={`text-xs font-black uppercase italic truncate ${isCancelled ? "text-red-600" : "text-slate-900 dark:text-white"}`}
+                >
+                  {s.estado?.nombre}
+                </h4>
               </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Estado</p>
-              <h4 className={`text-xs font-black uppercase italic truncate ${isCancelled ? "text-red-600" : "text-slate-900 dark:text-white"}`}>
-                {s.estado?.nombre}
-              </h4>
-            </div>
-          </div>
 
-          {/* Empleado */}
-          <div className="flex items-center gap-4 min-w-0">
-            {s.empleado ? (
-              <>
-                <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
-                  <img src={s.empleado.imagen ?? "/avatars/default_user.png"} className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-white shadow-sm shrink-0" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Empleado</p>
-                  <p className="text-xs font-black italic truncate">{s.empleado.nombre}</p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
-                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
-                     <UserCheck size={20} className="text-slate-300 dark:text-slate-600" />
+            {/* Empleado */}
+            <div className="flex items-center gap-4 min-w-0">
+              {s.empleado ? (
+                <>
+                  <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                    <img
+                      src={s.empleado.imagen ?? "/avatars/default_user.png"}
+                      className="w-12 h-12 lg:w-14 lg:h-14 rounded-full object-cover border-2 border-white shadow-sm shrink-0"
+                    />
                   </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">
+                      Empleado
+                    </p>
+                    <p className="text-xs font-black italic truncate">
+                      {s.empleado.nombre}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                    <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                      <UserCheck
+                        size={20}
+                        className="text-slate-300 dark:text-slate-600"
+                      />
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">
+                      Empleado
+                    </p>
+                    <p className="text-[10px] text-muted-foreground italic font-medium leading-none">
+                      Asignando...
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Resolución */}
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                  <ShieldCheck size={22} className="text-slate-400" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Empleado</p>
-                  <p className="text-[10px] text-muted-foreground italic font-medium leading-none">Asignando...</p>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1.5">
+                  Resolución
+                </p>
+                <div
+                  className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-black border uppercase tracking-widest italic leading-none ${getResolucionClass(s.resolucion?.nombre || "Pendiente")}`}
+                >
+                  {s.resolucion?.nombre || "Pendiente"}
                 </div>
-              </>
-            )}
-          </div>
-
-          {/* Resolución */}
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
-                <ShieldCheck size={22} className="text-slate-400" />
               </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1.5">Resolución</p>
-              <div className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-black border uppercase tracking-widest italic leading-none ${getResolucionClass(s.resolucion?.nombre || "Pendiente")}`}>
-                {s.resolucion?.nombre || "Pendiente"}
+
+            {/* Actualizado */}
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                  <Calendar size={22} className="text-slate-400" />
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">
+                  Actualizado
+                </p>
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-300 italic leading-none truncate">
+                  {fmt(s.updated_at)}
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* Actualizado */}
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="w-12 lg:w-14 flex items-center justify-center shrink-0">
-              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-white shadow-sm shrink-0">
-                <Calendar size={22} className="text-slate-400" />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter leading-none mb-1">Actualizado</p>
-              <p className="text-xs font-bold text-slate-700 dark:text-slate-300 italic leading-none truncate">{fmt(s.updated_at)}</p>
-            </div>
-          </div>
-
           </div>
         </div>
       </CardContent>
@@ -457,6 +518,11 @@ export default function DashboardPage() {
     total: m.total,
   }));
 
+  const porEstadoConColores = porEstado.map((item, index) => ({
+    ...item,
+    fill: PIE_COLORS[index % PIE_COLORS.length],
+  }));
+
   return (
     <div>
       {role === "administrador" && <AdminDashboard />}
@@ -471,11 +537,21 @@ export default function DashboardPage() {
         {/* Tarjetas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
           {/* Usuarios */}
-          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #194185 0%, #1849A9 100%)' }}>
+          <Card
+            className="border-0 shadow-md"
+            style={{
+              background: "linear-gradient(135deg, #194185 0%, #1849A9 100%)",
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-semibold" style={{ color: '#84CAFF' }}>Usuarios</CardTitle>
-              <div className="p-2 rounded-lg" style={{ background: '#175CD3' }}>
-                <Users size={16} style={{ color: '#D1E9FF' }} />
+              <CardTitle
+                className="text-sm font-semibold"
+                style={{ color: "#84CAFF" }}
+              >
+                Usuarios
+              </CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: "#175CD3" }}>
+                <Users size={16} style={{ color: "#D1E9FF" }} />
               </div>
             </CardHeader>
             <CardContent>
@@ -486,11 +562,21 @@ export default function DashboardPage() {
           </Card>
 
           {/* Vehículos */}
-          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #1849A9 0%, #175CD3 100%)' }}>
+          <Card
+            className="border-0 shadow-md"
+            style={{
+              background: "linear-gradient(135deg, #1849A9 0%, #175CD3 100%)",
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-semibold" style={{ color: '#B2DDFF' }}>Vehículos</CardTitle>
-              <div className="p-2 rounded-lg" style={{ background: '#1570EF' }}>
-                <Car size={16} style={{ color: '#EFF8FF' }} />
+              <CardTitle
+                className="text-sm font-semibold"
+                style={{ color: "#B2DDFF" }}
+              >
+                Vehículos
+              </CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: "#1570EF" }}>
+                <Car size={16} style={{ color: "#EFF8FF" }} />
               </div>
             </CardHeader>
             <CardContent>
@@ -501,11 +587,21 @@ export default function DashboardPage() {
           </Card>
 
           {/* Solicitudes */}
-          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #1570EF 0%, #2E90FA 100%)' }}>
+          <Card
+            className="border-0 shadow-md"
+            style={{
+              background: "linear-gradient(135deg, #1570EF 0%, #2E90FA 100%)",
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-semibold" style={{ color: '#D1E9FF' }}>Solicitudes</CardTitle>
-              <div className="p-2 rounded-lg" style={{ background: '#1849A9' }}>
-                <FileText size={16} style={{ color: '#EFF8FF' }} />
+              <CardTitle
+                className="text-sm font-semibold"
+                style={{ color: "#D1E9FF" }}
+              >
+                Solicitudes
+              </CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: "#1849A9" }}>
+                <FileText size={16} style={{ color: "#EFF8FF" }} />
               </div>
             </CardHeader>
             <CardContent>
@@ -516,15 +612,28 @@ export default function DashboardPage() {
           </Card>
 
           {/* Pagos */}
-          <Card className="border-0 shadow-md" style={{ background: 'linear-gradient(135deg, #D1E9FF 0%, #EFF8FF 100%)' }}>
+          <Card
+            className="border-0 shadow-md"
+            style={{
+              background: "linear-gradient(135deg, #D1E9FF 0%, #EFF8FF 100%)",
+            }}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-semibold" style={{ color: '#175CD3' }}>Pagos</CardTitle>
-              <div className="p-2 rounded-lg" style={{ background: '#84CAFF' }}>
-                <CreditCard size={16} style={{ color: '#194185' }} />
+              <CardTitle
+                className="text-sm font-semibold"
+                style={{ color: "#175CD3" }}
+              >
+                Pagos
+              </CardTitle>
+              <div className="p-2 rounded-lg" style={{ background: "#84CAFF" }}>
+                <CreditCard size={16} style={{ color: "#194185" }} />
               </div>
             </CardHeader>
             <CardContent>
-              <span className="text-3xl font-black" style={{ color: '#1849A9' }}>
+              <span
+                className="text-3xl font-black"
+                style={{ color: "#1849A9" }}
+              >
                 {contadores?.pagos ?? "-"}
               </span>
             </CardContent>
@@ -556,18 +665,33 @@ export default function DashboardPage() {
                   <Table>
                     <TableHeader className="bg-slate-50/30">
                       <TableRow>
-                        <TableHead className="w-[50px] text-center text-[10px] font-black uppercase italic tracking-widest">ID</TableHead>
-                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Cliente</TableHead>
-                        <TableHead className="hidden lg:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Dirección</TableHead>
-                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Vehículo</TableHead>
-                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Matrícula</TableHead>
-                        <TableHead className="hidden md:table-cell text-center text-[10px] font-black uppercase italic tracking-widest w-[100px]">Estado</TableHead>
+                        <TableHead className="w-[50px] text-center text-[10px] font-black uppercase italic tracking-widest">
+                          ID
+                        </TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Cliente
+                        </TableHead>
+                        <TableHead className="hidden lg:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Dirección
+                        </TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Vehículo
+                        </TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Matrícula
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-[10px] font-black uppercase italic tracking-widest w-[100px]">
+                          Estado
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {solicitudesRecientes.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="py-12 text-center text-muted-foreground italic font-bold">
+                          <TableCell
+                            colSpan={6}
+                            className="py-12 text-center text-muted-foreground italic font-bold"
+                          >
                             No hay nuevas solicitudes en este momento
                           </TableCell>
                         </TableRow>
@@ -595,18 +719,33 @@ export default function DashboardPage() {
                   <Table>
                     <TableHeader className="bg-slate-50/30">
                       <TableRow>
-                        <TableHead className="w-[50px] text-center text-[10px] font-black uppercase italic tracking-widest">ID</TableHead>
-                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Empleado</TableHead>
-                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">Vehículo</TableHead>
-                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest w-[130px]">Estado</TableHead>
-                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Fecha</TableHead>
-                        <TableHead className="hidden md:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">Cliente</TableHead>
+                        <TableHead className="w-[50px] text-center text-[10px] font-black uppercase italic tracking-widest">
+                          ID
+                        </TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Empleado
+                        </TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Vehículo
+                        </TableHead>
+                        <TableHead className="text-center text-[10px] font-black uppercase italic tracking-widest w-[130px]">
+                          Estado
+                        </TableHead>
+                        <TableHead className="hidden sm:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Fecha
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell text-center text-[10px] font-black uppercase italic tracking-widest">
+                          Cliente
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {solicitudesActualizadas.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="py-12 text-center text-muted-foreground italic font-bold">
+                          <TableCell
+                            colSpan={6}
+                            className="py-12 text-center text-muted-foreground italic font-bold"
+                          >
                             Sin actualizaciones recientes para mostrar
                           </TableCell>
                         </TableRow>
@@ -635,23 +774,36 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={mesData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis 
-                    dataKey="mes" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#e2e8f0"
                   />
-                  <YAxis 
-                    allowDecimals={false} 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  <XAxis
+                    dataKey="mes"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748b", fontSize: 12, fontWeight: "bold" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  <YAxis
+                    allowDecimals={false}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748b", fontSize: 12, fontWeight: "bold" }}
                   />
-                  <Bar dataKey="total" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={30} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                  <Bar
+                    dataKey="total"
+                    fill="#2563eb"
+                    radius={[6, 6, 0, 0]}
+                    barSize={30}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -668,7 +820,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
-                    data={porEstado}
+                    data={porEstadoConColores}
                     dataKey="total"
                     nameKey="estado"
                     cx="50%"
@@ -678,14 +830,15 @@ export default function DashboardPage() {
                     paddingAngle={5}
                     isAnimationActive={false}
                     label={renderPieLabel}
-                    labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
-                  >
-                    {porEstado.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    labelLine={{ stroke: "#cbd5e1", strokeWidth: 1 }}
+                    stroke="none"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -697,26 +850,33 @@ export default function DashboardPage() {
   }
 
   function EmpleadoDashboard() {
-    const pendingAssignments = solicitudesActualizadas.filter(s => s.estado?.slug === 'asignado');
+    const pendingAssignments = solicitudesActualizadas.filter(
+      (s) => s.estado?.slug === "asignado",
+    );
 
     return (
       <div className="space-y-6">
         {/* Sección de nuevas asignaciones */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Actividades</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+              Actividades
+            </h2>
           </div>
-          
+
           {pendingAssignments.length === 0 ? (
             <div className="relative overflow-hidden rounded-2xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-900/20 backdrop-blur-md p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm group">
-              {/* Decorative background element */}
               <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-blue-400/5 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-400/10 transition-colors duration-500" />
-              
+
               <div className="relative shrink-0 w-14 h-14 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm border border-blue-50 dark:border-slate-700">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent rounded-2xl opacity-50" />
-                <CheckCircle className="text-blue-600 dark:text-blue-400 relative z-10" size={28} strokeWidth={2} />
+                <CheckCircle
+                  className="text-blue-600 dark:text-blue-400 relative z-10"
+                  size={28}
+                  strokeWidth={2}
+                />
               </div>
-              
+
               <div className="flex-1 text-center sm:text-left relative z-10">
                 <h3 className="text-base font-black text-blue-900 dark:text-blue-100 tracking-tight leading-none mb-1 uppercase italic">
                   Todo al día
@@ -728,43 +888,67 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {pendingAssignments.map(s => (
-                <CardSinBorde key={s.id} className="bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 overflow-hidden relative group transition-all hover:shadow-lg">
+              {pendingAssignments.map((s) => (
+                <CardSinBorde
+                  key={s.id}
+                  className="bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 overflow-hidden relative group transition-all hover:shadow-lg"
+                >
                   <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-yellow-400/10 rounded-full blur-2xl pointer-events-none group-hover:bg-yellow-400/20 transition-all duration-500" />
-                  
+
                   <CardContent className="p-4 flex flex-col md:flex-row items-center gap-4 relative z-10">
                     <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-2xl ring-4 ring-yellow-50/50 dark:ring-yellow-900/10 shadow-inner">
-                      <AlertTriangle className="text-yellow-600 dark:text-yellow-400" size={24} />
+                      <AlertTriangle
+                        className="text-yellow-600 dark:text-yellow-400"
+                        size={24}
+                      />
                     </div>
-                    
+
                     <div className="flex-1 text-center md:text-left">
                       <p className="text-[10px] font-black text-yellow-800 dark:text-yellow-200 uppercase italic tracking-tighter mb-1">
                         Nueva Solicitud Asignada
                       </p>
                       <h3 className="text-sm md:text-base font-black text-slate-900 dark:text-white leading-tight">
-                        {s.vehiculo?.marca} {s.vehiculo?.modelo} - <span className="font-mono text-xs opacity-70">{s.vehiculo?.matricula}</span>
+                        {s.vehiculo?.marca} {s.vehiculo?.modelo} -{" "}
+                        <span className="font-mono text-xs opacity-70">
+                          {s.vehiculo?.matricula}
+                        </span>
                       </h3>
                       <p className="text-xs text-yellow-700/80 dark:text-yellow-300/60 font-medium">
-                        Cliente: {s.cliente?.nombre} {s.cliente?.apellidos} • {s.direccion} {s.fecha_programada && ` • ${format(new Date(s.fecha_programada), "HH:mm")}`}
+                        Cliente: {s.cliente?.nombre} {s.cliente?.apellidos} •{" "}
+                        {s.direccion}{" "}
+                        {s.fecha_programada &&
+                          ` • ${format(new Date(s.fecha_programada), "HH:mm")}`}
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2 mt-4 md:mt-0">
                       {(() => {
-                        const isForToday = !s.fecha_programada || isToday(new Date(s.fecha_programada));
+                        const isForToday =
+                          !s.fecha_programada ||
+                          isToday(new Date(s.fecha_programada));
                         const isBusy = contadores?.has_active_request;
 
                         // Encontrar la más temprana de hoy entre las asignadas
                         const assignmentsToday = pendingAssignments
-                          .filter(pa => pa.fecha_programada && isToday(new Date(pa.fecha_programada)))
-                          .sort((a, b) => new Date(a.fecha_programada!).getTime() - new Date(b.fecha_programada!).getTime());
-                        
-                        const isEarliest = assignmentsToday.length === 0 || assignmentsToday[0].id === s.id;
+                          .filter(
+                            (pa) =>
+                              pa.fecha_programada &&
+                              isToday(new Date(pa.fecha_programada)),
+                          )
+                          .sort(
+                            (a, b) =>
+                              new Date(a.fecha_programada!).getTime() -
+                              new Date(b.fecha_programada!).getTime(),
+                          );
+
+                        const isEarliest =
+                          assignmentsToday.length === 0 ||
+                          assignmentsToday[0].id === s.id;
 
                         if (isForToday && !isBusy) {
                           if (isEarliest) {
                             return (
-                              <Button 
+                              <Button
                                 asChild
                                 className="bg-yellow-600 hover:bg-yellow-700 text-white shadow-lg shadow-yellow-200/50 border-none transition-all font-bold h-11 w-52 rounded-xl active:scale-95 flex items-center justify-center p-0"
                               >
@@ -776,10 +960,13 @@ export default function DashboardPage() {
                             );
                           } else {
                             return (
-                              <Button 
-                                onClick={() => toast.warning("Orden de prioridad", {
-                                  description: "Debes gestionar primero la solicitud más temprana del día asignada a ti."
-                                })}
+                              <Button
+                                onClick={() =>
+                                  toast.warning("Orden de prioridad", {
+                                    description:
+                                      "Debes gestionar primero la solicitud más temprana del día asignada a ti.",
+                                  })
+                                }
                                 className="bg-amber-100 hover:bg-amber-200 text-amber-700 border-none transition-all font-bold h-11 w-52 rounded-xl flex items-center justify-center p-0"
                               >
                                 <Clock size={18} className="mr-2" />
@@ -790,12 +977,14 @@ export default function DashboardPage() {
                         }
 
                         return (
-                          <Button 
+                          <Button
                             disabled
                             className="bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-none font-bold h-11 w-52 rounded-xl cursor-not-allowed opacity-70 flex items-center justify-center p-0"
                           >
                             <Clock size={16} className="mr-2" />
-                            {isBusy && isForToday ? "Servicio en curso" : `Programado: ${format(new Date(s.fecha_programada!), "dd/MM HH:mm")}`}
+                            {isBusy && isForToday
+                              ? "Servicio en curso"
+                              : `Programado: ${format(new Date(s.fecha_programada!), "dd/MM HH:mm")}`}
                           </Button>
                         );
                       })()}
@@ -819,23 +1008,36 @@ export default function DashboardPage() {
             <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={mesData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis 
-                    dataKey="mes" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#e2e8f0"
                   />
-                  <YAxis 
-                    allowDecimals={false} 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#64748b', fontSize: 12, fontWeight: 'bold' }} 
+                  <XAxis
+                    dataKey="mes"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748b", fontSize: 12, fontWeight: "bold" }}
                   />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                  <YAxis
+                    allowDecimals={false}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#64748b", fontSize: 12, fontWeight: "bold" }}
                   />
-                  <Bar dataKey="total" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={30} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                    }}
+                  />
+                  <Bar
+                    dataKey="total"
+                    fill="#2563eb"
+                    radius={[6, 6, 0, 0]}
+                    barSize={30}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -852,7 +1054,7 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
-                    data={porEstado}
+                    data={porEstadoConColores}
                     dataKey="total"
                     nameKey="estado"
                     cx="50%"
@@ -862,14 +1064,15 @@ export default function DashboardPage() {
                     paddingAngle={5}
                     isAnimationActive={false}
                     label={renderPieLabel}
-                    labelLine={{ stroke: '#cbd5e1', strokeWidth: 1 }}
-                  >
-                    {porEstado.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                    labelLine={{ stroke: "#cbd5e1", strokeWidth: 1 }}
+                    stroke="none"
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "12px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)",
+                    }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -883,16 +1086,26 @@ export default function DashboardPage() {
   function ClienteDashboard() {
     const navigate = useNavigate();
     const isProfileComplete = () => {
-      return !!(user?.apellidos && user?.telefono && user?.direccion && user?.ciudad && user?.codigo_postal);
+      return !!(
+        user?.apellidos &&
+        user?.telefono &&
+        user?.direccion &&
+        user?.ciudad &&
+        user?.codigo_postal
+      );
     };
 
     const handleSolicitar = (path: string) => {
       if (!isProfileComplete()) {
-        toast.error("Por favor, completa tus datos personales en la cuenta antes de solicitar servicio.");
+        toast.error(
+          "Por favor, completa tus datos personales en la cuenta antes de solicitar servicio.",
+        );
         return;
       }
       if (contadores?.vehiculos === 0) {
-        toast.error("Añade al menos un vehículo a tu cuenta para poder solicitar un servicio.");
+        toast.error(
+          "Añade al menos un vehículo a tu cuenta para poder solicitar un servicio.",
+        );
         return;
       }
       navigate(path);
@@ -900,29 +1113,42 @@ export default function DashboardPage() {
 
     return (
       <div className="space-y-6">
-
         {/* Sección ITV */}
         <CardSinBorde className="border-none shadow-none bg-white overflow-hidden">
           <CardContent className="p-0">
             {contadores?.itv_alertas && contadores.itv_alertas.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {contadores.itv_alertas.map((alert) => (
-                  <div key={alert.id} className="flex flex-col sm:flex-row items-center justify-between py-8 px-6 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl gap-4">
+                  <div
+                    key={alert.id}
+                    className="flex flex-col sm:flex-row items-center justify-between py-8 px-6 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900 rounded-xl gap-4"
+                  >
                     <div className="flex items-center gap-4">
                       <div className="bg-yellow-100 dark:bg-yellow-900/40 p-3 rounded-full">
-                        <AlertTriangle className="text-yellow-600 dark:text-yellow-500" size={28} />
+                        <AlertTriangle
+                          className="text-yellow-600 dark:text-yellow-500"
+                          size={28}
+                        />
                       </div>
                       <div>
                         <h4 className="text-lg font-bold text-yellow-900 dark:text-yellow-100 italic">
                           ¡Atención ITV!
                         </h4>
                         <p className="text-sm text-yellow-800/80 dark:text-yellow-200/60 max-w-lg">
-                          La ITV de tu <strong>{alert.marca} {alert.modelo} ({alert.matricula})</strong> caduca pronto. (Última: {fmt(alert.fecha_ultima_itv)})
+                          La ITV de tu{" "}
+                          <strong>
+                            {alert.marca} {alert.modelo} ({alert.matricula})
+                          </strong>{" "}
+                          caduca pronto. (Última: {fmt(alert.fecha_ultima_itv)})
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      onClick={() => handleSolicitar(`/perfil/${user?.id}/nueva-solicitud?vehiculo_id=${alert.id}&v_marca=${alert.marca}&v_modelo=${alert.modelo}&v_matricula=${alert.matricula}`)}
+                    <Button
+                      onClick={() =>
+                        handleSolicitar(
+                          `/perfil/${user?.id}/nueva-solicitud?vehiculo_id=${alert.id}&v_marca=${alert.marca}&v_modelo=${alert.modelo}&v_matricula=${alert.matricula}`,
+                        )
+                      }
                       className="bg-yellow-600 hover:bg-yellow-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all active:scale-95 whitespace-nowrap"
                     >
                       <FileText size={18} className="mr-2" />
@@ -935,19 +1161,25 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row items-center justify-between py-8 px-6 bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-xl gap-4">
                 <div className="flex items-center gap-4 text-center sm:text-left">
                   <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-full hidden sm:block">
-                    <Car className="text-blue-600 dark:text-blue-400" size={28} />
+                    <Car
+                      className="text-blue-600 dark:text-blue-400"
+                      size={28}
+                    />
                   </div>
                   <div>
                     <h4 className="text-lg font-bold text-blue-900 dark:text-blue-100">
                       Llevamos tu coche a la ITV por ti
                     </h4>
                     <p className="text-sm text-blue-800/80 dark:text-blue-200/60 max-w-lg">
-                      Nos encargamos de todo el proceso para que no pierdas tiempo. Rápido, seguro y sin complicaciones.
+                      Nos encargamos de todo el proceso para que no pierdas
+                      tiempo. Rápido, seguro y sin complicaciones.
                     </p>
                   </div>
                 </div>
-                <Button 
-                  onClick={() => handleSolicitar(`/perfil/${user?.id}/nueva-solicitud`)}
+                <Button
+                  onClick={() =>
+                    handleSolicitar(`/perfil/${user?.id}/nueva-solicitud`)
+                  }
                   className="bg-blue-600 hover:bg-blue-700 text-white h-12 px-6 rounded-lg font-semibold shadow-lg transition-all active:scale-95"
                 >
                   <FileText size={18} className="mr-2" />
@@ -961,14 +1193,19 @@ export default function DashboardPage() {
         {/* Solicitudes recientes */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Recientemente...</h2>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+              Recientemente...
+            </h2>
           </div>
-          
+
           {solicitudesActualizadas.length === 0 ? (
             <Card className="border-dashed border-2 bg-slate-50/50 dark:bg-slate-900/50">
               <CardContent className="py-12 flex flex-col items-center justify-center text-center">
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-full shadow-sm mb-4">
-                  <FileText className="text-slate-300 dark:text-slate-600" size={32} />
+                  <FileText
+                    className="text-slate-300 dark:text-slate-600"
+                    size={32}
+                  />
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 max-w-[200px]">
                   No tienes ninguna solicitud activa en este momento.
@@ -978,7 +1215,10 @@ export default function DashboardPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {solicitudesActualizadas[0] && (
-                <SolicitudStatusCard key={solicitudesActualizadas[0].id} s={solicitudesActualizadas[0]} />
+                <SolicitudStatusCard
+                  key={solicitudesActualizadas[0].id}
+                  s={solicitudesActualizadas[0]}
+                />
               )}
             </div>
           )}

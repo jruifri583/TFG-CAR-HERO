@@ -8,7 +8,7 @@ use Carbon\Carbon;
 
 class HistorialService
 {
-    public function crearDesdeSolicitud(Solicitud $solicitud): Historial
+    public function createFromSolicitud(Solicitud $solicitud): Historial
     {
         return Historial::updateOrCreate(
             ['solicitud_id' => $solicitud->id],

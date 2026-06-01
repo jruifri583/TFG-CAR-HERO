@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Solicitud;
 use App\Models\User;
+use App\Enums\EstadoSlug;
 
 class SolicitudPolicy
 {
@@ -37,13 +38,13 @@ class SolicitudPolicy
         return false;
     }
 
-    // Determinar si el usuario puede crear modelos.
+    // Determinar si el usuario puede crear solicitudes.
     public function create(User $user): bool
     {
         return $user->isAdmin() || $user->isCustomer();
     }
 
-    // Determinar si el usuario puede actualizar el modelo.
+    // Determinar si el usuario puede actualizar la solicitud.
     public function update(User $user, Solicitud $solicitud): bool
     {
         if ($user->isAdmin()) return true;
@@ -66,13 +67,11 @@ class SolicitudPolicy
 
         if ((int) $user->id !== (int) $solicitud->user_cliente_id) return false;
 
-        // Already terminal states
         $slug = $solicitud->estado?->slug;
-        if (in_array($slug, [\App\Enums\EstadoSlug::CANCELADO->value, \App\Enums\EstadoSlug::FINALIZADO->value])) {
+        if (in_array($slug, [EstadoSlug::CANCELADO->value, EstadoSlug::FINALIZADO->value])) {
             return false;
         }
 
-        // If fecha_programada is set and has already passed → cannot cancel
         if ($solicitud->fecha_programada && $solicitud->fecha_programada->isPast()) {
             return false;
         }
@@ -80,19 +79,19 @@ class SolicitudPolicy
         return true;
     }
 
-    // Determinar si el usuario puede eliminar el modelo.
+    // Determinar si el usuario puede eliminar la solicitud.
     public function delete(User $user, Solicitud $solicitud): bool
     {
         return false;
     }
 
-    // Determinar si el usuario puede restaurar el modelo.
+    // Determinar si el usuario puede restaurar la solicitud.
     public function restore(User $user, Solicitud $solicitud): bool
     {
         return false;
     }
 
-    // Determinar si el usuario puede eliminar permanentemente el modelo.
+    // Determinar si el usuario puede eliminar permanentemente la solicitud.
     public function forceDelete(User $user, Solicitud $solicitud): bool
     {
         return false;

@@ -7,6 +7,8 @@ import {
 
 import { cn } from "@/lib/utils";
 import { buttonVariants, type Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { getPaginationRange } from "@/lib/pagination-utils";
 
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
@@ -121,6 +123,76 @@ function PaginationEllipsis({
   );
 }
 
+interface PaginationSelectorProps {
+  currentPage: number;
+  totalPages: number;
+  goToPage: (page: number) => void;
+  className?: string;
+}
+
+function PaginationSelector({
+  currentPage,
+  totalPages,
+  goToPage,
+  className,
+}: PaginationSelectorProps) {
+  const isMobile = useIsMobile();
+
+  if (totalPages <= 1) return null;
+
+  return (
+    <Pagination className={className}>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            disabled={currentPage === 1}
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage > 1) goToPage(currentPage - 1);
+            }}
+          />
+        </PaginationItem>
+
+        {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
+          if (page === "...") {
+            return (
+              <PaginationItem key={`dots-${index}`}>
+                <span className="px-2 select-none text-muted-foreground">...</span>
+              </PaginationItem>
+            );
+          }
+          return (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href="#"
+                isActive={currentPage === page}
+                onClick={(e) => {
+                  e.preventDefault();
+                  goToPage(Number(page));
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          );
+        })}
+
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            disabled={currentPage === totalPages}
+            onClick={(e) => {
+              e.preventDefault();
+              if (currentPage < totalPages) goToPage(currentPage + 1);
+            }}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
 export {
   Pagination,
   PaginationContent,
@@ -129,4 +201,5 @@ export {
   PaginationPrevious,
   PaginationNext,
   PaginationEllipsis,
+  PaginationSelector,
 };

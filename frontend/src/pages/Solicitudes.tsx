@@ -13,21 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination";
+import { PaginationSelector } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/useAuth";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { getPaginationRange } from "@/lib/pagination-utils";
-import { useIsMobile } from "@/hooks/useIsMobile";
 import { toast } from "sonner";
 
 interface Solicitud {
@@ -115,7 +106,6 @@ export default function SolicitudesPage({
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { user } = useAuth();
-  const isMobile = useIsMobile();
   const role = user?.rol?.slug;
 
   const isProfileComplete = () => {
@@ -513,55 +503,12 @@ export default function SolicitudesPage({
         )
       )}
 
-      {totalPages > 1 && (
-        <Pagination className="mt-6">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                disabled={currentPage === 1}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) goToPage(currentPage - 1);
-                }}
-              />
-            </PaginationItem>
-            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
-              if (page === "...") {
-                return (
-                  <PaginationItem key={`dots-${index}`}>
-                    <span className="px-2">...</span>
-                  </PaginationItem>
-                );
-              }
-              return (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === page}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(Number(page));
-                    }}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                disabled={currentPage === totalPages}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) goToPage(currentPage + 1);
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <PaginationSelector
+        currentPage={currentPage}
+        totalPages={totalPages}
+        goToPage={goToPage}
+        className="mt-6"
+      />
     </>
   );
 }

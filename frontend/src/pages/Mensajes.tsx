@@ -11,20 +11,11 @@ import {
   TableCell,
   TableHead,
 } from "@/components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination";
+import { PaginationSelector } from "@/components/ui/pagination";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CardSinBorde, CardContent } from "@/components/ui/card";
-import { getPaginationRange } from "@/lib/pagination-utils";
-import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface Mensaje {
   id: number;
@@ -46,7 +37,6 @@ export default function MensajesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortField, setSortField] = useState<SortField | null>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const isMobile = useIsMobile();
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -330,55 +320,12 @@ export default function MensajesPage() {
       </Table>
       )}
 
-      {totalPages > 1 && (
-        <Pagination className="mt-6">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                disabled={currentPage === 1}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) goToPage(currentPage - 1);
-                }}
-              />
-            </PaginationItem>
-            {getPaginationRange(currentPage, totalPages, !isMobile).map((page, index) => {
-              if (page === "...") {
-                return (
-                  <PaginationItem key={`dots-${index}`}>
-                    <span className="px-2">...</span>
-                  </PaginationItem>
-                );
-              }
-              return (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    href="#"
-                    isActive={currentPage === page}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      goToPage(Number(page));
-                    }}
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                disabled={currentPage === totalPages}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) goToPage(currentPage + 1);
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+      <PaginationSelector
+        currentPage={currentPage}
+        totalPages={totalPages}
+        goToPage={goToPage}
+        className="mt-6"
+      />
 
     </>
   );

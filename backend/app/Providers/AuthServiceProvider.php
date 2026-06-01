@@ -6,10 +6,12 @@ use App\Models\Solicitud;
 use App\Models\Vehiculo;
 use App\Models\Historial;
 use App\Models\User;
+use App\Models\Pago;
 use App\Policies\SolicitudPolicy;
 use App\Policies\VehiculoPolicy;
 use App\Policies\HistorialPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\PagoPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -19,6 +21,7 @@ class AuthServiceProvider extends ServiceProvider
         Vehiculo::class => VehiculoPolicy::class,
         Historial::class => HistorialPolicy::class,
         User::class => UserPolicy::class,
+        Pago::class => PagoPolicy::class,
     ];
 
     public function boot(): void

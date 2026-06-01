@@ -20,8 +20,6 @@ class SolicitudService
         $this->historialService = $historialService;
     }
 
-    // FORM DATA 
-
     protected function baseFormData(): array
     {
         return [
@@ -52,8 +50,6 @@ class SolicitudService
         return $data;
     }
 
-    // UPDATE 
-
     public function update(Solicitud $solicitud, array $data): void
     {
         $dataFiltered = collect($data)
@@ -80,7 +76,7 @@ class SolicitudService
         if (isset($dataFiltered['estado_id'])
             && $dataFiltered['estado_id'] != $solicitud->getOriginal('estado_id')) {
 
-            $this->cambiarEstado($solicitud, (int) $dataFiltered['estado_id']);
+            $this->changeStatus($solicitud, (int) $dataFiltered['estado_id']);
         }
 
         $solicitud->fill($dataFiltered);
@@ -93,13 +89,11 @@ class SolicitudService
                 'fecha_ultima_itv' => $solicitud->fecha_programada ?? now(),
             ]);
 
-            $this->historialService->crearDesdeSolicitud($solicitud);
+            $this->historialService->createFromSolicitud($solicitud);
         }
     }
 
-    // CAMBIO DE ESTADO 
-
-    public function cambiarEstado(Solicitud $solicitud, int $nuevoEstadoId): void
+    public function changeStatus(Solicitud $solicitud, int $nuevoEstadoId): void
     {
         $nuevoEstado = Estado::findOrFail($nuevoEstadoId);
 

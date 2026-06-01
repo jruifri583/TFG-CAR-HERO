@@ -73,7 +73,7 @@ class HistorialController extends Controller
     {
         $solicitud = Solicitud::findOrFail($request->solicitud_id);
 
-        $historial = $this->historialService->crearDesdeSolicitud($solicitud);
+        $historial = $this->historialService->createFromSolicitud($solicitud);
 
         return response()->json([
             'message' => 'Historial generado correctamente.',

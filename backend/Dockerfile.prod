@@ -1,6 +1,4 @@
-# ============================================
-# STAGE 1 — Composer dependencies
-# ============================================
+# Composer dependencies
 FROM composer:2 AS vendor
 
 WORKDIR /app
@@ -13,9 +11,7 @@ RUN composer install \
     --optimize-autoloader \
     --no-scripts
 
-# ============================================
-# STAGE 2 — Production image (PHP-FPM)
-# ============================================
+# Production image (PHP-FPM)
 FROM php:8.2-fpm-alpine
 
 # Dependencias del sistema
