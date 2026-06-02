@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\VehiculoController;
 use App\Http\Controllers\Api\HistorialController;
 use App\Http\Controllers\Api\GoogleController;
 use App\Http\Controllers\Api\SolicitudController;
+use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\DashboardController;
 use Illuminate\Http\Request;
 use App\Enums\RolSlug;
@@ -19,7 +20,7 @@ use App\Http\Controllers\Api\MensajeContactoController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/auth/google', [GoogleController::class, 'loginWithGoogle']);
-Route::post('/contacto', [\App\Http\Controllers\Api\ContactController::class, 'store']);
+Route::post('/contacto', [ContactController::class, 'store']);
 
 
 // --- Rutas Protegidas ---
@@ -32,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/me/imagen', [AuthController::class, 'updateImagen']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Recursos
+    // Solo admin
     Route::middleware('rol:' . RolSlug::ADMINISTRADOR->value)->group(function () {
         Route::resource('users', UserController::class);
         Route::post('/users/{user}/imagen', [UserController::class, 'updateImagen']);
@@ -41,6 +42,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('mensajes', MensajeContactoController::class)->only(['index', 'destroy']);
         Route::patch('/mensajes/{mensaje}/leido', [MensajeContactoController::class, 'markAsRead']);
         Route::post('/mensajes/{mensaje}/responder', [MensajeContactoController::class, 'responder']);
+        Route::get('/dashboard/solicitudes-por-estado', [DashboardController::class, 'solicitudesPorEstado']);
+        Route::get('/dashboard/solicitudes-por-mes', [DashboardController::class, 'solicitudesPorMes']);
     });
 
     Route::apiResource('vehiculos', VehiculoController::class);
@@ -54,8 +57,6 @@ Route::middleware('auth:sanctum')->group(function () {
 ]);
 
     Route::get('/contadores', [DashboardController::class, 'contadores']);
-    Route::get('/dashboard/solicitudes-por-estado', [DashboardController::class, 'solicitudesPorEstado']);
-    Route::get('/dashboard/solicitudes-por-mes', [DashboardController::class, 'solicitudesPorMes']);
     Route::get('/dashboard/solicitudes-recientes', [DashboardController::class, 'solicitudesRecientes']);
     Route::get('/dashboard/solicitudes-actualizadas', [DashboardController::class, 'solicitudesActualizadas']);
   
