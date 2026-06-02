@@ -37,8 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('rol:' . RolSlug::ADMINISTRADOR->value)->group(function () {
         Route::resource('users', UserController::class);
         Route::post('/users/{user}/imagen', [UserController::class, 'updateImagen']);
-        
-        // Mensajes de contacto (sólo lectura, marcado de leído y borrado)
         Route::apiResource('mensajes', MensajeContactoController::class)->only(['index', 'destroy']);
         Route::patch('/mensajes/{mensaje}/leido', [MensajeContactoController::class, 'markAsRead']);
         Route::post('/mensajes/{mensaje}/responder', [MensajeContactoController::class, 'responder']);
