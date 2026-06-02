@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ContactMessageMailable;
+use App\Models\MensajeContacto;
+use Illuminate\Support\Facades\Http;
 
 class ContactController extends Controller
 {
@@ -27,7 +29,7 @@ class ContactController extends Controller
 
         $validated = $request->validate($rules);
         if ($isConfigured) {
-            $response = \Illuminate\Support\Facades\Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'secret'   => $turnstileSecret,
                 'response' => $request->input('cf_turnstile_response'),
             ]);
@@ -42,9 +44,9 @@ class ContactController extends Controller
 
         try {
             // Guardar en la base de datos
-            \App\Models\MensajeContacto::create($validated);
+            MensajeContacto::create($validated);
 
-            // Se envía a un correo de ejemplo de la empresa
+            // Se envía al correo de la empresa
             Mail::to(config('mail.from.address', 'contacto@carhero.com'))->send(new ContactMessageMailable($validated));
 
             return response()->json([

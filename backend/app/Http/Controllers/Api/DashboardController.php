@@ -73,7 +73,7 @@ class DashboardController extends Controller
 
     public function solicitudesPorEstado()
 {
-    $data = \App\Models\Solicitud::join('estados', 'solicitudes.estado_id', '=', 'estados.id')
+    $data = Solicitud::join('estados', 'solicitudes.estado_id', '=', 'estados.id')
         ->selectRaw('estados.nombre as estado, COUNT(*) as total')
         ->groupBy('estados.nombre')
         ->get();
@@ -83,7 +83,7 @@ class DashboardController extends Controller
 
 public function solicitudesPorMes()
 {
-    $data = \App\Models\Solicitud::selectRaw('MONTH(created_at) as mes, COUNT(*) as total')
+    $data = Solicitud::selectRaw('MONTH(created_at) as mes, COUNT(*) as total')
         ->whereYear('created_at', now()->year)
         ->groupBy('mes')
         ->orderBy('mes')
@@ -94,7 +94,7 @@ public function solicitudesPorMes()
 
 public function pagosRecientes()
 {
-    $pagos = \App\Models\Pago::with(['metodoPago'])
+    $pagos = Pago::with(['metodoPago'])
         ->latest()
         ->limit(5)
         ->get()
@@ -113,7 +113,7 @@ public function solicitudesRecientes()
 {
     $user = request()->user();
     $estadoPendienteId = Estado::where('slug', EstadoSlug::PENDIENTE->value)->value('id');
-    $solicitudes = \App\Models\Solicitud::visibleFor($user)
+    $solicitudes = Solicitud::visibleFor($user)
         ->withBaseRelations()
         ->where('estado_id', $estadoPendienteId)
         ->whereNull('user_empleado_id')
@@ -128,11 +128,11 @@ public function solicitudesRecientes()
     $user = request()->user();
     $estadoPendienteId = Estado::where('slug', EstadoSlug::PENDIENTE->value)->value('id');
 
-    $solicitudes = \App\Models\Solicitud::visibleFor($user)
+    $solicitudes = Solicitud::visibleFor($user)
         ->withBaseRelations()
         // Excluir solicitudes que están en 'Nuevas' (pendiente + sin empleado) SOLO para Admin/Empleado
         // para evitar duplicidad, ya que el Cliente no tiene sección de 'Nuevas'.
-        ->when($user->rol->slug !== \App\Enums\RolSlug::CLIENTE->value, function($q) use ($estadoPendienteId) {
+        ->when($user->rol->slug !== RolSlug::CLIENTE->value, function($q) use ($estadoPendienteId) {
             $q->where(function($q2) use ($estadoPendienteId) {
                 $q2->where('estado_id', '!=', $estadoPendienteId)
                   ->orWhereNotNull('user_empleado_id');
